@@ -1,5 +1,5 @@
 #' FLIC - Firth's logistic regression with intercept correction
-#'
+#' 
 #' \code{flic} implements Firth's bias-Reduced penalized-likelihood logistic regression with intercept correction.
 #'
 #' This is a generic function: methods can be defined for it directly
