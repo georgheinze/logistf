@@ -33,7 +33,7 @@
 #' 
 #' @rdname backward
 #' @export backward
-backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE, ...){
+backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=TRUE, ...){
   istep<-0 #index of steps
   working<-object
   if(trace){
@@ -46,31 +46,44 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
   if(missing(scope)) scope<-attr(terms(working),"term.labels") #scope missing - use terms of object fit
   #    if(missing(scope)) scope<-names(coef(working))
   
+  if (full.penalty) { #if TRUE, use start model and save all removals in vector removal
+    removal <- vector()
+  }
   while(istep<steps & working$df>=1){
+    if(full.penalty && istep!=0){ #check with istep!=0 if removal is an empty vector - not possible to pass such to drop1
+      mat <- drop1(object, full.penalty.vec=removal)
+    }
+    else {
+      mat<-drop1(working)
+    }
     istep<-istep+1
-    mat<-drop1(working)
     if(all(mat[,3]<slstay)) break #check p-value of variables in scope
     inscope<-match(scope,rownames(mat))
     inscope<-inscope[!is.na(inscope)]
-    removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])] #remove highest pvalue
+    if (full.penalty){
+      removal <- c(removal, rownames(mat)[mat[,3]==max(mat[inscope,3])])
+      curr_removal <- removal[istep]
+    }
+    else { #if full.penalty = FALSE: save only current removal
+      removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])] #remove highest pvalue
+      curr_removal <- removal
+    }
     #check if object$formula contains a dot shortcut i.e. last character: 
     if (sapply(grepl("\\.", working$formula), tail, 1)){
       char <- paste(working$terms[-1], collapse=" + ") #get variables from data without intercept
-      variables <- paste(char, removal, sep="-") #remove target variable
+      variables <- paste(char, paste(removal, collapse="-"), sep="-") #remove target variable
       newform <- as.formula(paste("", variables, sep="~")) #coerce to formula
     }
     else {
-      newform=as.formula(paste("~.-",removal))
+        newform=as.formula(paste("~.-",paste(removal, collapse = "-")))
     }
-    
-    if(working$df==1 | working$df==mat[mat[,3]==max(mat[,3]),2]){
-      working<-update(working, formula=newform, pl=FALSE, data=object$data)
-    }
-    else {
-      working<-update(working, formula=newform, data=object$data)
+    if(!full.penalty){ #udate working only if full.penalty==FALSE
+      if(working$df==1 | working$df==mat[mat[,3]==max(mat[,3]),2]){
+        working<-update(working, formula=newform, pl=FALSE, data=object$data)
+      }
     }
     if(trace){
-      cat("Step ", istep, ": removed ", removal, " (P=", max(mat[,3]),")\n")
+      cat("Step ", istep, ": removed ", curr_removal, " (P=", max(mat[,3]),")\n")
       if(printwork) {
         print(working)
         cat("\n\n")
@@ -78,6 +91,7 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
     }
   }
   if(trace) cat("\n")
+  if(full.penalty) working<-update(working, data=object$data, col.fit.object=removal)
   return(working)
 }
 #' @export forward

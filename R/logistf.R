@@ -123,8 +123,7 @@
 #' @rdname logistf
 logistf <-
 function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha = 0.05,
-    control, plcontrol, firth = TRUE, init, weights, plconf=NULL, dataout=TRUE, ...)
-{
+    control, plcontrol, firth = TRUE, init, weights, plconf=NULL, dataout=TRUE, ...){
     #n <- nrow(data)
 #    if (is.null(weights)) weights<-rep(1,nrow(data))
    call <- match.call()
@@ -162,9 +161,21 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
         int <- 0
         coltotest <-1:k
     }
-
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=1:k, init, control=control)
+    
+    #for backward function to update logistf object
+    extras <- list(...)
+    if (!is.null(extras$col.fit.object)){
+      colfit <- eval(extras$col.fit.object)
+      matched <- match(colfit, variables)+1
+      colfit <- (1:7)[-matched]
+    }
+    else {
+      colfit <- 1:k
+    }
+    
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
+    
     fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int), loglik =c(fit.null$loglik, fit.full$loglik),
         iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=match.call(), conv=fit.full$conv)
     names(fit$conv)<-c("LL change","max abs score","beta change")
@@ -175,8 +186,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     fit$linear.predictors <- as.vector(x %*% beta + offset)
     fit$predict <- fit.full$pi
     fit$hat.diag <- fit.full$Hdiag
-    if(firth)
-        fit$method <- "Penalized ML"
+    if(firth) fit$method <- "Penalized ML"
     else fit$method <- "Standard ML"
     vars <- diag(covs)
     fit$prob <- 1 - pchisq((beta^2/vars), 1)
@@ -216,26 +226,26 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
         fit$betahist<-list(lower=betahist.lo, upper=betahist.up)
         fit$pl.conv<-pl.conv
     }
-    names(fit$prob) <- names(fit$ci.upper) <- names(fit$ci.lower) <- names(fit$
-        coefficients) <- dimnames(x)[[2]]
+    names(fit$prob) <- names(fit$ci.upper) <- names(fit$ci.lower) <- names(fit$coefficients) <- dimnames(x)[[2]]
     #flic: 
     if(FALSE) {
-    if (firth && pl) {
-      #calculate linear predictors ommiting the intercept
-      lp_flic <-  fit$linear.predictors-fit$coef[1]
-      #determine ML estimate of intercept 
-      response <- formula.tools::lhs.vars(formula)
-      fit_flic <- glm(as.formula(paste(response, paste("1"), sep=" ~ ")), family=binomial(link=logit), 
-                 data=data, offset=lp_flic)
-      W <- diag(fit_flic$fitted.values*(1-fit_flic$fitted.values))
-      tmp.var <- solve(t(x)%*%W%*%x)
-      beta0.se <- sqrt(tmp.var[1,1])
-      fit$flic.coefficients <- c(fit_flic$coef, fit$coef[-1])
-      fit$flic.ci.lower <- c(fit_flic$coef-beta0.se*1.96, fit$ci.lower[-1])
-      fit$flic.ci.upper <- c(fit_flic$coef+beta0.se*1.96, fit$ci.upper[-1])
-      fit$flic.linear.predictors <- fit_flic$linear
-      fit$flic.predict <-fit_flic$fitted
-    }}
+      if (firth && pl){
+        #calculate linear predictors ommiting the intercept
+        lp_flic <-  fit$linear.predictors-fit$coef[1]
+        #determine ML estimate of intercept 
+        response <- formula.tools::lhs.vars(formula)
+        fit_flic <- glm(as.formula(paste(response, paste("1"), sep=" ~ ")), family=binomial(link=logit), 
+                   data=data, offset=lp_flic)
+        W <- diag(fit_flic$fitted.values*(1-fit_flic$fitted.values))
+        tmp.var <- solve(t(x)%*%W%*%x)
+        beta0.se <- sqrt(tmp.var[1,1])
+        fit$flic.coefficients <- c(fit_flic$coef, fit$coef[-1])
+        fit$flic.ci.lower <- c(fit_flic$coef-beta0.se*1.96, fit$ci.lower[-1])
+        fit$flic.ci.upper <- c(fit_flic$coef+beta0.se*1.96, fit$ci.upper[-1])
+        fit$flic.linear.predictors <- fit_flic$linear
+        fit$flic.predict <-fit_flic$fitted
+      }
+    }
     
     if(dataout) {
       fit$data<-data
@@ -271,6 +281,6 @@ confint.logistf<-function(object,parm, level=0.95, exp=FALSE, ...){
 #' @method vcov logistf
 vcov.logistf<-function(object,...){
   return(object$var)
-  }
+}
   
   

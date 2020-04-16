@@ -107,7 +107,7 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
       f3<-as.formula(f3)
     } else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""))
       
-    test<-logistftest(object=fit1, test=f3, firth=fit1$firth, weights=fit1$weights)
+    test<-logistftest(object=fit1, test=f3, firth=fit1$firth, weights=fit1$weights,...)
     chisq<-2*diff(test$loglik)
     PLR1<-2*diff(fit1$loglik)
     PLR2<-PLR1-chisq

@@ -7,7 +7,7 @@
 #' This function performs a penalized likelihood ratio test on some (or all) selected factors. The resulting object is of the class logistftest and includes the information printed by the proper print 
 #' method. Further documentation can be found in Heinze & Ploner (2004). 
 #' In most cases, the functionality of the logistftest function is replaced by anova.logistf, which 
-#' is a more standard way to perform likelihood ratio tests. However, as shown in the example below, logistftest provides some specials such as testing agains non-zero values. (By the way, 
+#' is a more standard way to perform likelihood ratio tests. However, as shown in the example below, logistftest provides some specials such as testing against non-zero values. (By the way, 
 #' anova.logistf calls logistftest. 
 #' 
 #' @param object A fitted \code{logistf} object
@@ -59,7 +59,7 @@
 #' 
 #' 
 logistftest <-
-function(object, test, values, firth = TRUE, beta0, weights, control)
+function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.object = NULL)
 {
    call <- match.call()
    formula<-object$formula
@@ -100,9 +100,13 @@ function(object, test, values, firth = TRUE, beta0, weights, control)
 
 ###    fit.full<-logistf.fit(    ) # unrestricted, define init and col.fit from values, beta0 and test
 ###    fit.null<-logistf.fit(    ) # restricted, define init and col.fit from values, beta0 and test
-    
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=1:k, control=control)
-    
+    if(!is.null(col.fit.object)){
+        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=col.fit.object, control=control)
+    }
+    else {
+        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=1:k, control=control)
+    }
+
     pos<-coltotest
     if(missing(test))
         test <- coltotest
@@ -120,7 +124,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control)
     if(!missing(values))
         offset1[pos] <- values
     beta <- offset1  ########################################
-
+    
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=(1:k)[-pos], control=control, init=beta)
 
     loglik<-c(fit.null$loglik,fit.full$loglik)
