@@ -164,16 +164,17 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     
     #for backward function to update logistf object
     extras <- list(...)
-    if (!is.null(extras$col.fit.object)){
-      colfit <- eval(extras$col.fit.object)
-      matched <- match(colfit, variables)+1
-      colfit <- (1:7)[-matched]
+    if (!is.null(extras$terms.fit)){
+      termsfit <- eval(extras$terms.fit)
+      matched <- match(termsfit, variables)+1
+      terms.fit <- (1:7)[matched] #intercept correction TODO
+      terms.fit <- c(1,terms.fit)
     }
     else {
-      colfit <- 1:k
+      terms.fit <- 1:k
     }
     
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=terms.fit, init, control=control)
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
     
     fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int), loglik =c(fit.null$loglik, fit.full$loglik),
@@ -267,6 +268,7 @@ coef.logistf<-function(object,...){
 }
 
 #' @method confint logistf
+#' @exportS3Method confint logistf
 confint.logistf<-function(object,parm, level=0.95, exp=FALSE, ...){
   # in fact, level is already determined in the object and will be overwritten
   level<-object$conflev

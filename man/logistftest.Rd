@@ -4,7 +4,16 @@
 \alias{logistftest}
 \title{Penalized likelihood ratio test}
 \usage{
-logistftest(object, test, values, firth = TRUE, beta0, weights, control)
+logistftest(
+  object,
+  test,
+  values,
+  firth = TRUE,
+  beta0,
+  weights,
+  control,
+  col.fit.object = NULL
+)
 }
 \arguments{
 \item{object}{A fitted \code{logistf} object}
@@ -50,7 +59,7 @@ proper print method.
 This function performs a penalized likelihood ratio test on some (or all) selected factors. The resulting object is of the class logistftest and includes the information printed by the proper print 
 method. Further documentation can be found in Heinze & Ploner (2004). 
 In most cases, the functionality of the logistftest function is replaced by anova.logistf, which 
-is a more standard way to perform likelihood ratio tests. However, as shown in the example below, logistftest provides some specials such as testing agains non-zero values. (By the way, 
+is a more standard way to perform likelihood ratio tests. However, as shown in the example below, logistftest provides some specials such as testing against non-zero values. (By the way, 
 anova.logistf calls logistftest.
 }
 \examples{

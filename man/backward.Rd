@@ -12,6 +12,7 @@ backward(
   slstay = 0.05,
   trace = TRUE,
   printwork = FALSE,
+  full.penalty = FALSE,
   ...
 )
 
@@ -42,6 +43,8 @@ that only some of the variables will be competitively selected or dropped.}
 \item{trace}{If \code{TRUE}, protocols selection steps.}
 
 \item{printwork}{If \code{TRUE}, prints each working model that is visited by the selection procedure.}
+
+\item{full.penalty}{If \code{TRUE} penalty is not taken from current model but from start model.}
 
 \item{...}{Further arguments to be passed to methods.}
 

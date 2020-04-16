@@ -7,7 +7,7 @@
 \usage{
 \method{add1}{logistf}(object, scope, test = "PLR", ...)
 
-\method{drop1}{logistf}(object, scope, test = "PLR", ...)
+\method{drop1}{logistf}(object, scope, test = "PLR", full.penalty.vec = NULL, ...)
 }
 \arguments{
 \item{object}{A fitted \code{logistf} object}

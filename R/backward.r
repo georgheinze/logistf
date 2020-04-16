@@ -17,6 +17,7 @@
 #' @param slentry For \code{forward}, the significance level to enter the model.
 #' @param trace If \code{TRUE}, protocols selection steps.
 #' @param printwork If \code{TRUE}, prints each working model that is visited by the selection procedure.
+#' @param full.penalty If \code{TRUE} penalty is not taken from current model but from start model.
 #' @param pl For forward, computes profile likelihood confidence intervals for the final model if \code{TRUE}.
 #' @param ... Further arguments to be passed to methods.
 #'
@@ -33,7 +34,7 @@
 #' 
 #' @rdname backward
 #' @export backward
-backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=TRUE, ...){
+backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
   istep<-0 #index of steps
   working<-object
   if(trace){
@@ -75,11 +76,14 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
       newform <- as.formula(paste("", variables, sep="~")) #coerce to formula
     }
     else {
-        newform=as.formula(paste("~.-",paste(removal, collapse = "-")))
+        newform=as.formula(paste("~.-",paste(curr_removal, collapse = "-")))
     }
     if(!full.penalty){ #udate working only if full.penalty==FALSE
       if(working$df==1 | working$df==mat[mat[,3]==max(mat[,3]),2]){
         working<-update(working, formula=newform, pl=FALSE, data=object$data)
+      }
+      else {
+        working<-update(working, formula=newform, data=object$data)
       }
     }
     if(trace){
@@ -91,7 +95,11 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
     }
   }
   if(trace) cat("\n")
-  if(full.penalty) working<-update(working, data=object$data, col.fit.object=removal)
+  if(full.penalty) {
+    tmp <- match(removal, variables)
+    tofit <- variables[-tmp]
+    working<-update(working, data=object$data, terms.fit=tofit)
+  }
   return(working)
 }
 #' @export forward
