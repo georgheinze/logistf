@@ -7,7 +7,11 @@ print.flic <-
     cat("Call:\n")
     print(x$call)
     cat("\n\nCoefficients:\n")
-    out <- cbind(x$coefficients,x$var, x$ci.lower, x$ci.upper, x$probabilities)
-    dimnames(out) <- list(names(x$coefficients), c("coef","se(coef)",paste(c("lower", "upper"),1 - x$alpha), "p"))
+    out <- x$coefficients
     print(out)
+    LL <- 2 * diff(x$loglik)
+    cat("\nLikelihood ratio test=", LL, " on ", x$df, " df, p=", 1 -
+          pchisq(LL, x$df), ", n=",
+        x$n, "\n\n", sep = "")
+    invisible(x)
   }

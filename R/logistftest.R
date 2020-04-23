@@ -59,7 +59,7 @@
 #' 
 #' 
 logistftest <-
-function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.object = NULL)
+function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.object = NULL,...)
 {
    call <- match.call()
    formula<-object$formula

@@ -36,6 +36,12 @@
 #' @export backward
 backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
   istep<-0 #index of steps
+  mf <- match.call(expand.dots =FALSE)
+  m <- match("object", names(mf), 0L)
+  mf <- mf[c(1, m)]
+  object <- eval(mf$object, parent.frame())
+  variables <- object$terms[-1]
+
   working<-object
   if(trace){
     cat("Step ", istep, ": starting model\n")
@@ -64,6 +70,7 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
     if (full.penalty){
       removal <- c(removal, rownames(mat)[mat[,3]==max(mat[inscope,3])])
       curr_removal <- removal[istep]
+      print(removal)
     }
     else { #if full.penalty = FALSE: save only current removal
       removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])] #remove highest pvalue
@@ -80,10 +87,10 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
     }
     if(!full.penalty){ #udate working only if full.penalty==FALSE
       if(working$df==1 | working$df==mat[mat[,3]==max(mat[,3]),2]){
-        working<-update(working, formula=newform, pl=FALSE, data=object$data)
+        working<-update(working, formula=newform, pl=FALSE)
       }
       else {
-        working<-update(working, formula=newform, data=object$data)
+        working<-update(working, formula=newform)
       }
     }
     if(trace){
@@ -98,7 +105,7 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
   if(full.penalty) {
     tmp <- match(removal, variables)
     tofit <- variables[-tmp]
-    working<-update(working, data=object$data, terms.fit=tofit)
+    working<-update(working, terms.fit=tofit)
   }
   return(working)
 }

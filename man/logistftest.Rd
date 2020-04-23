@@ -12,7 +12,8 @@ logistftest(
   beta0,
   weights,
   control,
-  col.fit.object = NULL
+  col.fit.object = NULL,
+  ...
 )
 }
 \arguments{

@@ -43,7 +43,7 @@
 #'    \item{terms}{the column names of the design matrix}
 #'    \item{var}{ the variance-covariance-matrix of the parameters.}
 #'    \item{df}{ the number of degrees of freedom in the model.}
-#'    \item{loglik}{ a vector of the (penalized) log-likelihood of the full and the restricted models.}
+#'    \item{loglik}{ a vector of the (penalized) log-likelihood of the restricted and the full models.}
 #'    \item{iter}{ the number of iterations needed in the fitting process.}
 #'    \item{n}{ the number of observations.}
 #'    \item{y}{ the response-vector, i. e. 1 for successes (events) and 0 for failures.}
@@ -164,21 +164,34 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     
     #for backward function to update logistf object
     extras <- list(...)
+    call_out <- match.call()
+    #if (!is.null(extras$terms.fit)){
+    #  termsfit <- eval(extras$terms.fit)
+    #  print(termsfit)
+    #  print(cov.name)
+    #  matched <- match(termsfit, cov.name)
+    #  print(matched)
+    #  terms.fit <- (1:7)[matched]
+    #  terms.fit <- c(1,terms.fit)
+    #  print(terms.fit)
+    #}
     if (!is.null(extras$terms.fit)){
-      termsfit <- eval(extras$terms.fit)
-      matched <- match(termsfit, variables)+1
-      terms.fit <- (1:7)[matched] #intercept correction TODO
-      terms.fit <- c(1,terms.fit)
+      colfit <- eval(extras$terms.fit)
+      matched <- match(colfit, cov.name[-1])+1
+      matched <- c(1, matched)
+      colfit <- (1:7)[matched]
+      call_out$terms.fit <- extras$terms.fit
     }
     else {
-      terms.fit <- 1:k
+      #terms.fit <- 1:k
+      colfit <- 1:k
     }
     
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=terms.fit, init, control=control)
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
     
     fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int), loglik =c(fit.null$loglik, fit.full$loglik),
-        iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=match.call(), conv=fit.full$conv)
+        iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv)
     names(fit$conv)<-c("LL change","max abs score","beta change")
     beta<-fit.full$beta
     covs<-fit.full$var

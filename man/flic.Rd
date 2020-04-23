@@ -8,7 +8,7 @@
 \usage{
 flic(x, ...)
 
-\method{flic}{formula}(formula = attr(data, "formula"), data = sys.parent())
+\method{flic}{formula}(formula = attr(data, "formula"), data = sys.parent(), ...)
 
 \method{flic}{logistf}(lfobject)
 }
@@ -30,6 +30,11 @@ A \code{flic} object with components:
   \item{method}{The fitting method: 'Penalized ML'}
   \item{method.ci}{The method calculating the confidence intervals of the parameter (without intercept.)}
   \item{var}{The variance-covariance-matrix of the parameters.}
+  \item{df}{The number of degrees of freedom in the model.}
+  \item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
+  \item{n}{The number of observations.}
+  \item{formula}{The formula object.}
+  \item{data}{A copy of the input dataset.}
 }
 \description{
 \code{flic} implements Firth's bias-Reduced penalized-likelihood logistic regression with intercept correction.

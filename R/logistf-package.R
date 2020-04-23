@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @aliases {logistf}-package
 #' @title Firth's Bias-Reduced Logistic Regression
 #' 
 #' @description 

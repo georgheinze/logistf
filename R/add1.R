@@ -80,3 +80,34 @@ drop1.logistf<-function(object, scope, test="PLR", full.penalty.vec=NULL, ...){
   colnames(mat)<-c("ChiSq","df","P-value")
   return(mat)
 }
+
+#' @method drop1 flic
+#' @rdname add1
+#' @exportS3Method drop1 flic
+drop1.flic<-function(object, scope, test="PLR", full.penalty.vec=NULL, ...){
+  variables<-attr(terms(object$formula, data = object$data),"term.labels")
+  if(!is.null(full.penalty.vec)){ #exclude already removed variables - see backward
+    matched <- match(full.penalty.vec, variables)+1 #+1: to include intercept
+    ind <- (1:7)[-matched] #for col.fit.object
+    variables <- variables[-(matched-1)]
+  }
+  nvar<-length(variables)
+  mat<-matrix(0,nvar,3) #initialise output
+  for(i in 1:nvar){ #for every variable: omit from the object model fitin anova
+    #full.penalty option of backward function
+    if (!is.null(full.penalty.vec)){
+      newform <- as.formula(paste("~", paste(variables[i], paste(full.penalty.vec,collapse="+"), sep="+")))
+      res<-anova(object, formula=newform, method="nested", col.fit.object=ind)
+    }
+    else {
+      newform<-as.formula(paste("~",variables[i]))
+      res<-anova(object, formula=newform, method="nested")
+    }
+    mat[i,1]<-res$chisq
+    mat[i,2]<-res$df
+    mat[i,3]<-res$pval
+  }
+  rownames(mat)<-variables
+  colnames(mat)<-c("ChiSq","df","P-value")
+  return(mat)
+}

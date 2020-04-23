@@ -2,8 +2,9 @@
 % Please edit documentation in R/logistf-package.R
 \docType{package}
 \name{logistf-package}
-\alias{logistf}
 \alias{logistf-package}
+\alias{_PACKAGE}
+\alias{{logistf}-package}
 \title{Firth's Bias-Reduced Logistic Regression}
 \description{
 Fit a logistic regression model using Firth's bias reduction method, equivalent to penalization of the log-likelihood by the Jeffreys prior. 

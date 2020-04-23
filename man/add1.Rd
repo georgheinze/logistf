@@ -3,11 +3,14 @@
 \name{add1.logistf}
 \alias{add1.logistf}
 \alias{drop1.logistf}
+\alias{drop1.flic}
 \title{Add or Drop All Possible Single Terms to/from a \code{logistf} Model}
 \usage{
 \method{add1}{logistf}(object, scope, test = "PLR", ...)
 
 \method{drop1}{logistf}(object, scope, test = "PLR", full.penalty.vec = NULL, ...)
+
+\method{drop1}{flic}(object, scope, test = "PLR", full.penalty.vec = NULL, ...)
 }
 \arguments{
 \item{object}{A fitted \code{logistf} object}

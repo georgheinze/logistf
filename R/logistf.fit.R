@@ -80,3 +80,7 @@ logistf.fit <- function(
                "evals", "iter", "conv")]
   res
 }
+
+.onUnload <- function (libpath) {
+  library.dynam.unload("logistf", libpath)
+}
