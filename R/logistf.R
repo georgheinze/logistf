@@ -165,16 +165,6 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     #for backward function to update logistf object
     extras <- list(...)
     call_out <- match.call()
-    #if (!is.null(extras$terms.fit)){
-    #  termsfit <- eval(extras$terms.fit)
-    #  print(termsfit)
-    #  print(cov.name)
-    #  matched <- match(termsfit, cov.name)
-    #  print(matched)
-    #  terms.fit <- (1:7)[matched]
-    #  terms.fit <- c(1,terms.fit)
-    #  print(terms.fit)
-    #}
     if (!is.null(extras$terms.fit)){
       colfit <- eval(extras$terms.fit)
       matched <- match(colfit, cov.name[-1])+1
@@ -186,7 +176,6 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
       #terms.fit <- 1:k
       colfit <- 1:k
     }
-    
     fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
     
@@ -210,6 +199,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     fit$alpha<-alpha
     fit$conflev<-1-alpha
     if(pl) {
+        #intialisation
         betahist.lo<-vector(length(plconf),mode="list")
         betahist.up<-vector(length(plconf),mode="list")
         pl.conv<-matrix(0,length(plconf),4)
@@ -219,6 +209,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
         pl.iter<-matrix(0,k,2)
 #        fit$ci.lower <- fit$ci.upper <- rep(0, k)
         icount<-0
+        
         for(i in plconf) {
             icount<-icount+1
             inter<-logistpl(x, y, beta, i, LL.0, firth, -1, offset, weight, plcontrol)

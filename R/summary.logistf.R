@@ -13,12 +13,26 @@ summary.logistf <-function(object,...){
    LL <- 2 * diff(object$loglik)
    cat("\nLikelihood ratio test=", LL, " on ", object$df, " df, p=", 1 -pchisq(LL, object$df), ", n=",object$n, sep = "")
    if(object$terms[1]!="(Intercept)"){
-     wald.z <- t(coef(object)) %*% solve(object$var) %*% coef(object)
+      wald.z <- tryCatch({
+         t(coef(object)) %*% solve(object$var) %*% coef(object)
+      }, 
+      error=function(cond){
+         message("\n Variance-Covariance matrix is singular \n")
+         return(NA)
+         }
+      )
    }
    else{
-    wald.z <- t(coef(object)[2:(object$df+1)]) %*%
-              solve(object$var[2:(object$df+1),2:(object$df+1)]) %*%
-              coef(object)[2:(object$df+1)]
+      wald.z <- tryCatch({
+         t(coef(object)[2:(object$df+1)]) %*%
+         solve(object$var[2:(object$df+1),2:(object$df+1)]) %*%
+         coef(object)[2:(object$df+1)]
+      }, 
+      error=function(cond){
+         message("\n Variance-Covariance matrix is singular \n")
+         return(NA)
+      }
+      )
    }
    cat("\nWald test =", wald.z, "on", object$df, "df, p =", 1 - pchisq(wald.z, object$df))
    cat("\n\nCovariance-Matrix:\n")

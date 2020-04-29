@@ -1,7 +1,6 @@
 #' @exportS3Method summary flic
 summary.flic <- function(x, ...)
-{
-  # x ... object of class flic
+{ # x ... object of class flic
   cat("Firth's logistic regression with intercept correction\n\n")
   cat("Call:\n")
   print(x$call)

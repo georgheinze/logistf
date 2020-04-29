@@ -20,8 +20,9 @@ flic(x, ...)
 \value{
 A \code{flic} object with components:
   \item{coefficients}{The coefficients of the parameter in the fitted model.}
+  \item{terms}{The model terms (column names of design matrix).}
   \item{predicted.probabilities}{A vector with the predicted probability of each observation}
-  \item{linear.predictions}{A vector with the linear predictor of each observation.}
+  \item{linear.predictors}{A vector with the linear predictor of each observation.}
   \item{probabilities}{The p-values of the specific parameters}
   \item{ci.lower}{The lower confidence limits of the parameter.}
   \item{ci.upper}{The upper confidence limits of the parameter.}
@@ -40,10 +41,17 @@ A \code{flic} object with components:
 \code{flic} implements Firth's bias-Reduced penalized-likelihood logistic regression with intercept correction.
 }
 \details{
-This is a generic function: methods can be defined for it directly
-or via the \code{\link{Summary}} group generic. For this to work properly,
-the arguments \code{...} should be unnamed, and dispatch is on the
-first argument.
+Flic is a simple modification of Firth's logistic regression which provides average predicted
+probabilities equal to the observed proportion of events, while preserving the ability to deal
+with seperation.
+
+In general the average predicted probability in FL regression is not equal to the observed 
+proportion of events. Because the determinant of the Fisher-Information matrix is maximized 
+for \eqn{\pi_i = \frac{1}{2}} it is concluded that Firth's penalization tends to push the 
+predicted probabilities towards one-half compared with ML-estimation.
+Flic fits a logistic regression model applying Firth’s correction to the likelihood with a 
+correction of the intercept, such that the predicted probabilities become unbiased while
+keeping all other coefficients constant
 }
 \section{Methods (by class)}{
 \itemize{
@@ -61,6 +69,9 @@ flic(case ~ age + oc + vic + vicl + vis + dia, sex2)
 lf <- logistf(formula = case ~ age + oc + vic + vicl + vis + dia, data = sex2)
 flic(lf)
 
+}
+\references{
+Puhr, R., Heinze, G., Nold, M., Lusa, L., and Geroldinger, A. (2017) Firth's logistic regression with rare events: accurate effect estimates and predictions?. Statist. Med., 36: 2302– 2317. doi: 10.1002/sim.7273.
 }
 \seealso{
 \code{\link{logistf}} for Firth's bias-Reduced penalized-likelihood logistic regression.

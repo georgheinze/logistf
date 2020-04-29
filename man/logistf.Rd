@@ -66,7 +66,7 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{terms}{the column names of the design matrix}
    \item{var}{ the variance-covariance-matrix of the parameters.}
    \item{df}{ the number of degrees of freedom in the model.}
-   \item{loglik}{ a vector of the (penalized) log-likelihood of the full and the restricted models.}
+   \item{loglik}{ a vector of the (penalized) log-likelihood of the restricted and the full models.}
    \item{iter}{ the number of iterations needed in the fitting process.}
    \item{n}{ the number of observations.}
    \item{y}{ the response-vector, i. e. 1 for successes (events) and 0 for failures.}

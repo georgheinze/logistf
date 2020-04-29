@@ -64,13 +64,14 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
       mat<-drop1(working)
     }
     istep<-istep+1
-    if(all(mat[,3]<slstay)) break #check p-value of variables in scope
+    if(all(mat[,3]<slstay)) {
+      break
+    } #check p-value of variables in scope
     inscope<-match(scope,rownames(mat))
     inscope<-inscope[!is.na(inscope)]
     if (full.penalty){
       removal <- c(removal, rownames(mat)[mat[,3]==max(mat[inscope,3])])
-      curr_removal <- removal[istep]
-      print(removal)
+      curr_removal <- removal[istep] #if two pvalues are the same, both are taken 
     }
     else { #if full.penalty = FALSE: save only current removal
       removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])] #remove highest pvalue

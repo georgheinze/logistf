@@ -30,15 +30,28 @@ A \code{flac} object with components:
   \item{method}{The fitting method: 'Penalized ML'}
   \item{method.ci}{The method calculating the confidence intervals of the parameter (without intercept.)}
   \item{var}{The variance-covariance-matrix of the parameters.}
+  \item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
+  \item{n}{The number of observations.}
+  \item{formula}{The formula object.}
+  \item{data}{A copy of the input dataset.}
+  \item{augmented.data}{The augmented dataset used}
+  \item{terms}{The model terms (column names of design matrix).}
+  \item{df}{The number of degrees of freedom in the model.}
 }
 \description{
-\code{flac} implements Firth's bias-Reduced penalized-likelihood logistic regression with added covariate.
+\code{flac} implements Firth's bias-reduced penalized-likelihood logistic regression with added covariate.
 }
 \details{
-This is a generic function: methods can be defined for it directly
-or via the \code{\link{Summary}} group generic. For this to work properly,
-the arguments \code{...} should be unnamed, and dispatch is on the
-first argument.
+Flac is a simple modification of Firth's logistic regression which provides average predicted
+probabilities equal to the observed proportion of events, while preserving the ability to deal
+with seperation.
+
+The modified score equation to estimate coefficients for Firth's logistic regression can be 
+interpreted as score equations for ML estimates for an augmented data set. This data set can be 
+created by complementing each original observation i with two pseudo-observations weighted by 
+\eqn{h_i/2} with unchanged covariate values and with response values set to \eqn{y=0} and \eqn{y=1}
+respectively. The basic idea of Flac is to discriminate between original and pseudo-observations
+in the alternative formulation of Firth's estimation as an iterative data augmentation procedure.
 }
 \section{Methods (by class)}{
 \itemize{
@@ -56,6 +69,9 @@ flac(case ~ age + oc + vic + vicl + vis + dia, sex2)
 lf <- logistf(formula = case ~ age + oc + vic + vicl + vis + dia, data = sex2)
 flac(lf)
 
+}
+\references{
+Puhr, R., Heinze, G., Nold, M., Lusa, L., and Geroldinger, A. (2017) Firth's logistic regression with rare events: accurate effect estimates and predictions?. Statist. Med., 36: 2302– 2317. doi: 10.1002/sim.7273.
 }
 \seealso{
 [logistf()] for Firth's bias-Reduced penalized-likelihood logistic regression.

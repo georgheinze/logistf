@@ -7,6 +7,11 @@ print.flac <-
     cat("Call:\n")
     print(x$call)
     cat("\n\nCoefficients:\n")
-    out <- cbind(x$coefficients)
+    out <- x$coefficients
     print(out)
+    LL <- 2 * diff(x$loglik)
+    cat("\nLikelihood ratio test=", LL, " on ", x$df, " df, p=", 1 -
+          pchisq(LL, x$df), ", n=",
+        x$n, "\n\n", sep = "")
+    invisible(x)
   }
