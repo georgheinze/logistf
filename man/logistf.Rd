@@ -41,7 +41,7 @@ maxit, maxhs, lconv, gconv, xconv)}}
 likelihood confidence intervals. Default is \code{plcontrol= logistpl.control(maxstep, maxit, 
 maxhs, lconv, xconv, ortho, pr)}}
 
-\item{firth}{Use of Firth’s penalized maximum likelihood (\code{firth=TRUE}, default) or the 
+\item{firth}{Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) or the 
 standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression. 
 Note that by specifying \code{pl=TRUE} and \code{firth=FALSE} (and probably a lower number 
 of iterations) one obtains profile likelihood confidence intervals for maximum likelihood 
@@ -90,7 +90,7 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{weights}{the weights variable (if applicable)}
 }
 \description{
-Implements Firth’s bias-Reduced penalized-likelihood logistic regression.
+Implements Firth's bias-Reduced penalized-likelihood logistic regression.
 }
 \details{
 \code{logistf} is the main function of the package. It fits a logistic regression 

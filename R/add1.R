@@ -128,7 +128,7 @@ drop1.flac<-function(object, scope, test="PLR", full.penalty.vec=NULL, ...){
     #full.penalty option of backward function
     if (!is.null(full.penalty.vec)){
       newform <- as.formula(paste("~", paste(variables[i], paste(full.penalty.vec,collapse="+"), sep="+")))
-      res<-anova(object, formula=newform, method="nested", col.fit.object=ind)
+      res<-anova(object, formula=newform, method="nested", col.fit.object=ind, augmented_data=TRUE)
     }
     else {
       newform<-as.formula(paste("~",variables[i]))

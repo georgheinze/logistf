@@ -172,7 +172,7 @@ anova.flic<-function(object,  fit2, formula, method="nested", ...){
 
 #' @method anova flac
 #' @exportS3Method anova flac
-anova.flac<-function(object,  fit2, formula, method="nested", ...){
+anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
   # methods: "PLR": take difference in PLR, "nested": proper method for nested models
   # needed in logistf class: $firth, $data
   fit1<-object
@@ -184,38 +184,47 @@ anova.flac<-function(object,  fit2, formula, method="nested", ...){
     }
   }
   
-  if(method=="nested"){
-    f1<-fit1$formula
+  f1<-fit1$formula
+  if (augmented_data){
+    a<-attr(terms(f1, data = object$augmented_data),"term.labels")
+  }
+  else{
     a<-attr(terms(f1, data = object$data),"term.labels")
-    if(missing(formula)){  
-      f2<-fit2$formula
-      b<-attr(terms(f2, data = fit2$data),"term.labels")
-      # find out about which model is nested in the other
-      upper<-f1
-      lower<-f2
-      if(!any(is.na(match(a,b)))) {
-        lower<-f1
-        upper<-f2
-        ab<-a
-        a<-b
-        b<-ab
-      } else if(any(is.na(match(b,a)))) stop("Models are not nested. Try method=PLR on non-nested models.\n")
-      aug<-a[is.na(match(a,b))]
-      f3<-paste("~",aug[1])
-      if(length(aug)>1) for(j in 2:length(aug)) f3<-paste(f3, aug[j], sep="+")
+  }
+  if(missing(formula)){  
+    f2<-fit2$formula
+    b<-attr(terms(f2, data = fit2$data),"term.labels")
+    # find out about which model is nested in the other
+    upper<-f1
+    lower<-f2
+    if(!any(is.na(match(a,b)))) {
+      lower<-f1
+      upper<-f2
+      ab<-a
+      a<-b
+      b<-ab
+    } else if(any(is.na(match(b,a)))) stop("Models are not nested.\n")
+    aug<-a[is.na(match(a,b))]
+    f3<-paste("~",aug[1])
+    if(length(aug)>1) for(j in 2:length(aug)) f3<-paste(f3, aug[j], sep="+")
       f3<-paste(f3, "-1")
       f3<-as.formula(f3)
-    } else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""))
+  } 
+  else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""))
     
-    test<-logistftest(object=fit1, test=f3, TRUE, weights=fit1$weights,...)
-    chisq<-2*diff(test$loglik)
-    PLR1<-2*diff(fit1$loglik)
-    PLR2<-PLR1-chisq
-    df<-test$df
-    pval<-test$prob
-    model2<-as.character(f3)
+  if (augmented_data) {
+    test<-logistftest(object=fit1, test=f3, TRUE, weights=fit1$weights,data=fit1$augmented_data,...)
   }
-  res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method=method, model1=as.character(fit1$formula), model2=model2, PLR1=PLR1, PLR2=PLR2)
+  else {
+    test<-logistftest(object=fit1, test=f3, TRUE, weights=fit1$weights,...)
+  }
+  chisq<-2*diff(test$loglik)
+  PLR1<-2*diff(fit1$loglik)
+  PLR2<-PLR1-chisq
+  df<-test$df
+  pval<-test$prob
+  model2<-as.character(f3)
+  res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method="nested", model1=as.character(fit1$formula), model2=model2, PLR1=PLR1, PLR2=PLR2)
   attr(res,"class")<-"anova.flic"
   return(res)
 }

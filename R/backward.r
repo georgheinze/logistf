@@ -34,7 +34,11 @@
 #' 
 #' @rdname backward
 #' @export backward
-backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
+backward <- function(x,...){
+  UseMethod("backward",x)
+}
+#' @exportS3Method backward default
+backward.default<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
   istep<-0 #index of steps
   mf <- match.call(expand.dots =FALSE)
   m <- match("object", names(mf), 0L)
@@ -51,8 +55,6 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
     }
   }
   if(missing(scope)) scope<-attr(terms(working),"term.labels") #scope missing - use terms of object fit
-  #    if(missing(scope)) scope<-names(coef(working))
-  
   if (full.penalty) { #if TRUE, use start model and save all removals in vector removal
     removal <- vector()
   }
@@ -103,7 +105,7 @@ backward<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork
     }
   }
   if(trace) cat("\n")
-  if(full.penalty) {
+  if(full.penalty){
     tmp <- match(removal, variables)
     tofit <- variables[-tmp]
     working<-update(working, terms.fit=tofit)
@@ -130,7 +132,6 @@ forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork
   while(istep<steps & length(inscope)>=1){
     istep<-istep+1
     mat<-add1(working, scope=inscope)
-    #if(printwork)   print(mat)
     if(all(mat[,3]>slentry)) break
     index<-(1:nrow(mat))[mat[,3]==min(mat[,3])]
     if(length(index)>1) index<-index[mat[index,1]==max(mat[index,1])]
@@ -145,10 +146,87 @@ forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork
       if(printwork) {
         print(working)
         cat("\n\n")
-        }
       }
     }
+  }
    if(pl) working<-update(working, pl=TRUE)
    if(trace) cat("\n")
    return(working)
+}
+#' @exportS3Method backward flac
+backward.flac<-function(object, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE,...){
+  istep<-0 #index of steps
+  mf <- match.call(expand.dots =FALSE)
+  m <- match("object", names(mf), 0L)
+  mf <- mf[c(1, m)]
+  object <- eval(mf$object, parent.frame())
+  variables <- object$terms[-1]
+  
+  working<-object
+  if(trace){
+    cat("Step ", istep, ": starting model\n")
+    if(printwork){
+      print(working)
+      cat("\n\n")
+    }
+  }
+  scope<-attr(terms(working),"term.labels") #scope missing - use terms of object fit
+  if(full.penalty) { #if TRUE, use start model and save all removals in vector removal
+    removal <- vector()
+  }
+  while(istep<steps & working$df>=1){
+    if(full.penalty && istep!=0){ #check with istep!=0 if removal is an empty vector - not possible to pass such to drop1
+      mat <- drop1(object, full.penalty.vec=removal)
+    }
+    else {
+      mat<-drop1(working)
+    }
+    istep<-istep+1
+    if(all(mat[,3]<slstay)) {
+      break
+    } #check p-value of variables in scope
+    inscope<-match(scope,rownames(mat))
+    inscope<-inscope[!is.na(inscope)]
+    if (full.penalty){
+      removal <- c(removal, rownames(mat)[mat[,3]==max(mat[inscope,3])])
+      curr_removal <- removal[istep] #if two pvalues are the same, both are taken 
+    }
+    else { #if full.penalty = FALSE: save only current removal
+      removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])] #remove highest pvalue
+      curr_removal <- removal
+    }
+    #check if object$formula contains a dot shortcut i.e. last character: 
+    if (sapply(grepl("\\.", working$formula), tail, 1)){
+      char <- paste(working$terms[-1], collapse=" + ") #get variables from data without intercept
+      variables <- paste(char, paste(removal, collapse="-"), sep="-") #remove target variable
+      newform <- as.formula(paste("", variables, sep="~")) #coerce to formula
+    }
+    else {
+      newform=as.formula(paste("~.-",paste(curr_removal, collapse = "-")))
+    }
+    if(!full.penalty){ #udate working only if full.penalty==FALSE
+      if(working$df==1 | working$df==mat[mat[,3]==max(mat[,3]),2]){
+        working<-update(working, formula=newform, pl=FALSE)
+      }
+      else {
+        working<-update(working, formula=newform)
+      }
+    }
+    if(trace){
+      cat("Step ", istep, ": removed ", curr_removal, " (P=", max(mat[,3]),")\n")
+      if(printwork) {
+        print(working)
+        cat("\n\n")
+      }
+    }
+  }
+  if(trace) {
+    cat("\n")
+  }
+  if(full.penalty) {
+    tmp <- match(removal, variables)
+    tofit <- variables[-tmp]
+    working<-update(working, terms.fit=tofit)
+  }
+  return(working)
 }

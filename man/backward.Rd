@@ -5,16 +5,7 @@
 \alias{forward}
 \title{Backward Elimination/Forward Selection of Model Terms in logistf Models}
 \usage{
-backward(
-  object,
-  scope,
-  steps = 1000,
-  slstay = 0.05,
-  trace = TRUE,
-  printwork = FALSE,
-  full.penalty = FALSE,
-  ...
-)
+backward(x, ...)
 
 forward(
   object,
@@ -28,6 +19,8 @@ forward(
 )
 }
 \arguments{
+\item{...}{Further arguments to be passed to methods.}
+
 \item{object}{A fitted logistf model object. To start with an empty model, create a model fit 
 with a formula=<y>~1, pl=FALSE. (Replace <y> by your response variable.)}
 
@@ -38,19 +31,17 @@ that only some of the variables will be competitively selected or dropped.}
 
 \item{steps}{The number of forward selection/backward elimination steps.}
 
-\item{slstay}{For \code{backward}, the significance level to stay in the model.}
+\item{slentry}{For \code{forward}, the significance level to enter the model.}
 
 \item{trace}{If \code{TRUE}, protocols selection steps.}
 
 \item{printwork}{If \code{TRUE}, prints each working model that is visited by the selection procedure.}
 
-\item{full.penalty}{If \code{TRUE} penalty is not taken from current model but from start model.}
-
-\item{...}{Further arguments to be passed to methods.}
-
-\item{slentry}{For \code{forward}, the significance level to enter the model.}
-
 \item{pl}{For forward, computes profile likelihood confidence intervals for the final model if \code{TRUE}.}
+
+\item{slstay}{For \code{backward}, the significance level to stay in the model.}
+
+\item{full.penalty}{If \code{TRUE} penalty is not taken from current model but from start model.}
 }
 \value{
 An updated \code{logistf} fit with the finally selected model.

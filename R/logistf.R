@@ -1,6 +1,6 @@
 #' Firth's Bias-Reduced Logistic Regression
 #'
-#' Implements Firth’s bias-Reduced penalized-likelihood logistic regression. 
+#' Implements Firth's bias-Reduced penalized-likelihood logistic regression. 
 #'
 #' \code{logistf} is the main function of the package. It fits a logistic regression 
 #' model applying Firth’s correction to the likelihood. The following generic methods are available for logistf‘s output 
@@ -24,7 +24,7 @@
 #' @param plcontrol Controls Newton-Raphson iteration for the estimation of the profile 
 #' likelihood confidence intervals. Default is \code{plcontrol= logistpl.control(maxstep, maxit, 
 #' maxhs, lconv, xconv, ortho, pr)}
-#' @param firth Use of Firth’s penalized maximum likelihood (\code{firth=TRUE}, default) or the 
+#' @param firth Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) or the 
 #' standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression. 
 #' Note that by specifying \code{pl=TRUE} and \code{firth=FALSE} (and probably a lower number 
 #' of iterations) one obtains profile likelihood confidence intervals for maximum likelihood 
@@ -127,30 +127,40 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     #n <- nrow(data)
 #    if (is.null(weights)) weights<-rep(1,nrow(data))
    call <- match.call()
+   extras <- list(...)
+   call_out <- match.call()
    if(missing(control)) control<-logistf.control()
    if(pl==TRUE & missing(plcontrol)) plcontrol<-logistpl.control()
-
     mf <- match.call(expand.dots =FALSE)
-    m <- match(c("formula", "data","weights", "na.action", 
-        "offset"), names(mf), 0L)
+    m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
  #   mf<-model.frame(formula, data=data, weights=weights)
     mf <- mf[c(1, m)]
     mf$drop.unused.levels <- TRUE
-    mf[[1L]] <- as.name("model.frame")
+    #mf[[1L]] <- as.name("model.frame")
+    mf[[1L]] <- quote(stats::model.frame)
     mf <- eval(mf, parent.frame())
+    #mf <- eval.parent(mf)
+    mt <- attr(mf, "terms")
     y <- model.response(mf)
     n <- length(y)
-    #x <- model.matrix(formula, data = data ) ## Model-Matrix 
-    x <- model.matrix(formula, data = mf ) #use model.frame to ensure unused levels are dropped 
+    #x <- model.matrix(formula, data = mf) #use model.frame to ensure unused levels are dropped 
+    x <- model.matrix(mt, mf)
     k <- ncol(x)    ## Anzahl Effekte
     cov.name <- labels(x)[[2]]
-    weight <- as.vector(model.weights(mf)  )
-    offset <- as.vector(model.offset(mf)   )
+    weight <- as.vector(model.weights(mf)) # avoid any problems with 1D or nx1 arrays by as.vector
+    offset <- as.vector(model.offset(mf))
     if (is.null(offset)) offset<-rep(0,n)
     if (is.null(weight)) weight<-rep(1,n)
 
     if (missing(init)) init<-rep(0,k)
-    if (is.null(plconf) & pl==TRUE) plconf<-1:k
+    if (is.null(plconf)) { #& pl==TRUE) {
+      plconf<-1:k
+      rest_plconf <- NULL
+    }
+    else { #if plconf is passed to logistf write NA to variables not specified
+      print(plconf)
+      rest_plconf <- (1:k)[-plconf]
+    }
 
     if (dimnames(x)[[2]][1] == "(Intercept)")  {
         int <- 1
@@ -163,11 +173,10 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     }
     
     #for backward function to update logistf object
-    extras <- list(...)
-    call_out <- match.call()
     if (!is.null(extras$terms.fit)){
       colfit <- eval(extras$terms.fit)
       matched <- match(colfit, cov.name[-1])+1
+      n_termsfit <- length(matched)
       matched <- c(1, matched)
       colfit <- (1:7)[matched]
       call_out$terms.fit <- extras$terms.fit
@@ -175,11 +184,12 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     else {
       #terms.fit <- 1:k
       colfit <- 1:k
+      n_termsfit <- 0 
     }
     fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
     
-    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int), loglik =c(fit.null$loglik, fit.full$loglik),
+    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int-n_termsfit), loglik =c(fit.null$loglik, fit.full$loglik),
         iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv)
     names(fit$conv)<-c("LL change","max abs score","beta change")
     beta<-fit.full$beta
@@ -192,12 +202,12 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     if(firth) fit$method <- "Penalized ML"
     else fit$method <- "Standard ML"
     vars <- diag(covs)
-    fit$prob <- 1 - pchisq((beta^2/vars), 1)
-    fit$method.ci <- rep("Wald",k)
-    fit$ci.lower <- as.vector(beta + qnorm(alpha/2) * vars^0.5)
-    fit$ci.upper <- as.vector(beta + qnorm(1 - alpha/2) * vars^0.5)
     fit$alpha<-alpha
     fit$conflev<-1-alpha
+    waldprob <- 1 - pchisq((beta^2/vars), 1)
+    wald_ci.lower <- as.vector(beta + qnorm(alpha/2) * vars^0.5)
+    wald_ci.upper <- as.vector(beta + qnorm(1 - alpha/2) * vars^0.5)
+    
     if(pl) {
         #intialisation
         betahist.lo<-vector(length(plconf),mode="list")
@@ -207,9 +217,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
         dimnames(pl.conv)[[2]]<-as.list(c("lower, loglik","lower, beta", "upper, loglik", "upper, beta"))
         LL.0 <- fit.full$loglik - qchisq(1 - alpha, 1)/2
         pl.iter<-matrix(0,k,2)
-#        fit$ci.lower <- fit$ci.upper <- rep(0, k)
         icount<-0
-        
         for(i in plconf) {
             icount<-icount+1
             inter<-logistpl(x, y, beta, i, LL.0, firth, -1, offset, weight, plcontrol)
@@ -230,10 +238,24 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
         fit$pl.iter<-pl.iter
         fit$betahist<-list(lower=betahist.lo, upper=betahist.up)
         fit$pl.conv<-pl.conv
+        if (!is.null(extras$terms.fit)){ #compute confidence intervals for variables not specified in terms.fit with Wald
+          rest_plconf <- (1:k)[-matched]
+        }
+        for (i in rest_plconf){
+          fit$ci.lower[i] <- wald_ci.lower[i]
+          fit$ci.upper[i] <- wald_ci.upper[i]
+          fit$prob[i] <- waldprob[i]
+          fit$method.ci[i] <- "Wald"
+        }
+    }
+    else { 
+      fit$prob <- waldprob
+      fit$method.ci <- rep("Wald",k)
+      fit$ci.lower <- wald_ci.lower
+      fit$ci.upper <- wald_ci.upper
     }
     names(fit$prob) <- names(fit$ci.upper) <- names(fit$ci.lower) <- names(fit$coefficients) <- dimnames(x)[[2]]
     #flic: 
-    if(FALSE) {
       if (firth && pl){
         #calculate linear predictors ommiting the intercept
         lp_flic <-  fit$linear.predictors-fit$coef[1]
@@ -250,7 +272,6 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
         fit$flic.linear.predictors <- fit_flic$linear
         fit$flic.predict <-fit_flic$fitted
       }
-    }
     
     if(dataout) {
       fit$data<-data

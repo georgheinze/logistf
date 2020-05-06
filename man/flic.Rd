@@ -51,7 +51,11 @@ for \eqn{\pi_i = \frac{1}{2}} it is concluded that Firth's penalization tends to
 predicted probabilities towards one-half compared with ML-estimation.
 Flic fits a logistic regression model applying Firth’s correction to the likelihood with a 
 correction of the intercept, such that the predicted probabilities become unbiased while
-keeping all other coefficients constant
+keeping all other coefficients constant.
+The following generic methods are available for flic‘s output object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
+profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
+that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
+ratios.
 }
 \section{Methods (by class)}{
 \itemize{

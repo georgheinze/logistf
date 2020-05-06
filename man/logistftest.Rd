@@ -13,6 +13,7 @@ logistftest(
   weights,
   control,
   col.fit.object = NULL,
+  data = NULL,
   ...
 )
 }

@@ -8,9 +8,9 @@
 \usage{
 flac(x, ...)
 
-\method{flac}{formula}(formula = attr(data, "formula"), data = sys.parent())
+\method{flac}{formula}(formula = attr(data, "formula"), data = sys.parent(), ...)
 
-\method{flac}{logistf}(lfobject)
+\method{flac}{logistf}(lfobject, ...)
 }
 \arguments{
 \item{x}{Either formula and data or \code{\link{logistf}} object}
@@ -52,6 +52,10 @@ created by complementing each original observation i with two pseudo-observation
 \eqn{h_i/2} with unchanged covariate values and with response values set to \eqn{y=0} and \eqn{y=1}
 respectively. The basic idea of Flac is to discriminate between original and pseudo-observations
 in the alternative formulation of Firth's estimation as an iterative data augmentation procedure.
+The following generic methods are available for flac‘s output object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
+profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
+that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
+ratios.
 }
 \section{Methods (by class)}{
 \itemize{

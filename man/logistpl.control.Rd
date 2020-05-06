@@ -8,8 +8,8 @@ logistpl.control(
   maxit = 100,
   maxhs = 5,
   maxstep = 5,
-  lconv = 0.00001,
-  xconv = 0.00001,
+  lconv = 1e-05,
+  xconv = 1e-05,
   ortho = FALSE,
   pr = FALSE
 )
