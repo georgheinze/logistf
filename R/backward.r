@@ -93,8 +93,11 @@ backward.default<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, p
         working<-update(working, formula=newform, pl=FALSE)
       }
       else {
-        working<-update(working, formula=newform)
+        working<-update(working, formula=newform, data=object$data)
       }
+    }
+    else {
+      working$df <- working$df-1 #update only degrees of freedom in case of full.penalty 
     }
     if(trace){
       cat("Step ", istep, ": removed ", curr_removal, " (P=", max(mat[,3]),")\n")
@@ -108,7 +111,14 @@ backward.default<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, p
   if(full.penalty){
     tmp <- match(removal, variables)
     tofit <- variables[-tmp]
-    working<-update(working, terms.fit=tofit)
+    if (length(tofit)==0){
+      newform <- as.formula(~ 1)
+      working<-update(working,newform, data=object$data)
+    }
+    else {
+      newform <- as.formula(paste("~",paste(tofit, collapse="+")))
+      working<-update(working,newform,terms.fit=tofit, data=object$data)
+    }
   }
   return(working)
 }
@@ -140,7 +150,8 @@ forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork
     working<-update(working, formula=newform, pl=FALSE)
     newindex<-is.na(match(inscope, attr(terms(object),"term.labels")))
     if(all(is.na(newindex)==TRUE)) break
-    inscope<-inscope[-index]
+    #inscope<-inscope[-index]
+    inscope <- inscope[-match(rownames(mat)[index],inscope)]
     if(trace){
       cat("Step ", istep, ": added ", addvar, " (P=", mat[addvar,3],")\n")
       if(printwork) {

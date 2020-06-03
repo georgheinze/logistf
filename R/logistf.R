@@ -123,7 +123,7 @@
 #' @rdname logistf
 logistf <-
 function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha = 0.05,
-    control, plcontrol, firth = TRUE, init, weights, plconf=NULL, dataout=TRUE, ...){
+    control, plcontrol, firth = TRUE, init, weights, plconf=NULL, dataout=TRUE,flic=FALSE, ...){
     #n <- nrow(data)
 #    if (is.null(weights)) weights<-rep(1,nrow(data))
    call <- match.call()
@@ -153,12 +153,17 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     if (is.null(weight)) weight<-rep(1,n)
 
     if (missing(init)) init<-rep(0,k)
-    if (is.null(plconf)) { #& pl==TRUE) {
+    if (is.null(plconf)) { #& pl==TRUE) { #if only intercept has to be fitted: calculate Wald CI for intercept
+      if(length(cov.name)==1 && cov.name=="(Intercept)"){
+        plconf <- NULL
+        rest_plconf <- 1
+      }
+      else{
       plconf<-1:k
       rest_plconf <- NULL
+      }
     }
     else { #if plconf is passed to logistf write NA to variables not specified
-      print(plconf)
       rest_plconf <- (1:k)[-plconf]
     }
 
@@ -178,7 +183,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
       matched <- match(colfit, cov.name[-1])+1
       n_termsfit <- length(matched)
       matched <- c(1, matched)
-      colfit <- (1:7)[matched]
+      colfit <- (1:k)[matched]
       call_out$terms.fit <- extras$terms.fit
     }
     else {
@@ -256,7 +261,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     }
     names(fit$prob) <- names(fit$ci.upper) <- names(fit$ci.lower) <- names(fit$coefficients) <- dimnames(x)[[2]]
     #flic: 
-      if (firth && pl){
+      if (flic){
         #calculate linear predictors ommiting the intercept
         lp_flic <-  fit$linear.predictors-fit$coef[1]
         #determine ML estimate of intercept 
