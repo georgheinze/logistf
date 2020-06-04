@@ -6,7 +6,7 @@
 #' consists of combining the profile likelihoods into a posterior. The function CLIP.confint searches 
 #' for those values of a regression coefficient, at which the cumulative distribution function of the 
 #' posterior is equal to the values specified in the argument ci.level (usually 0.025 and 0.975). The 
-#' search is performed using R‘s optimize function.
+#' search is performed using R's optimize function.
 #'
 #' For each confidence limit, this function performs a binary search to evaluate the combined posterior, 
 #' which is obtained by first transforming the imputed-data likelihood profiles into cumulative distribution functions (CDFs), and then averaging the CDFs to obtain the CDF of the posterior. Usually, 
@@ -72,6 +72,7 @@
 #' profile likelihood information from logistic regressions. Statistics in Medicine, to appear.
 #' 
 #' @seealso [logistf()] for Firth's bias-Reduced penalized-likelihood logistic regression.
+#' @encoding UTF-8
 #' 
 #' @rdname CLIP.confint
 CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NULL, 

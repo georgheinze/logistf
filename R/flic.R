@@ -13,7 +13,7 @@
 #' Flic fits a logistic regression model applying Firth’s correction to the likelihood with a 
 #' correction of the intercept, such that the predicted probabilities become unbiased while
 #' keeping all other coefficients constant.
-#' The following generic methods are available for flic‘s output object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
+#' The following generic methods are available for flic's output object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
 #' profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
 #' that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
 #' ratios.
@@ -42,6 +42,8 @@
 #'   
 #' 
 #' @export
+#' 
+#' @encoding UTF-8
 #'
 #' @examples 
 #' #With formula and data:
@@ -122,7 +124,7 @@ flic.logistf <- function(lfobject){
   #se of intercept
   W <- diag(fit$fitted.values*(1-fit$fitted.values))
   designmat <- model.matrix(lfobject$formula, lfobject$data)
-  if( det(t(designmat)%*%W%*%designmat) ) stop('Fisher Information matrix is singular')
+  if( det(t(designmat)%*%W%*%designmat) == 0) stop('Fisher Information matrix is singular')
   XWX <- t(designmat)%*%W%*%designmat
   tmp.var <- solve(XWX)
   beta0.se <- sqrt(tmp.var[1,1])

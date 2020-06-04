@@ -14,8 +14,7 @@ logistf.fit <- function(
   collapse <- control$collapse
   coll <- FALSE
   
-  #if(collapse && length(unique(weight))==1 && weight[1] == 1) {
-  if(collapse && all.equal(weight, rep(1, length(weight))) && col.fit!=1) { 
+  if(collapse && isTRUE(all.equal(weight, rep(1, length(weight)))) && isspecnum(col.fit, 1)) {
     xy <- cbind(x,y)
     temp <- unique(unlist(sapply(1:ncol(xy), function(X) unique(xy[, X]))))
     if(length(temp) <= 10) {

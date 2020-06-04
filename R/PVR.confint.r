@@ -1,12 +1,12 @@
 #' Pseudo Variance Modification of Rubin's Rule
 #' 
 #' The pseudo-variance modification proposed by Heinze, Ploner and Beyea (2013) provides a quick 
-#' way to adapt Rubin‘s rules to situations of a non-normal distribution of a regression coefficient. 
+#' way to adapt Rubin's rules to situations of a non-normal distribution of a regression coefficient. 
 #' However, the approxiation is less accurate than that of the CLIP method.
 #' 
 #' The pseudo-variance modification computes a lower and an upper pseudo-variance, which are based 
 #' on the distance between profile likelihood limits and the parameter estimates. These are then 
-#' plugged into the usual Rubin‘s rules method of variance combination
+#' plugged into the usual Rubin's rules method of variance combination
 #'
 #' @param obj A fitted \code{logisf} object
 #' @param variable The variable(s) to compute the PVR confidence intervals, either provided as names or as numbers
@@ -26,6 +26,8 @@
 #' @references Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining 
 #' profile likelihood information from logistic regressions. Statistics in Medicine, to appear.   
 #' @export
+#' 
+#' @encoding UTF-8
 #'
 #' @examples
 #' #generate data set with NAs

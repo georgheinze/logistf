@@ -6,16 +6,18 @@
 #'\code{drop1} and \code{add1} generate a table where for each variable the penalized 
 #'likelihood ratio chi-squared, the degrees of freedom, and the p-value for dropping/adding this variable are given.
 #'
-#' @param object A fitted \code{logistf} object
+#' @param object A fitted \code{logistf, flic} or \code{flac} object
 #' @param scope The scope of variables considered for adding or dropping. Should be a 
 #' vector of variable names. Can be left missing; the method will then use all variables 
-#' in the object‘s data slot which are not identified as the response variable.
+#' in the object's data slot which are not identified as the response variable.
 #' @param test The type of test statistic. Currently, only the PLR test (penalized likelihood 
 #' ratio test) is allowed for logistf fits.
 #' @param ... Further arguments passed to or from other methods.
 #'
 #' @return A matrix with \code{nvar} rows and 3 columns (Chisquared, degrees of freedom, p-value).
 #' @export
+#' 
+#' @encoding UTF-8
 #'
 #' @examples
 #' data(sex2) 
@@ -50,7 +52,6 @@ add1.logistf<-function(object, scope, test="PLR", ...){
   return(mat)
 }
 #' @exportS3Method add1 flic
-#' @rdname add1
 add1.flic<-function(object, scope, test="PLR", ...){
   if(missing(scope)) scope<-colnames(object$data)
   if(is.numeric(scope)) scope<-colnames(object$data)[scope]
@@ -74,7 +75,6 @@ add1.flic<-function(object, scope, test="PLR", ...){
 }
 
 #' @exportS3Method add1 flac
-#' @rdname add1
 add1.flac<-function(object, scope, test="PLR", ...){
   if(missing(scope)) scope<-colnames(object$data)
   if(is.numeric(scope)) scope<-colnames(object$data)[scope]
@@ -98,9 +98,13 @@ add1.flac<-function(object, scope, test="PLR", ...){
 }
 
 #' @method drop1 logistf
-#' @rdname add1
 #' @exportS3Method drop1 logistf
-drop1.logistf<-function(object, scope, test="PLR", full.penalty.vec=NULL, ...){
+drop1.logistf<-function(object, scope, test="PLR", ...){
+  extras <- list(...)
+  if(!is.null(extras$full.penalty.vec)){
+    full.penalty.vec <- extras$full.penalty.vec
+  }
+  else full.penalty.vec <- NULL
   variables<-attr(terms(object$formula, data = object$data),"term.labels")
   nvar<-length(variables)
   if(!is.null(full.penalty.vec) && nvar!=length(full.penalty.vec)){ #exclude already removed variables - see backward
@@ -130,10 +134,14 @@ drop1.logistf<-function(object, scope, test="PLR", full.penalty.vec=NULL, ...){
 }
 
 #' @method drop1 flic
-#' @rdname add1
 #' @exportS3Method drop1 flic
-drop1.flic<-function(object, scope, test="PLR", full.penalty.vec=NULL, ...){
+drop1.flic<-function(object, scope, test="PLR", ...){
   variables<-attr(terms(object$formula, data = object$data),"term.labels")
+  extras <- list(...)
+  if(!is.null(extras$full.penalty.vec)){
+    full.penalty.vec <- extras$full.penalty.vec
+  }
+  else full.penalty.vec <- NULL
   if(!is.null(full.penalty.vec)){ #exclude already removed variables - see backward
     matched <- match(full.penalty.vec, variables)+1 #+1: to include intercept
     ind <- (1:7)[-matched] #for col.fit.object
@@ -161,10 +169,14 @@ drop1.flic<-function(object, scope, test="PLR", full.penalty.vec=NULL, ...){
 }
 
 #' @method drop1 flac
-#' @rdname add1
 #' @exportS3Method drop1 flac
-drop1.flac<-function(object, scope, test="PLR", full.penalty.vec=NULL, ...){
+drop1.flac<-function(object, scope, test="PLR", ...){
   variables<-attr(terms(object$formula, data = object$data),"term.labels")
+  extras <- list(...)
+  if(!is.null(extras$full.penalty.vec)){
+    full.penalty.vec <- extras$full.penalty.vec
+  }
+  else full.penalty.vec <- NULL
   if(!is.null(full.penalty.vec)){ #exclude already removed variables - see backward
     matched <- match(full.penalty.vec, variables)+1 #+1: to include intercept
     ind <- (1:7)[-matched] #for col.fit.object
