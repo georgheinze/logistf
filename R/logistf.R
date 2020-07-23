@@ -190,7 +190,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
     
-    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int-n_termsfit), loglik =c(fit.null$loglik, fit.full$loglik),
+    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int), loglik =c(fit.null$loglik, fit.full$loglik),
         iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv)
     
     names(fit$conv)<-c("LL change","max abs score","beta change")
