@@ -130,8 +130,8 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	
 	if(firth == 1) {
 		linpack_inv_det(fisher_cov, &k, &logdet); // compute both here
-	  if (logdet <= 0.00000000001) {
-	    error("Determinant of Fisher information matrix was %d, singularity detected\n", logdet);
+	  if (fabs(logdet) < 0.000000001) {	
+	    error("Determinant of Fisher information matrix was %lf, singularity detected\n", logdet);
 	  }
 	//	bIsInverted = 1;
 		*loglik += 0.5 * logdet;

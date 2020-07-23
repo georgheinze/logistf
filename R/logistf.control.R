@@ -1,6 +1,6 @@
 #' Control Parameters for \code{logistf}
 #'
-#' Sets parameters for Newton-Raphson iteration in Firth’s penalized-likelihood logistic regression.
+#' Sets parameters for Newton-Raphson iteration in Firth's penalized-likelihood logistic regression.
 #' 
 #' \code{logistf.control()} is used by \code{logistf} and \code{logistftest} to set control parameters to default values. 
 #' Different values can be specified, e. g., by \code{logistf(..., control= logistf.control(maxstep=1))}.
@@ -28,7 +28,7 @@
 #' @export
 #' 
 #' @author Georg Heinze
-#'
+#' @encoding UTF-8
 #' @examples
 #' data(sexagg)
 #' fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, 

@@ -44,7 +44,7 @@ that only some of the variables will be competitively selected or dropped.}
 \item{full.penalty}{If \code{TRUE} penalty is not taken from current model but from start model.}
 }
 \value{
-An updated \code{logistf} fit with the finally selected model.
+An updated \code{logistf, flic} or \code{flac} fit with the finally selected model.
 }
 \description{
 These functions provide simple backward elimination/forward selection procedures for logistf models.

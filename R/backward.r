@@ -21,8 +21,7 @@
 #' @param pl For forward, computes profile likelihood confidence intervals for the final model if \code{TRUE}.
 #' @param ... Further arguments to be passed to methods.
 #'
-#'
-#' @return An updated \code{logistf} fit with the finally selected model.
+#' @return An updated \code{logistf, flic} or \code{flac} fit with the finally selected model.
 #'
 #' @examples 
 #' data(sex2) 
@@ -37,8 +36,8 @@
 backward <- function(x,...){
   UseMethod("backward",x)
 }
-#' @exportS3Method backward default
-backward.default<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
+#' @exportS3Method backward logistf
+backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
   istep<-0 #index of steps
   mf <- match.call(expand.dots =FALSE)
   m <- match("object", names(mf), 0L)
@@ -122,6 +121,13 @@ backward.default<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, p
   }
   return(working)
 }
+
+#' @exportS3Method backward flic
+backward.flic<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
+   return (backward.logistf(object, scope, steps, slstay, trace, printwork,full.penalty,...))
+}
+
+
 #' @export forward
 #' @describeIn backward Forward Selection 
 forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork=FALSE, pl=TRUE, ...){

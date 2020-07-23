@@ -12,11 +12,11 @@
 #' \eqn{h_i/2} with unchanged covariate values and with response values set to \eqn{y=0} and \eqn{y=1}
 #' respectively. The basic idea of Flac is to discriminate between original and pseudo-observations
 #' in the alternative formulation of Firth's estimation as an iterative data augmentation procedure.
-#' The following generic methods are available for flac‘s output object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
+#' The following generic methods are available for flac's output object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
 #' profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
 #' that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
 #' ratios.
-#' 
+#' @encoding UTF-8
 #' 
 #' @param x Either formula and data or \code{\link{logistf}} object
 #' @param ... Further arguments passed to the method.
@@ -132,9 +132,9 @@ flac.logistf <- function(lfobject, ... ){
   temp.pseudo <- c(rep(0,length(lfobject$y)), rep(1,2*length(lfobject$y)))
   temp.neww <- c(rep(1,length(lfobject$y)), lfobject$hat/2, lfobject$hat/2)
   newdat <- data.frame(y=c(lfobject$y, lfobject$y, 1-lfobject$y), 
-                       rbind(lfobject$data[-which(names(temp.fit1$data) %in% c(response))],
-                             lfobject$data[-which(names(temp.fit1$data) %in% c(response))],
-                             lfobject1$data[-which(names(temp.fit1$data) %in% c(response))]),
+                       rbind(lfobject$data[-which(names(lfobject$data) %in% c(response))],
+                             lfobject$data[-which(names(lfobject$data) %in% c(response))],
+                             lfobject$data[-which(names(lfobject$data) %in% c(response))]),
                        temp.pseudo=temp.pseudo, temp.neww=temp.neww)
   #ML estimation on augmented dataset
   rhs <- paste(paste(scope, collapse="+"),"temp.pseudo", sep="+")
@@ -143,9 +143,9 @@ flac.logistf <- function(lfobject, ... ){
   
   #outputs
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients)& "`(weights)`"!=names(temp.fit2$coefficients))]
-  fitted <- temp.fit2$predict[1:length(temp.fit1$y)]
-  linear.predictors <- temp.fit2$linear.predictors[1:length(temp.fit1$y)]
-  prob <- prob
+  fitted <- temp.fit2$predict[1:length(lfobject$y)]
+  linear.predictors <- temp.fit2$linear.predictors[1:length(lfobject$y)]
+  prob <- lfobject$prob
   ci.lower <- temp.fit2$ci.lower[which("temp.pseudo"!=names(temp.fit2$ci.lower))]
   ci.upper <- temp.fit2$ci.upper[which("temp.pseudo"!=names(temp.fit2$ci.upper))]
   var <- diag(temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)])^0.5
@@ -157,11 +157,11 @@ flac.logistf <- function(lfobject, ... ){
               probabilities=prob,
               ci.lower=ci.lower,
               ci.upper=ci.upper,
-              call=match.call(), alpha = temp.fit1$alpha, 
+              call=match.call(), alpha = lfobject$alpha, 
               var=var, 
               loglik = lfobject$loglik, 
               n=lfobject$n, formula=lfobject$formula, data = lfobject$data, augmented.data = newdat, 
-              terms=colnames(model.matrix(formula, data)), df = temp.fit1$df, 
+              terms=lfobject$terms, df = lfobject$df, 
               formula=lfobject$formula)
   attr(res, "class") <- c("flac")
   res

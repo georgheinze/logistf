@@ -35,6 +35,7 @@
 #' @export
 #' 
 #' @rdname profile.logistf
+#' @encoding UTF-8
 #'
 #' @examples
 #' data(sex2)

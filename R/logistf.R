@@ -3,7 +3,7 @@
 #' Implements Firth's bias-Reduced penalized-likelihood logistic regression. 
 #'
 #' \code{logistf} is the main function of the package. It fits a logistic regression 
-#' model applying Firth’s correction to the likelihood. The following generic methods are available for logistf‘s output 
+#' model applying Firth's correction to the likelihood. The following generic methods are available for logistf's output 
 #' object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
 #' profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
 #' that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
@@ -34,9 +34,11 @@
 #' by the corresponding element of weights
 #' @param plconf specifies the variables (as vector of their indices) for which profile likelihood 
 #' confidence intervals should be computed. Default is to compute for all variables
-#' @param dataout If \code{TRUE}, copies the \code{data} set to the output object.
+#' @param dataout If \code{TRUE}, copies the \code{data} set to the output object
+#' @param flic If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
+#' keeping all other coefficients constant
 #' @param ... Further arguments to be passed to \code{logistf}
-#'
+#' 
 #' @return The object returned is of the class \code{logistf} and has the following attributes:
 #'    \item{coefficients}{ the coefficients of the parameter in the fitted model.}
 #'    \item{alpha}{ the significance level (1- the confidence level) as specified in the input.}
@@ -64,11 +66,11 @@
 #'    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
 #'    If \code{dataout=TRUE}, additionally:
 #'    \item{data}{a copy of the input data set}
-#'    \item{weights}{the weights variable (if applicable)}    
+#'    \item{weights}{the weights variable (if applicable)}  
 #'     
 #' @export
 #'
-#'
+#' @encoding UTF-8
 #' @examples
 #' data(sex2)
 #' fit<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sex2)
@@ -122,30 +124,26 @@
 #' @seealso [add1.logistf, drop1.logistf, anova.logistf]
 #' @rdname logistf
 logistf <-
-function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha = 0.05,
-    control, plcontrol, firth = TRUE, init, weights, plconf=NULL, dataout=TRUE,flic=FALSE, ...){
-    #n <- nrow(data)
-#    if (is.null(weights)) weights<-rep(1,nrow(data))
+function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL, dataout=TRUE,flic=FALSE, ...){
    call <- match.call()
    extras <- list(...)
    call_out <- match.call()
    if(missing(control)) control<-logistf.control()
    if(pl==TRUE & missing(plcontrol)) plcontrol<-logistpl.control()
+   
     mf <- match.call(expand.dots =FALSE)
     m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
- #   mf<-model.frame(formula, data=data, weights=weights)
+
     mf <- mf[c(1, m)]
     mf$drop.unused.levels <- TRUE
-    #mf[[1L]] <- as.name("model.frame")
     mf[[1L]] <- quote(stats::model.frame)
     mf <- eval(mf, parent.frame())
-    #mf <- eval.parent(mf)
     mt <- attr(mf, "terms")
     y <- model.response(mf)
     n <- length(y)
-    #x <- model.matrix(formula, data = mf) #use model.frame to ensure unused levels are dropped 
     x <- model.matrix(mt, mf)
-    k <- ncol(x)    ## Anzahl Effekte
+    
+    k <- ncol(x)
     cov.name <- labels(x)[[2]]
     weight <- as.vector(model.weights(mf)) # avoid any problems with 1D or nx1 arrays by as.vector
     offset <- as.vector(model.offset(mf))
@@ -153,8 +151,8 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     if (is.null(weight)) weight<-rep(1,n)
 
     if (missing(init)) init<-rep(0,k)
-    if (is.null(plconf)) { #& pl==TRUE) { #if only intercept has to be fitted: calculate Wald CI for intercept
-      if(length(cov.name)==1 && cov.name=="(Intercept)"){
+    if (is.null(plconf)) {  #if only intercept has to be fitted: calculate Wald CI for intercept
+      if(isspecnum(cov.name,"(Intercept)")){
         plconf <- NULL
         rest_plconf <- 1
       }
@@ -166,12 +164,10 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     else { #if plconf is passed to logistf write NA to variables not specified
       rest_plconf <- (1:k)[-plconf]
     }
-
-    if (dimnames(x)[[2]][1] == "(Intercept)")  {
+    if (cov.name[1] == "(Intercept)")  {
         int <- 1
         coltotest <- 2:k
     }
-
     else {
         int <- 0
         coltotest <-1:k
@@ -187,15 +183,16 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
       call_out$terms.fit <- extras$terms.fit
     }
     else {
-      #terms.fit <- 1:k
       colfit <- 1:k
       n_termsfit <- 0 
     }
+    
     fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
     
-    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int-n_termsfit), loglik =c(fit.null$loglik, fit.full$loglik),
+    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int), loglik =c(fit.null$loglik, fit.full$loglik),
         iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv)
+    
     names(fit$conv)<-c("LL change","max abs score","beta change")
     beta<-fit.full$beta
     covs<-fit.full$var

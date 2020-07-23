@@ -74,6 +74,7 @@ logistftest(fit, test = ~ vic + vicl - 1, values = c(2, 0))
 \references{
 Firth D (1993). Bias reduction of maximum likelihood estimates. Biometrika 80, 27–38.
 
+
 Heinze G, Ploner M (2004). Technical Report 2/2004: A SAS-macro, S-PLUS library and R 
 package to perform logistic regression without convergence problems. Section of Clinical Biometrics, Department of Medical Computer Sciences, Medical University of Vienna, Vienna, Austria. 
 http://www.meduniwien.ac.at/user/georg.heinze/techreps/tr2_2004.pdf 
