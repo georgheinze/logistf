@@ -246,6 +246,11 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
             fit$method.ci[i] <- "Profile Likelihood"
         }
         fit$pl.iter<-pl.iter
+        if(sum(fit$pl.iter>=plcontrol$maxit)){
+          notconv <- cov.name[apply(fit$pl.iter>=plcontrol$maxit, 1, sum)>0]
+          warning(paste("Nonconverged PL confidence limits: maximum number of iterations for variables:",paste0(notconv,collapse=", ")), " exceeded. Try to increase the number of iterations by passing 'logistpl.control(maxit=...)' to parameter plcontrol")
+        }
+          
         fit$betahist<-list(lower=betahist.lo, upper=betahist.up)
         fit$pl.conv<-pl.conv
         if (!is.null(extras$terms.fit)){ #compute confidence intervals for variables not specified in terms.fit with Wald
