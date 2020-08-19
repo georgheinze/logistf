@@ -37,7 +37,7 @@ summary.logistf <-function(object,...){
       )
    }
    cat("\nWald test =", wald.z, "on", object$df, "df, p =", 1 - pchisq(wald.z, object$df))
-   cat("\n\nCovariance-Matrix:\n")
-   print(object$var)
+   #cat("\n\nCovariance-Matrix:\n")
+   #print(object$var)
    invisible(object) 
 }

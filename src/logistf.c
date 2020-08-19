@@ -278,6 +278,10 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 					 maxabsInds(delta, selcol, ncolfit),
 					 maxabsInds(Ustar, selcol, ncolfit),
 					 loglik_change);*/
+		/*if(*iter >= *maxit)
+		  Rprintf("algorithm might not have converged");
+		  error("alg not conv");*/
+		  
 		
 		if((*iter >= *maxit) || (
 			 (maxabsInds(delta, selcol, ncolfit) <= *xconv) && 

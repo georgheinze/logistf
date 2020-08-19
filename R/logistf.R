@@ -190,6 +190,10 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
     
+    if(fit.full$iter>=control$maxit){
+      warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
+    }
+    
     fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int), loglik =c(fit.null$loglik, fit.full$loglik),
         iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv)
     
@@ -220,6 +224,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
         LL.0 <- fit.full$loglik - qchisq(1 - alpha, 1)/2
         pl.iter<-matrix(0,k,2)
         icount<-0
+        iters <- vector() #number of iterations of fit.i per variable 
         for(i in plconf) {
             icount<-icount+1
             inter<-logistpl(x, y, beta, i, LL.0, firth, -1, offset, weight, plcontrol)
@@ -234,6 +239,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
             pl.conv.upper<-t(inter$conv)
             pl.conv[icount,]<-cbind(pl.conv.lower,pl.conv.upper)
             fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=(1:k)[-i], control=control)
+            iters <- c(iters, fit.i$iter)
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
             fit$method.ci[i] <- "Profile Likelihood"
         }
@@ -242,6 +248,10 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
         fit$pl.conv<-pl.conv
         if (!is.null(extras$terms.fit)){ #compute confidence intervals for variables not specified in terms.fit with Wald
           rest_plconf <- (1:k)[-matched]
+        }
+        if(sum(iters>=control$maxit)>0){ #check if algorithms for all models have converged
+          notconv <- cov.name[iters>=control$maxit]
+          warning(paste("Maximum number of iterations for variables:",paste0(notconv,collapse=", ")), " exceeded. P-value may be incorrect. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control")
         }
         for (i in rest_plconf){
           fit$ci.lower[i] <- wald_ci.lower[i]

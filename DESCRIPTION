@@ -16,4 +16,4 @@ License: GPL
 URL: http://cemsiis.meduniwien.ac.at/en/kb/science-research/software/statistical-software/fllogistf/
 LazyLoad: yes
 NeedsCompilation: yes
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1

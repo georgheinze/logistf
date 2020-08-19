@@ -96,7 +96,7 @@ add1.flac<-function(object, scope, test="PLR", ...){
   colnames(mat)<-c("ChiSq","df","P-value")
   return(mat)
 }
-
+#' @aliases drop1
 #' @method drop1 logistf
 #' @exportS3Method drop1 logistf
 drop1.logistf<-function(object, scope, test="PLR", ...){

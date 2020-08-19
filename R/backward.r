@@ -87,9 +87,9 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     else {
         newform=as.formula(paste("~.-",paste(curr_removal, collapse = "-")))
     }
-    if(!full.penalty){ #udate working only if full.penalty==FALSE
-      if(working$df==1 | working$df==mat[mat[,3]==max(mat[,3]),2]){
-        working<-update(working, formula=newform, pl=FALSE)
+    if(!full.penalty){ #update working only if full.penalty==FALSE
+      if(working$df==2 | working$df==mat[mat[,3]==max(mat[,3]),2]){
+        working<-update(working, formula=newform, pl=FALSE, data=object$data)
       }
       else {
         working<-update(working, formula=newform, data=object$data)
