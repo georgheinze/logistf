@@ -65,7 +65,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     call <- match.call()
     formula<-object$formula
     if (is.null(data)) data<-object$data
-    if (missing(control)) control<-logistf.control()
+    if (missing(control)) control<-object$control
     mf<-model.frame(object$formula,data=object$data)
     y <- model.response(mf)
     n <- length(y)
@@ -95,6 +95,10 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     }
     else {
         fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=1:k, control=control)
+    }
+    
+    if(fit.full$iter>=control$maxit){
+        warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
     }
 
     pos<-coltotest

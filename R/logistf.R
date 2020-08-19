@@ -64,9 +64,11 @@
 #'    \item{pl.iter}{only if pl==TRUE: the number of iterations needed for each confidence limit.}
 #'    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
 #'    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
+#'    \item{control}{a copy of the control parameters.}  
+#'    
 #'    If \code{dataout=TRUE}, additionally:
 #'    \item{data}{a copy of the input data set}
-#'    \item{weights}{the weights variable (if applicable)}  
+#'    \item{weights}{the weights variable (if applicable)}
 #'     
 #' @export
 #'
@@ -191,7 +193,7 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
     
     if(fit.full$iter>=control$maxit){
-      warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
+      warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
     }
     
     fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int), loglik =c(fit.null$loglik, fit.full$loglik),
@@ -288,7 +290,8 @@ function(formula = attr(data, "formula"), data = sys.parent(), pl = TRUE, alpha 
     if(dataout) {
       fit$data<-data
       fit$weights<-weight
-      }
+    }
+    fit$control <- control
     attr(fit, "class") <- c("logistf")
     fit
 }
