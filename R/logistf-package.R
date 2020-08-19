@@ -1,6 +1,6 @@
-#' @keywords internal
-#' @aliases {logistf}-package
 #' @title Firth's Bias-Reduced Logistic Regression
+#' @docType package
+#' @aliases {logistf}-package
 #' 
 #' @description 
 #' Fit a logistic regression model using Firth's bias reduction method, equivalent to penalization of the log-likelihood by the Jeffreys prior. 
@@ -139,4 +139,4 @@
 #' @importFrom formula.tools lhs.vars
 #' 
 #' @useDynLib logistf
-"_PACKAGE"
+NULL

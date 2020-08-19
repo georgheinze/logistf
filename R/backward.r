@@ -75,7 +75,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
       curr_removal <- removal[istep] #if two pvalues are the same, both are taken 
     }
     else { #if full.penalty = FALSE: save only current removal
-      removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])] #remove highest pvalue
+      removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])] #remove highest pvalue - if p-values are the same fot two variables: delete both
       curr_removal <- removal
     }
     #check if object$formula contains a dot shortcut i.e. last character: 
