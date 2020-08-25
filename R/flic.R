@@ -68,29 +68,42 @@ flic <- function(x,...){
 #' @exportS3Method flic formula
 #' @describeIn flic With formula and data
 #' @export flic.formula
-flic.formula <- function(formula = attr(data, "formula"), data = sys.parent(),...){
+flic.formula <- function(formula,data,...){
   #Determine coefficient estimates by Firths penalization
   extras <- list(...)
   call_out <- match.call()
+  
+  mf <- match.call(expand.dots =FALSE)
+  m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
+  
+  mf <- mf[c(1, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1L]] <- quote(stats::model.frame)
+  mf <- eval(mf, parent.frame())
+  mt <- attr(mf, "terms")
+  y <- model.response(mf)
+  n <- length(y)
+  x <- model.matrix(mt, mf)
+  
   if (!is.null(extras$terms.fit)){
     termsfit <- eval(extras$terms.fit)
     call_out$terms.fit <- extras$terms.fit
     # estimate profile likelihood confidence intervals only for variables in terms.fit
     plconf <- match(termsfit, formula.tools::rhs.vars(formula))
     # logistf call
-    FL <- logistf(formula, data=data, terms.fit=termsfit,plconf = plconf)
+    FL <- logistf(formula, data=mf, terms.fit=termsfit,plconf = plconf)
   }
-  else FL <- logistf(formula, data=data)
-  designmat <- model.matrix(formula, data)
+  else FL <- logistf(formula, data=mf)
   response <- lhs.vars(formula) 
+  
   #calculate linear predictors ommiting the intercept
   lp <- FL$linear.predictors-FL$coefficients[1]
   #determine ML estimate of intercept 
   fit <- glm(as.formula(paste(response, paste("1"), sep=" ~ ")), family=binomial(link=logit), 
-             data=data, offset=lp)
+             data=mf, offset=lp)
   #se of intercept
   W <- diag(fit$fitted.values*(1-fit$fitted.values))
-  XWX <- t(designmat)%*%W%*%designmat
+  XWX <- t(x)%*%W%*%x
   tmp.var <- solve(XWX)
   beta0.se <- sqrt(tmp.var[1,1])
   
@@ -100,11 +113,11 @@ flic.formula <- function(formula = attr(data, "formula"), data = sys.parent(),..
   full_loglik <- loglik+I
   
   ic <- fit$coef
-  res <- list(coefficients=c(ic, FL$coef[-1]),terms=colnames(designmat), predicted.probabilities = fit$fitted, linear.predictions=fit$linear, 
+  res <- list(coefficients=c(ic, FL$coef[-1]),terms=colnames(x), predicted.probabilities = fit$fitted, linear.predictions=fit$linear, 
               probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], FL$prob[-1]),ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, FL$ci.upper[-1]),call=call_out, alpha = FL$alpha, 
               method=FL$method, method.ci=FL$method.ci, var=c(beta0.se, diag(FL$var)[-1]^0.5), df=FL$df, loglik=c(FL$loglik[1], full_loglik), n=FL$n, 
-              formula=formula(formula), data = data)
+              formula=formula(formula))
   attr(res, "class") <- c("flic")
   res
 }
@@ -114,16 +127,27 @@ flic.formula <- function(formula = attr(data, "formula"), data = sys.parent(),..
 #' @describeIn flic With logistf object
 #' @method flic logistf
 #' @exportS3Method flic logistf
-flic.logistf <- function(lfobject){
+flic.logistf <- function(lfobject,...){
+  mf <- match.call(expand.dots =FALSE)
+  m <- match("lfobject", names(mf), 0L)
+  mf <- mf[c(1, m)]
+  lfobject <- eval(mf$lfobject, parent.frame())
+  variables <- lfobject$terms[-1]
+  data <- model.frame(lfobject)
+  
+  response <- formula.tools::lhs.vars(lfobject$formula)
+  scope <- formula.tools::rhs.vars(lfobject$formula)
+  
+  
   #calculate linear predictors ommiting the intercept
   lp <- lfobject$linear.predictors-lfobject$coefficients[1]
   #determine ML estimate of intercept 
   response <- all.vars(lfobject$formula)[1]
   lfformula <- as.formula(paste(response, paste("1"), sep=" ~ "))
-  fit <- glm(lfformula, family=binomial(link=logit), data=lfobject$data, offset=lp)
+  fit <- glm(lfformula, family=binomial(link=logit), data=data, offset=lp)
   #se of intercept
   W <- diag(fit$fitted.values*(1-fit$fitted.values))
-  designmat <- model.matrix(lfobject$formula, lfobject$data)
+  designmat <- model.matrix(lfobject$formula, data)
   if( det(t(designmat)%*%W%*%designmat) == 0) stop('Fisher Information matrix is singular')
   XWX <- t(designmat)%*%W%*%designmat
   tmp.var <- solve(XWX)
@@ -138,7 +162,7 @@ flic.logistf <- function(lfobject){
               probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], lfobject$prob[-1]),ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, lfobject$ci.upper[-1]),call=match.call(), alpha = lfobject$alpha, 
               method=lfobject$method, method.ci=lfobject$method.ci, var=c(beta0.se, diag(lfobject$var)[-1]^0.5), df=lfobject$df-1, loglik=c(lfobject$loglik[1], full_loglik), n=lfobject$n, 
-              formula=lfobject$formula, data = lfobject$data)
+              formula=lfobject$formula)
   attr(res, "class") <- c("flic")
   res
 }

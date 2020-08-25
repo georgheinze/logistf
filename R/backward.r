@@ -89,10 +89,10 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     }
     if(!full.penalty){ #update working only if full.penalty==FALSE
       if(working$df==2 | working$df==mat[mat[,3]==max(mat[,3]),2]){
-        working<-update(working, formula=newform, pl=FALSE, data=object$data)
+        working<-update(working, formula=newform, pl=FALSE)#, data=object$data)
       }
       else {
-        working<-update(working, formula=newform, data=object$data)
+        working<-update(working, formula=newform)#, data=object$data)
       }
     }
     else {
@@ -112,11 +112,11 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     tofit <- variables[-tmp]
     if (length(tofit)==0){
       newform <- as.formula(~ 1)
-      working<-update(working,newform, data=object$data)
+      working<-update(working,newform)#, data=object$data)
     }
     else {
       newform <- as.formula(paste("~",paste(tofit, collapse="+")))
-      working<-update(working,newform,terms.fit=tofit, data=object$data)
+      working<-update(working,newform,terms.fit=tofit)#, data=object$data)
     }
   }
   return(working)
@@ -133,16 +133,16 @@ backward.flic<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, prin
 forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork=FALSE, pl=TRUE, ...){
   istep<-0
   working<-object
-  if(missing(scope)) scope<-colnames(object$data)
-  if(is.numeric(scope)) scope<-colnames(object$data)[scope]
-  scope<-scope[-(match(colnames(model.frame(object$formula,data=object$data))[1],scope))]
+  if(missing(scope)) scope<-attr(terms(object),"term.labels")
+  if(is.numeric(scope)) scope<-scope<-attr(terms(object),"term.labels")[scope]
+  scope<-scope[-(match(colnames(model.frame(object$formula))[1],scope))]
   if(trace){
     cat("Step ", istep, ": starting model\n")
     if(printwork) {
         print(working)
         cat("\n\n")
         }
-    }
+  }
   if(missing(scope)) stop("Please provide scope (vector of variable names).\n")
   inscope<-scope
   while(istep<steps & length(inscope)>=1){

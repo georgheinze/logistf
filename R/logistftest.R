@@ -60,16 +60,22 @@
 #' 
 #' 
 logistftest <-
-function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.object = NULL,data=NULL, ...)
+function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.object = NULL, ...)
 {
     call <- match.call()
     formula<-object$formula
-    if (is.null(data)) data<-object$data
-    if (missing(control)) control<-object$control
-    mf<-model.frame(object$formula,data=object$data)
-    y <- model.response(mf)
+    
+    mf <- match.call(expand.dots =FALSE)
+    m <- match("object", names(mf), 0L)
+    mf <- mf[c(1, m)]
+    object <- eval(mf$object, parent.frame())
+    
+    y <- model.response(model.frame(object))
     n <- length(y)
-    x <- model.matrix(formula, data = data) ## Model-Matrix 
+    x <- model.matrix(model.frame(object))
+
+    if (missing(control)) control<-object$control
+
     cov.name <- labels(x)[[2]]
     if(missing(weights) & !is.null(object$weights)) weight <- object$weights
     else weight<-NULL
@@ -109,7 +115,8 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         cov.name2 <- cov.name[test]
     }
     else {
-        cov.name2 <- labels(model.matrix(test, data = data))[[2]]
+        test <- eval(test, parent.frame())
+        cov.name2 <- labels(model.matrix(test))[[2]]
     }
     pos <- match(cov.name2, cov.name)   ## Position der Testfakt.
     OK <- !is.na(pos)

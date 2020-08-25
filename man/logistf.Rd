@@ -6,8 +6,8 @@
 \title{Firth's Bias-Reduced Logistic Regression}
 \usage{
 logistf(
-  formula = attr(data, "formula"),
-  data = sys.parent(),
+  formula,
+  data,
   pl = TRUE,
   alpha = 0.05,
   control,
@@ -90,6 +90,8 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{pl.iter}{only if pl==TRUE: the number of iterations needed for each confidence limit.}
    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
+   \item{control}{a copy of the control parameters.}  
+   
    If \code{dataout=TRUE}, additionally:
    \item{data}{a copy of the input data set}
    \item{weights}{the weights variable (if applicable)}

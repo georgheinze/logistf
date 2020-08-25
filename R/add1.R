@@ -31,9 +31,9 @@
 #' @method add1 logistf
 #' @exportS3Method add1 logistf
 add1.logistf<-function(object, scope, test="PLR", ...){
-  if(missing(scope)) scope<-colnames(object$data)
-  if(is.numeric(scope)) scope<-colnames(object$data)[scope]
-  whereisresponse<-(match(colnames(model.frame(object$formula,data=object$data))[1],scope))
+  if(missing(scope)) scope<-attr(terms(object),"term.labels")
+  if(is.numeric(scope)) scope<-attr(terms(object),"term.labels")[scope]
+  whereisresponse<-(match(colnames(model.frame(object$formula))[1],scope))
   if(!is.na(whereisresponse)) scope<-scope[-whereisresponse]
   scope<-scope[is.na(match(scope, attr(terms(object),"term.labels")))]
   variables<-scope
@@ -53,9 +53,9 @@ add1.logistf<-function(object, scope, test="PLR", ...){
 }
 #' @exportS3Method add1 flic
 add1.flic<-function(object, scope, test="PLR", ...){
-  if(missing(scope)) scope<-colnames(object$data)
-  if(is.numeric(scope)) scope<-colnames(object$data)[scope]
-  whereisresponse<-(match(colnames(model.frame(object$formula,data=object$data))[1],scope))
+  if(missing(scope)) scope<-attr(terms(object),"term.labels")
+  if(is.numeric(scope)) scope<-attr(terms(object),"term.labels")[scope]
+  whereisresponse<-(match(colnames(model.frame(object$formula))[1],scope))
   if(!is.na(whereisresponse)) scope<-scope[-whereisresponse]
   scope<-scope[is.na(match(scope, attr(terms(object),"term.labels")))]
   variables<-scope
@@ -76,9 +76,9 @@ add1.flic<-function(object, scope, test="PLR", ...){
 
 #' @exportS3Method add1 flac
 add1.flac<-function(object, scope, test="PLR", ...){
-  if(missing(scope)) scope<-colnames(object$data)
-  if(is.numeric(scope)) scope<-colnames(object$data)[scope]
-  whereisresponse<-(match(colnames(model.frame(object$formula,data=object$data))[1],scope))
+  if(missing(scope)) scope<-attr(terms(object),"term.labels")
+  if(is.numeric(scope)) scope<-attr(terms(object),"term.labels")[scope]
+  whereisresponse<-(match(colnames(model.frame(object$formula))[1],scope))
   if(!is.na(whereisresponse)) scope<-scope[-whereisresponse]
   scope<-scope[is.na(match(scope, attr(terms(object),"term.labels")))]
   variables<-scope
@@ -105,7 +105,7 @@ drop1.logistf<-function(object, scope, test="PLR", ...){
     full.penalty.vec <- extras$full.penalty.vec
   }
   else full.penalty.vec <- NULL
-  variables<-attr(terms(object$formula, data = object$data),"term.labels")
+  variables<-attr(terms(object$formula),"term.labels")
   nvar<-length(variables)
   if(!is.null(full.penalty.vec) && nvar!=length(full.penalty.vec)){ #exclude already removed variables - see backward
     matched <- match(full.penalty.vec, variables)+1 #+1: to include intercept
@@ -136,7 +136,7 @@ drop1.logistf<-function(object, scope, test="PLR", ...){
 #' @method drop1 flic
 #' @exportS3Method drop1 flic
 drop1.flic<-function(object, scope, test="PLR", ...){
-  variables<-attr(terms(object$formula, data = object$data),"term.labels")
+  variables<-attr(terms(object$formula),"term.labels")
   extras <- list(...)
   if(!is.null(extras$full.penalty.vec)){
     full.penalty.vec <- extras$full.penalty.vec
@@ -171,7 +171,7 @@ drop1.flic<-function(object, scope, test="PLR", ...){
 #' @method drop1 flac
 #' @exportS3Method drop1 flac
 drop1.flac<-function(object, scope, test="PLR", ...){
-  variables<-attr(terms(object$formula, data = object$data),"term.labels")
+  variables<-attr(terms(object$formula),"term.labels")
   extras <- list(...)
   if(!is.null(extras$full.penalty.vec)){
     full.penalty.vec <- extras$full.penalty.vec

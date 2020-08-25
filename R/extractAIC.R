@@ -37,25 +37,5 @@ nobs.flac<-function(object, ...){
 
 #' @exportS3Method terms logistf
 terms.logistf<-function(x, ...){
-  object<-x
-  options(warn=-1)
-  fakeglm<-try(glm(formula=object$formula,data=object$data, family=binomial,maxit=1))
-  options(warn=0)
-  return(terms(fakeglm))
-}
-#' @exportS3Method terms flic
-terms.flic<-function(x, ...){
-  object<-x
-  options(warn=-1)
-  fakeglm<-try(glm(formula=object$formula,data=object$data, family=binomial,maxit=1))
-  options(warn=0)
-  return(terms(fakeglm))
-}
-#' @exportS3Method terms flic
-terms.flac<-function(x, ...){
-  object<-x
-  options(warn=-1)
-  fakeglm<-try(glm(formula=object$formula,data=object$data, family=binomial,maxit=1))
-  options(warn=0)
-  return(terms(fakeglm))
+  return(terms(formula(x)))
 }

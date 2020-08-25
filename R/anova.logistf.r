@@ -86,10 +86,10 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
  }
  if(method=="nested"){
     f1<-fit1$formula
-    a<-attr(terms(f1, data = object$data),"term.labels")
+    a<-attr(terms(f1),"term.labels")
     if(missing(formula)){  
       f2<-fit2$formula
-      b<-attr(terms(f2, data = fit2$data),"term.labels")
+      b<-attr(terms(f2),"term.labels")
       # find out about which model is nested in the other
       upper<-f1
       lower<-f2
@@ -133,13 +133,12 @@ anova.flic<-function(object,  fit2, formula, method="nested", ...){
       fit2<-ff0
     }
   }
-  
   if(method=="nested"){
     f1<-fit1$formula
-    a<-attr(terms(f1, data = object$data),"term.labels")
+    a<-attr(terms(f1),"term.labels")
     if(missing(formula)){  
       f2<-fit2$formula
-      b<-attr(terms(f2, data = fit2$data),"term.labels")
+      b<-attr(terms(f2),"term.labels")
       # find out about which model is nested in the other
       upper<-f1
       lower<-f2
@@ -189,11 +188,11 @@ anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
     a<-attr(terms(f1, data = object$augmented_data),"term.labels")
   }
   else{
-    a<-attr(terms(f1, data = object$data),"term.labels")
+    a<-attr(terms(f1),"term.labels")
   }
   if(missing(formula)){  
     f2<-fit2$formula
-    b<-attr(terms(f2, data = fit2$data),"term.labels")
+    b<-attr(terms(f2),"term.labels")
     # find out about which model is nested in the other
     upper<-f1
     lower<-f2
