@@ -57,8 +57,6 @@ by the corresponding element of weights}
 \item{plconf}{specifies the variables (as vector of their indices) for which profile likelihood 
 confidence intervals should be computed. Default is to compute for all variables}
 
-\item{dataout}{If \code{TRUE}, copies the \code{data} set to the output object}
-
 \item{flic}{If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
 keeping all other coefficients constant}
 
@@ -82,19 +80,15 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{predict}{ a vector with the predicted probability of each observation.}
    \item{hat.diag}{ a vector with the diagonal elements of the Hat Matrix.}
    \item{conv}{the convergence status at last iteration: a vector of length 3 with elements: last change in log likelihood, max(abs(score vector)), max change in beta at last iteration.}
-   \item{method}{ depending on the fitting method `Penalized ML' or `Standard ML'.}
-   \item{method.ci}{ the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl.}
+   \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
+   \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
    \item{ci.lower}{ the lower confidence limits of the parameter.}
    \item{ci.upper}{ the upper confidence limits of the parameter.}
    \item{prob}{ the p-values of the specific parameters.}
    \item{pl.iter}{only if pl==TRUE: the number of iterations needed for each confidence limit.}
    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
-   \item{control}{a copy of the control parameters.}  
-   
-   If \code{dataout=TRUE}, additionally:
-   \item{data}{a copy of the input data set}
-   \item{weights}{the weights variable (if applicable)}
+   \item{control}{a copy of the control parameters.}
 }
 \description{
 Implements Firth's bias-Reduced penalized-likelihood logistic regression.

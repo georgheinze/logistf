@@ -9,9 +9,9 @@
 \usage{
 flic(x, ...)
 
-\method{flic}{formula}(formula = attr(data, "formula"), data = sys.parent(), ...)
+\method{flic}{formula}(formula, data, ...)
 
-\method{flic}{logistf}(lfobject)
+\method{flic}{logistf}(lfobject, ...)
 }
 \arguments{
 \item{x}{Either formula and data or \code{\link{logistf}} object}
@@ -29,8 +29,8 @@ A \code{flic} object with components:
   \item{ci.upper}{The upper confidence limits of the parameter.}
   \item{call}{The call object.}
   \item{alpha}{The significance level: 0.95}
-  \item{method}{The fitting method: 'Penalized ML'}
-  \item{method.ci}{The method calculating the confidence intervals of the parameter (without intercept.)}
+  \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
+  \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
   \item{var}{The variance-covariance-matrix of the parameters.}
   \item{df}{The number of degrees of freedom in the model.}
   \item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}

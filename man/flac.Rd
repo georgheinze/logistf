@@ -9,7 +9,7 @@
 \usage{
 flac(x, ...)
 
-\method{flac}{formula}(formula = attr(data, "formula"), data = sys.parent(), ...)
+\method{flac}{formula}(formula, data, ...)
 
 \method{flac}{logistf}(lfobject, ...)
 }
@@ -28,16 +28,15 @@ A \code{flac} object with components:
   \item{ci.upper}{The upper confidence limits of the parameter.}
   \item{call}{The call object.}
   \item{alpha}{The significance level: 0.95}
-  \item{method}{The fitting method: 'Penalized ML'}
-  \item{method.ci}{The method calculating the confidence intervals of the parameter (without intercept.)}
   \item{var}{The variance-covariance-matrix of the parameters.}
   \item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
   \item{n}{The number of observations.}
   \item{formula}{The formula object.}
-  \item{data}{A copy of the input dataset.}
   \item{augmented.data}{The augmented dataset used}
   \item{terms}{The model terms (column names of design matrix).}
   \item{df}{The number of degrees of freedom in the model.}
+  \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
+  \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
 }
 \description{
 \code{flac} implements Firth's bias-reduced penalized-likelihood logistic regression with added covariate.

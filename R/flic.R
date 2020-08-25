@@ -19,7 +19,7 @@
 #' ratios.
 #' 
 #' @param x Either formula and data or \code{\link{logistf}} object
-#' @param ... Further arguments passed to the method.
+#' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flic} object with components:
 #'   \item{coefficients}{The coefficients of the parameter in the fitted model.}
@@ -31,8 +31,8 @@
 #'   \item{ci.upper}{The upper confidence limits of the parameter.}
 #'   \item{call}{The call object.}
 #'   \item{alpha}{The significance level: 0.95}
-#'   \item{method}{The fitting method: 'Penalized ML'}
-#'   \item{method.ci}{The method calculating the confidence intervals of the parameter (without intercept.)}
+#'   \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
+#'   \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
 #'   \item{var}{The variance-covariance-matrix of the parameters.}
 #'   \item{df}{The number of degrees of freedom in the model.}
 #'   \item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
@@ -91,7 +91,7 @@ flic.formula <- function(formula,data,...){
     # estimate profile likelihood confidence intervals only for variables in terms.fit
     plconf <- match(termsfit, formula.tools::rhs.vars(formula))
     # logistf call
-    FL <- logistf(formula, data=mf, terms.fit=termsfit,plconf = plconf)
+    FL <- logistf(formula, data=mf, terms.fit=termsfit,plconf = plconf, ...)
   }
   else FL <- logistf(formula, data=mf)
   response <- lhs.vars(formula) 
@@ -113,11 +113,21 @@ flic.formula <- function(formula,data,...){
   full_loglik <- loglik+I
   
   ic <- fit$coef
-  res <- list(coefficients=c(ic, FL$coef[-1]),terms=colnames(x), predicted.probabilities = fit$fitted, linear.predictions=fit$linear, 
-              probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], FL$prob[-1]),ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
-              ci.upper=c(ic+beta0.se*1.96, FL$ci.upper[-1]),call=call_out, alpha = FL$alpha, 
-              method=FL$method, method.ci=FL$method.ci, var=c(beta0.se, diag(FL$var)[-1]^0.5), df=FL$df, loglik=c(FL$loglik[1], full_loglik), n=FL$n, 
-              formula=formula(formula))
+  res <- list(coefficients=c(ic, FL$coef[-1]),
+              terms=colnames(x), 
+              predicted.probabilities = fit$fitted, 
+              linear.predictions=fit$linear, 
+              probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], FL$prob[-1]),
+              ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
+              ci.upper=c(ic+beta0.se*1.96, FL$ci.upper[-1]),
+              call=call_out, 
+              alpha = FL$alpha,
+              var=c(beta0.se, diag(FL$var)[-1]^0.5), 
+              df=FL$df, loglik=c(FL$loglik[1], full_loglik), 
+              n=FL$n, 
+              formula=formula(formula), 
+              method=FL$method, 
+              method.ci=c("Wald", FL$method.ci[-1]))
   attr(res, "class") <- c("flic")
   res
 }
@@ -158,10 +168,19 @@ flic.logistf <- function(lfobject,...){
   full_loglik <- loglik+I
   
   ic <- fit$coef
-  res <- list(coefficients=c(ic, lfobject$coef[-1]), fitted = fit$fitted, linear.predictors=fit$linear, 
-              probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], lfobject$prob[-1]),ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
-              ci.upper=c(ic+beta0.se*1.96, lfobject$ci.upper[-1]),call=match.call(), alpha = lfobject$alpha, 
-              method=lfobject$method, method.ci=lfobject$method.ci, var=c(beta0.se, diag(lfobject$var)[-1]^0.5), df=lfobject$df-1, loglik=c(lfobject$loglik[1], full_loglik), n=lfobject$n, 
+  res <- list(coefficients=c(ic, lfobject$coef[-1]), 
+              fitted = fit$fitted, 
+              linear.predictors=fit$linear, 
+              probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], lfobject$prob[-1]),
+              ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
+              ci.upper=c(ic+beta0.se*1.96, lfobject$ci.upper[-1]),
+              call=match.call(), 
+              alpha = lfobject$alpha, 
+              method=lfobject$method, 
+              method.ci=c("Wald", lfobject$method.ci[-1]), 
+              var=c(beta0.se, diag(lfobject$var)[-1]^0.5), 
+              df=lfobject$df-1, loglik=c(lfobject$loglik[1], full_loglik), 
+              n=lfobject$n, 
               formula=lfobject$formula)
   attr(res, "class") <- c("flic")
   res
