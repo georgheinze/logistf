@@ -1,6 +1,5 @@
 logistf.pdf <-
-function (x, y, pos,
- firth = TRUE, weight, control, plcontrol, offset=NULL, b, beta=NULL, loglik=NULL, fit=NULL, old=FALSE)
+function (x, y, pos, firth = TRUE, weight, control, plcontrol, offset=NULL, b, beta=NULL, loglik=NULL, fit=NULL, old=FALSE)
 {
 
     # Georg Heinze, 3 Jan 2012
@@ -50,5 +49,5 @@ function (x, y, pos,
         results<-list(beta=res[1,1], chisq=res[1,2], pdf=res[1,3])
 
      results
-   }
+}
 

@@ -109,12 +109,11 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
   if(is.null(variable))       variable<-names(fits[[1]]$coefficients)
   nvar<-length(variable)    
   
-  inner.CLIP<-function(myvar){
-    variable<-myvar
+  
+  #inner.CLIP<-function(myvar){
+    #variable<-myvar
+  variable <- variable[3]
     old<-legacy
-    
-    
-    
     
     imputations<-nimp
     if (is.null(which) & is.null(variable))
@@ -126,20 +125,19 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
     variable.names<-colnames(model.matrix(formula, data = data[[1]]))
     #    mat.data<-matrix(lapply(1:imputations,function(x) matrix(unlist(data[[x]]),nperimp[[x]],ncol(data[[x]]))),sum(nperimp),ncol(data[[1]]))
     
-    
     imputation.indicator<-unlist(sapply(1:imputations, function(x) rep(x,nperimp[x]))[TRUE])       #[TRUE]makes vector out of matrix
     
-    mat.data<-matrix(0,sum(nperimp),ncol(data[[1]]))   ### copy list of data set into a matrix
-    for(i in 1:imputations) mat.data[imputation.indicator==i,1:ncol(data[[i]])]<-as.matrix(data[[i]])
-    
+    #mat.data<-matrix(0,sum(nperimp),ncol(data[[1]]))   ### copy list of data set into a matrix
+    #for(i in 1:imputations) mat.data[imputation.indicator==i,1:ncol(data[[i]])]<-as.matrix(data[[i]])
+    #easier as above (and without converting everything to strings):
+    mat.data <- do.call(rbind, data)
     
     #  if(missing(weightvar)) {
     #     weightvar<-"weights"
     #     mat.data[,ncol(mat.data)]<-rep(1,nrow(mat.data))
     #   }
-    big.data<-data.frame(mat.data)
+    big.data<-data.frame(mat.data, stringsAsFactors = F)
     colnames(big.data)<-colnames(data[[1]])
-    
     
     k<-length(variable.names)  
     xyw<-matrix(0,sum(nperimp),k+2)
@@ -163,7 +161,6 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
     #    covs <- fit$var
     #    n <- nrow(x)
     #    cov.name <- labels(x)[[2]]
-    
     if (is.null(weightvar)) {
       # data<-lapply(1:imputations, function(z) {
       #  data[[z]]$weightvar<-rep(1,nrow(data[[z]]))
@@ -174,12 +171,11 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
     }
     else xyw[,k+2]<-big.data[,weightvar]
     posweight<-k+2
-    
-    
+
     lf<-function(index) logistf.fit(y=xyw[index,k+1], x=xyw[index,1:k], weight=xyw[index,k+2])
-    
+
     if (is.null(fits))   fits<-lapply(1:imputations, function(z) lf(imputation.indicator==z))
-    
+
     if(is.null(bound.lo)){
       lower.collect<-        (unlist(lapply(1:imputations,function(x) fits[[x]]$ci.lower[pos])))
       lowerbound.lo<-min(lower.collect) ###von dem den index nehmen und davon das PL CI ausrechnen
@@ -208,7 +204,6 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
       upperbound.up <- upperbound.up + 1/2
     }
     
-    
     estimate<-mean(unlist(lapply(1:imputations,function(x) fits[[x]]$coefficients[pos])))
     
     iter<-numeric(0)
@@ -216,17 +211,31 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
     loglik<-unlist(lapply(1:imputations, function(x) fits[[x]]$loglik[2]))
     beta<-t(matrix(unlist(lapply(1:imputations,function(x) fits[[x]]$coefficients)),k,imputations))
     
-    
+
     lpdf<-function(zz,z) logistf.pdf(x=xyw[imputation.indicator==zz,1:k], y=xyw[imputation.indicator==zz,k+1], 
                                      weight=xyw[imputation.indicator==zz,k+2], beta=beta[zz,],loglik=loglik[zz],
                                      pos=pos, firth=firth, offset=offset, control=control, b=z, old=old)$pdf
     
-    f=function(z)  mean(unlist(lapply(1:imputations, function(zz) lpdf(zz,z))))
-    
+    f=function(z)  mean(unlist(lapply(1:imputations, function(zz) {
+      print("zz")
+      print(zz)
+      print("z")
+      print(z)
+      lpdf(zz,z)
+      }
+    )))
+    print("lowerbound.lo")
+    print(lowerbound.lo)
+    print("upperbound.lo")
+    print(upperbound.lo)
+    print("1")
     f.lower<-f(lowerbound.lo)-ci.level[1]
+    print("2")
     f.upper<-f(upperbound.lo)-ci.level[1]
+    print("3")
     iter[1]<-2
     itwhile<-0
+
     while(f.lower > 0 & (upperbound.lo - lowerbound.lo) > 0 & itwhile<5) {
       itwhile<-itwhile+1
       lowerbound.lo<-lowerbound.lo - (upperbound.lo - lowerbound.lo)/2
@@ -243,16 +252,16 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
       f.upper<-f(upperbound.lo)-ci.level[1]
       iter[1]<-iter[1]+1
     }
+
     if (itwhile>=5 & f.upper<0) stop("pool.pl can not find an upper boundary for the lower confidence limit.\n Try to increase number of imputations or supply boundaries by bound.lo=c(x,xx).\n")
     
     ci<-numeric(0)
+
     res.ci<-uniroot(f=function(z) {f(z)-ci.level[1]}, 
                     lower=lowerbound.lo, upper=upperbound.lo, f.lower=f.lower, f.upper=f.upper)
     ci[1]<-res.ci$root
     iter[1]<-res.ci$iter+iter[1]
-    
-    
-    
+
     f.lower<-f(lowerbound.up)-ci.level[2]
     f.upper<-f(upperbound.up)-ci.level[2]
     iter[2]<-2
@@ -301,9 +310,9 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
       ci.level=ci.level, myvar=myvar, call=match.call(), 
       bound.lo=c(lowerbound.lo, upperbound.lo),
       bound.up=c(lowerbound.up, upperbound.up), iter=iter)
-    return(res)
-  }
-  
+    #return(res)
+ # }
+
   estimate<-numeric(nvar)
   ci<-matrix(0,nvar,2)
   pvalue.out<-numeric(nvar)
@@ -311,6 +320,7 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
   bound.up<-matrix(0,nvar,2)
   iter<-matrix(0,nvar,2)
   for(i in 1:nvar)  {
+    print(variable[i])
     res.tmp<-inner.CLIP(myvar=variable[i])
     estimate[i]<-res.tmp$estimate
     ci[i,]<-res.tmp$ci
@@ -328,6 +338,8 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
   attr(res,"class") <- "CLIP.confint"
   return(res)
 }
+
+
 
 #' @method print CLIP.confint
 print.CLIP.confint <- function(

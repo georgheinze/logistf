@@ -46,6 +46,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	double *delta;
 	double *XBeta;
 	int *selcol;
+	double *tmp; //to check if pi could get too small
 
 	 if (NULL == (xt = (double *) R_alloc(k * n, sizeof(double))))
 	 {
@@ -99,15 +100,26 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	 {
 	 error("no memory available\n");
 	 }
+	 if (NULL == (tmp = (double *) R_alloc(n, sizeof(double))))
+	 {
+	   error("no memory available\n");
+	 }
 	
 	//int bIsInverted ;
 	int bStop = 0;
 	
 	//initialise predicted probabilities pi
-	trans(x, xt, n, k); //HERE: why transpose x and pass t(x) to XtY which transposes again
+	trans(x, xt, n, k);
 	XtY(xt, beta, pi, k, n, 1);	// X'beta -> temporary pi
-	for(i = 0; i < n; i++)
-		pi[i] = 1.0 / (1.0 + exp( - pi[i] - offset[i]));	// final pi
+	
+	for(i = 0; i < n; i++){
+	  tmp[i] = exp( - pi[i] - offset[i]);
+	  if(tmp[i]>1.0e+34){
+	    error("predicted probabilities too small in %d . element, numerator: %e",i+1, tmp[i]);
+	  }
+		pi[i] = 1.0 / (1.0 + tmp[i]);	// final pi
+		//Rprintf(" offset %f ", pi[i]);
+	}
 	
 	// init loglik
 	double loglik_old, loglik_change = 5.0;
@@ -115,7 +127,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	for(i = 0; i < n; i++)
 		*loglik += (y[i] == 1) ? weight[i] * log(pi[i]) : weight[i] * log(1.0 - pi[i]);
 	
-	for(i=0; i < ncolfit; i++) //HERE: What is done here
+	for(i=0; i < ncolfit; i++)
 		selcol[i] = colfit[i] - 1;
 	
 	//xw2[i,j]=x[i,j]*w_j with w_j=pi_j(1-pi_j)
@@ -127,17 +139,18 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	
 	trans(xw2, xw2t, k, n);
 	XtXasy(xw2t, fisher_cov, n, k); // calc XWX
-	
 	if(firth == 1) {
-		linpack_inv_det(fisher_cov, &k, &logdet); // compute both here
+		linpack_det(fisher_cov, &k, &logdet);
 	  if (fabs(logdet) < 0.000000001) {	
 	    error("Determinant of Fisher information matrix was %lf, singularity detected\n", logdet);
 	  }
-	//	bIsInverted = 1;
-		*loglik += 0.5 * logdet;
-	} else {
-		linpack_inv(fisher_cov, &k); 
-	//	bIsInverted = 0;
+	  else {
+	    linpack_inv(fisher_cov, &k); //if not singular then compute inverse
+	    *loglik += 0.5 * logdet;
+	  }
+	} 
+	else {
+	  linpack_inv(fisher_cov, &k);
 	}
 	
 	//Rprintf("*** loop start ***\n");
@@ -171,14 +184,20 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 			//Rprintf("Hdiag : "); Rprintf(Hdiag, 1, n);
 		}
 		if(firth) 
-			for(i=0; i < n; i++)
+			for(i=0; i < n; i++){
 				w[i] = weight[i] * ((double)y[i] - pi[i]) + Hdiag[i] * (0.5 - pi[i]);
+		    //Rprintf(" y %5.2f: ", y[i]);
+		    //Rprintf(" pi %5.2f: ", pi[i]);
+		    //Rprintf(" H %5.2f: ", Hdiag[i]);
+			}
 		else
-			for(i=0; i < n; i++)
+			for(i=0; i < n; i++){
 				w[i] = weight[i] * ((double)y[i] - pi[i]);
+			}
 		//Rprintf("weights : "); Rprintf(w, 1, n);
 		XtY(x, w, Ustar, n, k, 1);
-		//rintf("Ustar : "); Rprintf(Ustar, 1, k);
+		//Rintf("Ustar : "); 
+		//Rprintf(Ustar, 1, k);
 		
 		if(ncolfit > 0 && selcol[0] != -1) {
 			if(ncolfit == k)
@@ -193,25 +212,31 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 				
 				trans(XX_XW2, XX_XW2t, ncolfit, n);
 				XtXasy(XX_XW2t, XX_Fisher , n, ncolfit);
+				//for(i=0; i < 2*k*n; i++) Rprintf(" %f ", XX_XW2t[i]);
 				linpack_inv(XX_Fisher, &ncolfit); // fisher is changed here to covs!!
+				//for(i=0; i < k*k; i++) Rprintf(" %f ", XX_Fisher[i]);
 				//bIsInverted = 1;
 				//Rprintf("inv(fisher) : "); Rprintf(XX_Fisher, ncolfit, ncolfit);
 				
 				for(int i = 0; i < k*k; i++) XXcovs[i] = 0.0; // init 0
 				for(i=0; i < ncolfit; i++)
-					for(j=0; j < ncolfit; j++)
+					for(j=0; j < ncolfit; j++) {
 						XXcovs[selcol[i] + k*selcol[j]] = XX_Fisher[i + ncolfit*j]; // re-map
+					}
 				//Rprintf("XXcovs : "); Rprintf(XXcovs, k, k);
+				//for(i=0; i < k*k; i++) Rprintf(" %f ", XXcovs[i]);
 			}
 			
 			if(bStop)
 				break;
-			
+			//for(i=0; i < k; i++) Rprintf(" %f ", Ustar[i]);
 			XtY(XXcovs, Ustar, delta, k, k, 1);
 			double mx = maxabs(delta, k) / *maxstep;
 			if(mx > 1.0)
-				for(i=0; i < k; i++)
+				for(i=0; i < k; i++) {
 					delta[i] /= mx;
+				  //Rprintf("delta %f: ", delta[i]);
+				}
 		}
 		else
 		{
@@ -226,16 +251,21 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 		if(*maxit > 0) {
 			(*iter)++;
 			//Rprintf("**** iteration %d\n", *iter);
-			for(i=0; i < k; i++)
+			for(i=0; i < k; i++){
 				beta[i] += delta[i];
+			  //Rprintf("delta %f: ", delta[i]);
+			  //Rprintf("iter %d", i);
 			//Rprintf("beta 1): "); Rprintf(beta, 1, k);
-			
+			}
 			for(halfs = 1; halfs <= *maxhs; halfs++) {
 				//Rprintf("**** iter: %d halfstep %ld\n", *iter, halfs);
 				XtY(xt, beta, XBeta, k, n, 1);
 				for(i=0; i < n; i++)
+				  //Rprintf("offset %f ", offset[i]);
 					pi[i] = 1.0 / (1.0 + exp(-XBeta[i] - offset[i]));
-				//Rprintf("pi : "); Rprintf(pi, 1, n);
+					//Rprintf("pi %f ", pi[i]);
+				//Rprintf("pi : "); 
+				//Rprintf(pi, 1, n);
 				
 				*loglik = 0.0;
 				for(i = 0; i < n; i++)
@@ -244,15 +274,19 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 				if(firth) {
 					for(i = 0; i < n; i++) {
 						wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
+					  //Rprintf("%f ", pi[i]);
 						for(j = 0; j < k; j++)
 							xw2[i*k + j] = x[i + j*n] * wi;	// multiply whole col with weight
-						//Rprintf("%f ", wi);
+						  //Rprintf("%f ", xw2[i*k + j]);
+						  //Rprintf("%f ", wi);
 					}
-					//Rprintf("xw2 : "); Rprintf(xw2, k, n);
+					//Rprintf("xw2 : "); 
+				  //Rprintf(xw2, k, n);
 					
 					trans(xw2, xw2t, k, n);
 					XtXasy(xw2t, fisher_cov, n, k); // calc XWX
-					//Rprintf("fisher : "); Rprintf(fisher_cov, k, k);
+					//Rprintf("fisher : "); 
+					//Rprintf(fisher_cov, k, k);
 					linpack_det(fisher_cov, &k, &logdet); // fisher_cov is unchanged here; only det computed
 					//bIsInverted = 0;
 					
@@ -269,7 +303,8 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 				for(i=0; i < k; i++)
 					beta[i] -= delta[i] * powf(2.0, (float)-halfs);  
 			}
-			//Rprintf("****** beta: "); Rprintf(beta, 1, k);
+			//Rprintf("****** beta: "); 
+			//Rprintf(beta, 1, k);
 		}
 		
 		loglik_change = *loglik - loglik_old;
