@@ -18,7 +18,8 @@
 #' ratios.
 #' @encoding UTF-8
 #' 
-#' @param x Either formula and data or \code{\link{logistf}} object
+#' @param x Either formula or \code{\link{logistf}} object
+#' @param data If using with formula, a data framecontaining the variables in the model. 
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flac} object with components:
@@ -64,19 +65,21 @@ flac <- function(x,...){
 #' @method flac formula
 #' @exportS3Method flac formula
 #' @describeIn flac With formula and data
-flac.formula <- function(formula, data, ...){
+flac.formula <- function(x, data, ...){
   call <- match.call()
   extras <- list(...)
   call_out <- match.call()  
   
   mf <- match.call(expand.dots =FALSE)
-  m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
+  m <- match(c("x", "data","weights","na.action","offset"), names(mf), 0L)
   
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1L]] <- quote(stats::model.frame)
   mf <- eval(mf, parent.frame())
   mt <- attr(mf, "terms")
+  
+  formula <- x
   y <- model.response(mf)
   n <- length(y)
   x <- model.matrix(mt, mf)
@@ -142,12 +145,12 @@ flac.formula <- function(formula, data, ...){
 #' @method flac logistf
 #' @exportS3Method flac logistf
 #' @describeIn flac With logistf object
-flac.logistf <- function(lfobject, ... ){
+flac.logistf <- function(x, ... ){
   
   mf <- match.call(expand.dots =FALSE)
-  m <- match("lfobject", names(mf), 0L)
+  m <- match("x", names(mf), 0L)
   mf <- mf[c(1, m)]
-  lfobject <- eval(mf$lfobject, parent.frame())
+  lfobject <- eval(mf$x, parent.frame())
   variables <- lfobject$terms[-1]
   data <- model.frame(lfobject)
   

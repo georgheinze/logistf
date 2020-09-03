@@ -1,7 +1,7 @@
 #' Control Parameters for logistf Profile Likelihood Confidence Interval Estimation
 #'
 #' Sets parameters for modified Newton-Raphson iteration for finding 
-#' profile likelihood confidence intervals in Firth’s penalized likelihood logistic regression
+#' profile likelihood confidence intervals in Firth's penalized likelihood logistic regression
 #' 
 #' \code{logistpl.control()} is used by \code{logistf} to set control parameters to default values 
 #' when computing profile likelihood confidence intervals. 

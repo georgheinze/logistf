@@ -4,10 +4,10 @@
 \alias{predict.logistf}
 \title{Predict Method for logistf Fits}
 \usage{
-\method{predict}{logistf}(lfobject, newdata, type = c("link", "response"), flic = FALSE)
+\method{predict}{logistf}(object, newdata, type = c("link", "response"), flic = FALSE, ...)
 }
 \arguments{
-\item{lfobject}{A fitted object of class \code{logistf}.}
+\item{object}{A fitted object of class \code{logistf}.}
 
 \item{newdata}{Optionally, a data frame in which to look for variables with which to predict. 
 If omitted, the fitted linear predictors are used.}
@@ -16,6 +16,8 @@ If omitted, the fitted linear predictors are used.}
 The alternative \code{response} gives the predicted probabilities.}
 
 \item{flic}{If \code{TRUE}(default = \code{FALSE}), predictions are computed with intercept correction.}
+
+\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 A vector or matrix of predictions.

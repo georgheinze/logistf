@@ -4,14 +4,16 @@
 \alias{predict.flac}
 \title{Predict Method for flac Fits}
 \usage{
-\method{predict}{flac}(flicobject, newdata, type = c("link", "response"))
+\method{predict}{flac}(object, newdata, type = c("link", "response"), ...)
 }
 \arguments{
+\item{object}{A fitted object of class \code{flac}.}
+
 \item{newdata}{Optionally, a data frame in which to look for variables with which to predict. If omitted, the fitted linear predictors are used.}
 
 \item{type}{The type of prediction required. The default is on the scale of the linear predictors. The alternative \code{response} gives the predicted probabilities.}
 
-\item{lfobject}{A fitted object of class \code{flac}.}
+\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 A vector or matrix of predictions.

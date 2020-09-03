@@ -44,7 +44,7 @@ in log likelihood.}
 }
 \description{
 Sets parameters for modified Newton-Raphson iteration for finding 
-profile likelihood confidence intervals in Firth’s penalized likelihood logistic regression
+profile likelihood confidence intervals in Firth's penalized likelihood logistic regression
 }
 \details{
 \code{logistpl.control()} is used by \code{logistf} to set control parameters to default values 

@@ -76,7 +76,7 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
  fit1<-object
  if(missing(formula)){
    if(fit1$df<fit2$df) {
-    ff0<-fit1
+    ff0<-fit1 #swap
     fit1<-fit2
     fit2<-ff0
     }
@@ -95,6 +95,7 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
  if(method=="nested"){
     f1<-fit1$formula
     a<-attr(terms(f1),"term.labels")
+    #check if just intercept fitted: 
     if(missing(formula)){  
       f2<-fit2$formula
       b<-attr(terms(f2),"term.labels")
@@ -112,10 +113,10 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
       f3<-paste("~",aug[1])
       if(length(aug)>1) for(j in 2:length(aug)) f3<-paste(f3, aug[j], sep="+")
       f3<-paste(f3, "-1")
-      f3<-as.formula(f3)
-    } else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""))
-      
-    test<-logistftest(object=fit1, test=f3, firth=fit1$firth, weights=fit1$weights,...)
+      f3<-as.formula(f3, env = environment(object$formula))
+    } else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""), env = environment(object$formula))
+    
+    test<-logistftest(object=fit1, test = f3, firth=fit1$firth, weights=fit1$weights,...)
     chisq<-2*diff(test$loglik)
     PLR1<-2*diff(fit1$loglik)
     PLR2<-PLR1-chisq
@@ -161,8 +162,8 @@ anova.flic<-function(object,  fit2, formula, method="nested", ...){
       f3<-paste("~",aug[1])
       if(length(aug)>1) for(j in 2:length(aug)) f3<-paste(f3, aug[j], sep="+")
       f3<-paste(f3, "-1")
-      f3<-as.formula(f3)
-    } else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""))
+      f3<-as.formula(f3, env = environment(object$formula))
+    } else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""), env = environment(object$formula))
     
     test<-logistftest(object=fit1, test=f3, TRUE, weights=fit1$weights,...)
     chisq<-2*diff(test$loglik)
@@ -215,9 +216,9 @@ anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
     f3<-paste("~",aug[1])
     if(length(aug)>1) for(j in 2:length(aug)) f3<-paste(f3, aug[j], sep="+")
       f3<-paste(f3, "-1")
-      f3<-as.formula(f3)
+      f3<-as.formula(f3, env = environment(object$formula))
   } 
-  else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""))
+  else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""), env = environment(object$formula))
     
   if (augmented_data) {
     test<-logistftest(object=fit1, test=f3, TRUE, weights=fit1$weights,data=fit1$augmented_data,...)

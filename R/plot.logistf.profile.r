@@ -56,7 +56,7 @@
 #' fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE, dataout=TRUE))
 #' 
 #' # CLIP profile 
-#' xprof<-CLIP.profile(obj=fit.list, variable="x", keep=TRUE)
+#' xprof<-CLIP.profile(obj=fit.list, variable="x", data=toymi, keep=TRUE)
 #' plot(xprof)
 #' 
 #' #plot as CDF

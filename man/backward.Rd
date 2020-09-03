@@ -2,10 +2,35 @@
 % Please edit documentation in R/backward.r
 \name{backward}
 \alias{backward}
+\alias{backward.logistf}
+\alias{backward.flic}
 \alias{forward}
+\alias{backward.flac}
 \title{Backward Elimination/Forward Selection of Model Terms in logistf Models}
 \usage{
-backward(x, ...)
+backward(object, ...)
+
+\method{backward}{logistf}(
+  object,
+  scope,
+  steps = 1000,
+  slstay = 0.05,
+  trace = TRUE,
+  printwork = FALSE,
+  full.penalty = FALSE,
+  ...
+)
+
+\method{backward}{flic}(
+  object,
+  scope,
+  steps = 1000,
+  slstay = 0.05,
+  trace = TRUE,
+  printwork = FALSE,
+  full.penalty = FALSE,
+  ...
+)
 
 forward(
   object,
@@ -17,12 +42,22 @@ forward(
   pl = TRUE,
   ...
 )
+
+\method{backward}{flac}(
+  object,
+  steps = 1000,
+  slstay = 0.05,
+  trace = TRUE,
+  printwork = FALSE,
+  full.penalty = FALSE,
+  ...
+)
 }
 \arguments{
-\item{...}{Further arguments to be passed to methods.}
-
 \item{object}{A fitted logistf model object. To start with an empty model, create a model fit 
 with a formula=<y>~1, pl=FALSE. (Replace <y> by your response variable.)}
+
+\item{...}{Further arguments to be passed to methods.}
 
 \item{scope}{The scope of variables to add/drop from the model. Can be missing for backward, backward will use 
 the terms of the object fit. Alternatively, an arbitrary vector of variable names can be given, to allow 
@@ -30,17 +65,17 @@ that only some of the variables will be competitively selected or dropped. Has t
 
 \item{steps}{The number of forward selection/backward elimination steps.}
 
-\item{slentry}{For \code{forward}, the significance level to enter the model.}
+\item{slstay}{For \code{backward}, the significance level to stay in the model.}
 
 \item{trace}{If \code{TRUE}, protocols selection steps.}
 
 \item{printwork}{If \code{TRUE}, prints each working model that is visited by the selection procedure.}
 
-\item{pl}{For forward, computes profile likelihood confidence intervals for the final model if \code{TRUE}.}
-
-\item{slstay}{For \code{backward}, the significance level to stay in the model.}
-
 \item{full.penalty}{If \code{TRUE} penalty is not taken from current model but from start model.}
+
+\item{slentry}{For \code{forward}, the significance level to enter the model.}
+
+\item{pl}{For forward, computes profile likelihood confidence intervals for the final model if \code{TRUE}.}
 }
 \value{
 An updated \code{logistf, flic} or \code{flac} fit with the finally selected model.

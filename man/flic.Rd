@@ -9,14 +9,16 @@
 \usage{
 flic(x, ...)
 
-\method{flic}{formula}(formula, data, ...)
+\method{flic}{formula}(x, data, ...)
 
-\method{flic}{logistf}(lfobject, ...)
+\method{flic}{logistf}(x, ...)
 }
 \arguments{
 \item{x}{Either formula and data or \code{\link{logistf}} object}
 
 \item{...}{Further arguments passed to the method or \code{\link{logistf}}-call.}
+
+\item{data}{If using with formula, a data framecontaining the variables in the model.}
 }
 \value{
 A \code{flic} object with components:

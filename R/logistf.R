@@ -120,7 +120,7 @@
 #' @seealso [add1.logistf, drop1.logistf, anova.logistf]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL, dataout=TRUE,flic=FALSE, ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, ...){
    call <- match.call()
    extras <- list(...)
    call_out <- match.call()

@@ -19,6 +19,7 @@
 #' ratios.
 #' 
 #' @param x Either formula and data or \code{\link{logistf}} object
+#' @param data If using with formula, a data framecontaining the variables in the model. 
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flic} object with components:
@@ -68,22 +69,27 @@ flic <- function(x,...){
 #' @exportS3Method flic formula
 #' @describeIn flic With formula and data
 #' @export flic.formula
-flic.formula <- function(formula,data,...){
-  #Determine coefficient estimates by Firths penalization
+flic.formula <- function(x,data,...){
+  formula <- x
+  
   extras <- list(...)
   call_out <- match.call()
   
   mf <- match.call(expand.dots =FALSE)
-  m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
+  m <- match(c("x", "data","weights","na.action","offset"), names(mf), 0L)
   
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1L]] <- quote(stats::model.frame)
   mf <- eval(mf, parent.frame())
-  mt <- attr(mf, "terms")
+  mt <- attr(mf, "terms")  
+  
+  formula <- x
   y <- model.response(mf)
   n <- length(y)
   x <- model.matrix(mt, mf)
+  
+  
   
   if (!is.null(extras$terms.fit)){
     termsfit <- eval(extras$terms.fit)
@@ -139,11 +145,12 @@ flic.formula <- function(formula,data,...){
 #' @describeIn flic With logistf object
 #' @method flic logistf
 #' @exportS3Method flic logistf
-flic.logistf <- function(lfobject,...){
+flic.logistf <- function(x,...){
+
   mf <- match.call(expand.dots =FALSE)
-  m <- match("lfobject", names(mf), 0L)
+  m <- match("x", names(mf), 0L)
   mf <- mf[c(1, m)]
-  lfobject <- eval(mf$lfobject, parent.frame())
+  lfobject <- eval(mf$x, parent.frame())
   variables <- lfobject$terms[-1]
   data <- model.frame(lfobject)
   

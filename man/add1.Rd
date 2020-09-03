@@ -38,4 +38,5 @@ add1(fit, scope=c("dia", "age"))
 fit2<-logistf(data=sex2, case~age+oc+dia+vic+vicl+vis) 
 drop1(fit2)
 
+
 }

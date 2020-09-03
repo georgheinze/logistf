@@ -18,7 +18,7 @@
 #' intercept specify test = ~ - . or test = 1.
 #' @param values Null hypothesis values, default values are 0. For testing the specific hypothesis 
 #' B1=1, B4=2, B5=0 we specify test= ~B1+B4+B5-1 and values=c(1, 2,0).
-#' @param firth Use of Firth’s (1993) penalized maximum likelihood (firth=TRUE, default) or 
+#' @param firth Use of Firth's (1993) penalized maximum likelihood (firth=TRUE, default) or 
 #' the standard maximum likelihood method (firth=FALSE) for the logistic regression. 
 #' Note that by specifying pl=TRUE and firth=FALSE (and probably lower number of iterations) 
 #' one obtains profile likelihood confidence intervals for maximum likelihood logistic 
@@ -26,20 +26,23 @@
 #' @param beta0 Specifies the initial values of the coefficients for the fitting algorithm
 #' @param weights Case weights
 #' @param control Controls parameters for iterative fitting
+#' @param col.fit.object Numerical vector containing the positions of the variables to fit, if not
+#' specified: all variables are taken
+#' @param ... further arguments passed to logistf.fit
 #'
 #' @return The object returned is of the class logistf and has the following attributes:
 #'   \item{testcov}{A vector of the fixed values of each covariate; NA stands for a parameter which is not tested.}
 #'   \item{loglik}{A vector of the (penalized) log-likelihood of the full and the restricted models. If 
-#'   the argument beta0 not missing, the full model isn’t evaluated.}
+#'   the argument beta0 not missing, the full model isn't evaluated}
 #'   \item{df}{The number of degrees of freedom in the model}
 #'   \item{prob}{The p-value of the test}
 #'   \item{call}{The call object}
-#'   \item{method}{Depending on the fitting method ‘Penalized ML’ or ‘Standard ML’.}
+#'   \item{method}{Depending on the fitting method 'Penalized ML' or 'Standard ML'}
 #'   \item{beta}{The coefficients of the restricted solution}
 #'
 #' @author Georg Heinze 
 #' @references 
-#' Firth D (1993). Bias reduction of maximum likelihood estimates. Biometrika 80, 27–38.
+#' Firth D (1993). Bias reduction of maximum likelihood estimates. Biometrika 80, 27-38.
 #' 
 #' 
 #' Heinze G, Ploner M (2004). Technical Report 2/2004: A SAS-macro, S-PLUS library and R 
@@ -115,9 +118,9 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         cov.name2 <- cov.name[test]
     }
     else {
-        #test <- eval(test, parent.frame())
-        #cov.name2 <- labels(model.matrix(test))[[2]]
-        cov.name2 <- attr(terms(test), "term.labels")
+        test <- eval(test, parent.frame())
+        cov.name2 <- labels(model.matrix(test, model.frame(object)))[[2]]
+        #cov.name2 <- attr(terms(test), "term.labels")
     }
     pos <- match(cov.name2, cov.name)   ## Position der Testfakt.
     OK <- !is.na(pos)

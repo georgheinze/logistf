@@ -32,10 +32,12 @@
 #' 
 #' @rdname backward
 #' @export backward
-backward <- function(x,...){
-  UseMethod("backward",x)
+backward <- function(object,...){
+  UseMethod("backward",object)
 }
 #' @exportS3Method backward logistf
+#' @method backward logistf
+#' @rdname backward
 backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
   istep<-0 #index of steps
   
@@ -123,6 +125,8 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
 }
 
 #' @exportS3Method backward flic
+#' @method backward flic
+#' @rdname backward
 backward.flic<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
    return (backward.logistf(object, scope, steps, slstay, trace, printwork,full.penalty,...))
 }
@@ -186,6 +190,8 @@ forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork
 
 
 #' @exportS3Method backward flac
+#' @method backward flac
+#' @rdname backward
 backward.flac<-function(object, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE,...){
   istep<-0 #index of steps
   mf <- match.call(expand.dots =FALSE)
