@@ -33,7 +33,7 @@ likelihood ratio chi-squared, the degrees of freedom, and the p-value for droppi
 \examples{
 data(sex2) 
 fit<-logistf(data=sex2, case~1, pl=FALSE) 
-add1(fit)
+add1(fit, scope=c("dia", "age"))
  
 fit2<-logistf(data=sex2, case~age+oc+dia+vic+vicl+vis) 
 drop1(fit2)

@@ -63,10 +63,10 @@
 #'   }
 #'   
 #'   # logistf analyses of each imputed data set
-#'   fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE, dataout=TRUE))
+#'   fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE))
 #'   
 #'   # CLIP confidence limits
-#'   CLIP.confint(obj=fit.list)
+#'   CLIP.confint(obj=fit.list, data = toymi)
 #' @author Georg Heinze and Meinhard Ploner
 #' @references Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining 
 #' profile likelihood information from logistic regressions. Statistics in Medicine, to appear.
@@ -95,7 +95,7 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
     else {
       # assuming as input a list of data sets (data) and a list of fits (obj)
       fits<-obj
-      if(missing(data)) if(is.null(fits[[1]]$data)) stop("Please provide data either as list of imputed data sets or by calling logistf on the imputed data sets with dataout=TRUE.\n")
+      if(missing(data)) if(is.null(fits[[1]]$data)) stop("Please provide data either as list of imputed data sets\n")
       else data<-lapply(1:length(fits), function(X) fits[[X]]$data)
       formula<-as.formula(fits[[1]]$call$formula)
       nimp<-length(data)
@@ -110,9 +110,8 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
   nvar<-length(variable)    
   
   
-  #inner.CLIP<-function(myvar){
-    #variable<-myvar
-  variable <- variable[3]
+  inner.CLIP<-function(myvar){
+    variable<-myvar
     old<-legacy
     
     imputations<-nimp
@@ -216,23 +215,10 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
                                      weight=xyw[imputation.indicator==zz,k+2], beta=beta[zz,],loglik=loglik[zz],
                                      pos=pos, firth=firth, offset=offset, control=control, b=z, old=old)$pdf
     
-    f=function(z)  mean(unlist(lapply(1:imputations, function(zz) {
-      print("zz")
-      print(zz)
-      print("z")
-      print(z)
-      lpdf(zz,z)
-      }
+    f=function(z)  mean(unlist(lapply(1:imputations, function(zz) {lpdf(zz,z)}
     )))
-    print("lowerbound.lo")
-    print(lowerbound.lo)
-    print("upperbound.lo")
-    print(upperbound.lo)
-    print("1")
     f.lower<-f(lowerbound.lo)-ci.level[1]
-    print("2")
     f.upper<-f(upperbound.lo)-ci.level[1]
-    print("3")
     iter[1]<-2
     itwhile<-0
 
@@ -310,8 +296,8 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
       ci.level=ci.level, myvar=myvar, call=match.call(), 
       bound.lo=c(lowerbound.lo, upperbound.lo),
       bound.up=c(lowerbound.up, upperbound.up), iter=iter)
-    #return(res)
- # }
+    return(res)
+  }
 
   estimate<-numeric(nvar)
   ci<-matrix(0,nvar,2)
@@ -320,7 +306,6 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
   bound.up<-matrix(0,nvar,2)
   iter<-matrix(0,nvar,2)
   for(i in 1:nvar)  {
-    print(variable[i])
     res.tmp<-inner.CLIP(myvar=variable[i])
     estimate[i]<-res.tmp$estimate
     ci[i,]<-res.tmp$ci

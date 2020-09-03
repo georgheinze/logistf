@@ -16,7 +16,7 @@ flac(x, ...)
 \arguments{
 \item{x}{Either formula and data or \code{\link{logistf}} object}
 
-\item{...}{Further arguments passed to the method.}
+\item{...}{Further arguments passed to the method or \code{\link{logistf}}-call.}
 }
 \value{
 A \code{flac} object with components:

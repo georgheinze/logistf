@@ -65,6 +65,14 @@
 anova.logistf<-function(object,  fit2, formula, method="nested", ...){
  # methods: "PLR": take difference in PLR, "nested": proper method for nested models
  # needed in logistf class: $firth, $data
+  
+  mf <- match.call(expand.dots =FALSE)
+  m <- match(c("object","fit2","formula","method"), names(mf), 0L)
+  mf <- mf[c(1, m)]
+  object <- eval(mf$object, parent.frame())
+  fit2 <- eval(mf$fit2, parent.frame())
+  
+  
  fit1<-object
  if(missing(formula)){
    if(fit1$df<fit2$df) {

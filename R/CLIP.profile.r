@@ -64,7 +64,7 @@
 #' fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE, dataout=TRUE))
 #' 
 #' # CLIP profile
-#' xprof<-CLIP.profile(obj=fit.list, variable="x", keep=TRUE)
+#' xprof<-CLIP.profile(obj=fit.list, variable="x",data =toymi, keep=TRUE)
 #' plot(xprof)
 #' 
 #' #plot as CDF
@@ -90,9 +90,7 @@ CLIP.profile <- function(obj=NULL, variable, data, which, firth=TRUE, weightvar,
     else {
       # assuming as input a list of data sets (data) and a list of fits (obj)
       fits<-obj
-      if(missing(data)) if(is.null(fits[[1]]$data)) stop("Please provide data either as list of imputed data sets or by calling logistf on the imputed data sets with dataout=TRUE.\n")
-      else data<-lapply(1:length(fits), function(X) fits[[X]]$data)
-      
+      if(missing(data)) stop("Please provide data either as list of imputed data sets or by calling logistf on the imputed data sets with dataout=TRUE.\n")
       formula<-as.formula(fits[[1]]$call$formula)
       nimp<-length(data)
     } 

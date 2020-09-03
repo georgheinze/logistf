@@ -127,7 +127,9 @@ flic.formula <- function(formula,data,...){
               n=FL$n, 
               formula=formula(formula), 
               method=FL$method, 
-              method.ci=c("Wald", FL$method.ci[-1]))
+              method.ci=c("Wald", FL$method.ci[-1]), 
+              control = FL$control
+              )
   attr(res, "class") <- c("flic")
   res
 }
@@ -181,7 +183,10 @@ flic.logistf <- function(lfobject,...){
               var=c(beta0.se, diag(lfobject$var)[-1]^0.5), 
               df=lfobject$df-1, loglik=c(lfobject$loglik[1], full_loglik), 
               n=lfobject$n, 
-              formula=lfobject$formula)
+              formula=lfobject$formula, 
+              control = lfobject$control)
   attr(res, "class") <- c("flic")
   res
 }
+
+

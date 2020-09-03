@@ -90,7 +90,7 @@ flac.formula <- function(formula, data, ...){
     call_out$terms.fit <- extras$terms.fit
     temp.fit1 <- logistf(formula, data=mf, terms.fit=termsfit, pl=F,...)
   }
-  else temp.fit1 <- logistf(formula, data=mf, pl=FALSE)
+  else temp.fit1 <- logistf(formula, data=mf, pl=FALSE, ...)
   #apply firths logistic regression and calculate diagonal elements h_i of hat matrix
   #and construct augmented dataset and definition of indicator variable g
   temp.pseudo <- c(rep(0,length(y)), rep(1,2*length(y)))
@@ -132,7 +132,8 @@ flac.formula <- function(formula, data, ...){
               n=temp.fit1$n, formula=formula(formula), augmented.data = newdat, 
               terms=colnames(x)[-1], df = (temp.fit2$df-1), #-1 because temp.fit2 has one variable more: weights 
               formula=formula, 
-              method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)]
+              method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)], 
+              control = temp.fit2$control
               )
   attr(res, "class") <- c("flac")
   res
@@ -188,7 +189,8 @@ flac.logistf <- function(lfobject, ... ){
               n=lfobject$n, formula=lfobject$formula, augmented.data = newdat, 
               terms=lfobject$terms, df = lfobject$df, 
               formula=lfobject$formula, 
-              method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)] #exclude estimation of CI of temp.pseudo
+              method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)], #exclude estimation of CI of temp.pseudo
+              control = temp.fit2$control
               )
   attr(res, "class") <- c("flac")
   res

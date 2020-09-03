@@ -8,10 +8,9 @@
 #' 
 #' @param object A fitted logistf model object. To start with an empty model, create a model fit 
 #' with a formula=<y>~1, pl=FALSE. (Replace <y> by your response variable.)
-#' @param scope The scope of variables to add/drop from the model. If left blank, backward will use 
-#' the terms of the object fit, and forward will use all variables in object$data not identified as 
-#' the response variable. Alternatively, an arbitrary vector of variable names can be given, to allow 
-#' that only some of the variables will be competitively selected or dropped.
+#' @param scope The scope of variables to add/drop from the model. Can be missing for backward, backward will use 
+#' the terms of the object fit. Alternatively, an arbitrary vector of variable names can be given, to allow 
+#' that only some of the variables will be competitively selected or dropped. Has to be provided for forward.
 #' @param steps The number of forward selection/backward elimination steps.
 #' @param slstay For \code{backward}, the significance level to stay in the model.
 #' @param slentry For \code{forward}, the significance level to enter the model.
@@ -26,7 +25,7 @@
 #' @examples 
 #' data(sex2) 
 #' fit<-logistf(data=sex2, case~1, pl=FALSE) 
-#' fitf<-forward(fit) 
+#' fitf<-forward(fit, scope = c("dia", "age")) 
 #' 
 #' fit2<-logistf(data=sex2, case~age+oc+vic+vicl+vis+dia) 
 #' fitb<-backward(fit2)
@@ -39,6 +38,7 @@ backward <- function(x,...){
 #' @exportS3Method backward logistf
 backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
   istep<-0 #index of steps
+  
   mf <- match.call(expand.dots =FALSE)
   m <- match("object", names(mf), 0L)
   mf <- mf[c(1, m)]
@@ -53,7 +53,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
       cat("\n\n")
     }
   }
-  if(missing(scope)) scope<-attr(terms(working),"term.labels") #scope missing - use terms of object fit
+  if(missing(scope)) scope<-variables #scope missing - use terms of object fit
   if (full.penalty) { #if TRUE, use start model and save all removals in vector removal
     removal <- vector()
   }
@@ -127,15 +127,28 @@ backward.flic<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, prin
    return (backward.logistf(object, scope, steps, slstay, trace, printwork,full.penalty,...))
 }
 
-
 #' @export forward
 #' @describeIn backward Forward Selection 
 forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork=FALSE, pl=TRUE, ...){
   istep<-0
+  
+  mf <- match.call(expand.dots =FALSE)
+  m <- match("object", names(mf), 0L)
+  mf <- mf[c(1, m)]
+  object <- eval(mf$object, parent.frame())
+  variables <- object$terms[-1]
+  
   working<-object
-  if(missing(scope)) scope<-attr(terms(object),"term.labels")
-  if(is.numeric(scope)) scope<-scope<-attr(terms(object),"term.labels")[scope]
-  scope<-scope[-(match(colnames(model.frame(object$formula))[1],scope))]
+  if(missing(scope)) {
+    stop("Please provide scope (vector of variable names).\n")
+  }
+  else if(is.numeric(scope)) {
+    scope<-attr(terms(object),"term.labels")[scope]
+  }
+  else {
+    if(!sum(is.na(match(variables, scope)))==length(variables)) scope<-scope[-(match(variables,scope))]
+  }
+
   if(trace){
     cat("Step ", istep, ": starting model\n")
     if(printwork) {
@@ -143,7 +156,7 @@ forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork
         cat("\n\n")
         }
   }
-  if(missing(scope)) stop("Please provide scope (vector of variable names).\n")
+
   inscope<-scope
   while(istep<steps & length(inscope)>=1){
     istep<-istep+1
@@ -170,6 +183,8 @@ forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork
    if(trace) cat("\n")
    return(working)
 }
+
+
 #' @exportS3Method backward flac
 backward.flac<-function(object, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE,...){
   istep<-0 #index of steps

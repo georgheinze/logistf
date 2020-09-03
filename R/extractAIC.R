@@ -35,7 +35,7 @@ nobs.flac<-function(object, ...){
   return(object$n)
 }
 
-#' @exportS3Method terms logistf
-terms.logistf<-function(x, ...){
-  return(terms(formula(x)))
-}
+# @exportS3Method terms logistf
+#terms.logistf<-function(x, ...){
+#  return(terms(formula(x)))
+#}

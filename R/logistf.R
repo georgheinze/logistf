@@ -86,7 +86,6 @@
 #' summary(fit2)
 #' 
 #' # simulated SNP example
-#' # not run
 #' set.seed(72341)
 #' snpdata<-rbind(
 #'   matrix(rbinom(2000,2,runif(2000)*0.3),100,20),
@@ -97,8 +96,8 @@
 #' snpdata$case<-c(rep(0,100),rep(1,100))
 #' 
 #' fitsnp<-logistf(data=snpdata, formula=case~1, pl=FALSE)
-#' add1(fitsnp)
-#' fitf<-forward(fitsnp)
+#' add1(fitsnp, scope=paste("SNP",1:20,"_",sep=""))
+#' fitf<-forward(fitsnp, scope = paste("SNP",1:20,"_",sep=""))
 #' fitf
 #' 
 #' @author Georg Heinze and Meinhard Ploner

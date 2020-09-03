@@ -24,10 +24,9 @@ forward(
 \item{object}{A fitted logistf model object. To start with an empty model, create a model fit 
 with a formula=<y>~1, pl=FALSE. (Replace <y> by your response variable.)}
 
-\item{scope}{The scope of variables to add/drop from the model. If left blank, backward will use 
-the terms of the object fit, and forward will use all variables in object$data not identified as 
-the response variable. Alternatively, an arbitrary vector of variable names can be given, to allow 
-that only some of the variables will be competitively selected or dropped.}
+\item{scope}{The scope of variables to add/drop from the model. Can be missing for backward, backward will use 
+the terms of the object fit. Alternatively, an arbitrary vector of variable names can be given, to allow 
+that only some of the variables will be competitively selected or dropped. Has to be provided for forward.}
 
 \item{steps}{The number of forward selection/backward elimination steps.}
 
@@ -62,7 +61,7 @@ defined as factors in the original data set.
 \examples{
 data(sex2) 
 fit<-logistf(data=sex2, case~1, pl=FALSE) 
-fitf<-forward(fit) 
+fitf<-forward(fit, scope = c("dia", "age")) 
 
 fit2<-logistf(data=sex2, case~age+oc+vic+vicl+vis+dia) 
 fitb<-backward(fit2)

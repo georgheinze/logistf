@@ -66,13 +66,13 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     formula<-object$formula
     
     mf <- match.call(expand.dots =FALSE)
-    m <- match("object", names(mf), 0L)
+    m <- match(c("object"), names(mf), 0L)
     mf <- mf[c(1, m)]
     object <- eval(mf$object, parent.frame())
     
     y <- model.response(model.frame(object))
     n <- length(y)
-    x <- model.matrix(model.frame(object))
+    x <- model.matrix(object$formula, model.frame(object))
 
     if (missing(control)) control<-object$control
 
@@ -115,8 +115,9 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         cov.name2 <- cov.name[test]
     }
     else {
-        test <- eval(test, parent.frame())
-        cov.name2 <- labels(model.matrix(test))[[2]]
+        #test <- eval(test, parent.frame())
+        #cov.name2 <- labels(model.matrix(test))[[2]]
+        cov.name2 <- attr(terms(test), "term.labels")
     }
     pos <- match(cov.name2, cov.name)   ## Position der Testfakt.
     OK <- !is.na(pos)
