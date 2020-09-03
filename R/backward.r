@@ -30,6 +30,8 @@
 #' fit2<-logistf(data=sex2, case~age+oc+vic+vicl+vis+dia) 
 #' fitb<-backward(fit2)
 #' 
+#' @importFrom utils tail
+#' 
 #' @rdname backward
 #' @export backward
 backward <- function(object,...){

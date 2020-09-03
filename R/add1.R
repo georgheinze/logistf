@@ -26,6 +26,9 @@
 #' fit2<-logistf(data=sex2, case~age+oc+dia+vic+vicl+vis) 
 #' drop1(fit2)
 #' 
+#' @importFrom stats add.scope
+#' @importFrom stats update.formula
+#' 
 #' 
 #' @rdname add1
 #' @method add1 logistf

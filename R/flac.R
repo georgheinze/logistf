@@ -107,7 +107,7 @@ flac.formula <- function(x, data, ...){
   rhs <- paste(paste(scope, collapse="+"),"temp.pseudo", sep="+")
   newform <- paste("newresp", "~", rhs)
   if (!is.null(extras$terms.fit)) {
-    temp.fit2 <- logistf(newform,data=newdat, weights=temp.neww,terms.fit=termsfit, firth=FALSE, plconf=plconf, ...)
+    temp.fit2 <- logistf(newform,data=newdat, weights=temp.neww,terms.fit=termsfit, firth=FALSE, ...)
   }
   else {
     temp.fit2 <- logistf(newform, data=newdat, weights=temp.neww, firth=FALSE, ...)

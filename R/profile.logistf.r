@@ -44,6 +44,8 @@
 #' plot(profile(fit,variable="dia"), "cdf")
 #' plot(profile(fit,variable="dia"), "density")
 #' 
+#' @importFrom utils data
+#' 
 #' @method profile logistf
 #' @exportS3Method profile logistf
 profile.logistf <-
@@ -99,7 +101,7 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
           int <- 0
           coltotest <-1:k
       }
-    if(!missing(which)) cov.name2 <- labels(model.matrix(which, data = data))[[2]] ## Label des Test-Fakt.
+    if(!missing(which)) cov.name2 <- labels(model.matrix(which, model.frame(fitted)))[[2]] ## Label des Test-Fakt.
     else cov.name2 <- variable
     pos <- match(cov.name2, cov.name) ## Position des Testfakors
     fit<-logistf.fit(x, y, weight=weight, offset=offset, firth=firth, control=control) 
