@@ -63,7 +63,9 @@
 #'    \item{pl.iter}{only if pl==TRUE: the number of iterations needed for each confidence limit.}
 #'    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
 #'    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
-#'    \item{control}{a copy of the control parameters.}  
+#'    \item{control}{a copy of the control parameters.}
+#'    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
+#' keeping all other coefficients constant. According to input of logistf.}  
 #'     
 #' @export
 #'
@@ -269,7 +271,8 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     }
     names(fit$prob) <- names(fit$ci.upper) <- names(fit$ci.lower) <- names(fit$coefficients) <- dimnames(x)[[2]]
     #flic: 
-      if (flic){
+    if (flic){
+        fit$flic <- TRUE
         #calculate linear predictors ommiting the intercept
         lp_flic <-  fit$linear.predictors-fit$coef[1]
         #determine ML estimate of intercept 
@@ -285,6 +288,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
         fit$flic.linear.predictors <- fit_flic$linear
         fit$flic.predict <-fit_flic$fitted
       }
+    else fit$flic <- FALSE
     
     fit$control <- control
     attr(fit, "class") <- c("logistf")
