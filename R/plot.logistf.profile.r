@@ -137,7 +137,8 @@ function(x, type="profile", max1=TRUE, colmain="black", colimp="gray", plotmain=
         auc<-function(y,x){
          y.mean<-(y[-length(y)]+y[-1])/2
          x.diff<-diff(x)
-         y.mean %*% x.diff
+         res <- y.mean %*% x.diff
+         return(res[1,1])
         }
         y<-y/auc(y,x)
         y.label<-"Posterior density"
