@@ -24,7 +24,7 @@
 #'
 #' @return A \code{flac} object with components:
 #'   \item{coefficients}{The coefficients of the parameter in the fitted model.}
-#'   \item{predicted.probabilities}{A vector with the predicted probability of each observation}
+#'   \item{predict}{A vector with the predicted probability of each observation}
 #'   \item{linear.predictions}{A vector with the linear predictor of each observation.}
 #'   \item{probabilities}{The p-values of the specific parameters}
 #'   \item{ci.lower}{The lower confidence limits of the parameter.}
@@ -36,11 +36,11 @@
 #'   \item{n}{The number of observations.}
 #'   \item{formula}{The formula object.}
 #'   \item{augmented.data}{The augmented dataset used}
-#'   \item{terms}{The model terms (column names of design matrix).}
 #'   \item{df}{The number of degrees of freedom in the model.}
 #'   \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
 #'   \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
-#'   
+#'   \item{control}{a copy of the control parameters.}  
+#'   \item{terms}{the model terms (column names of design matrix).}
 #' 
 #' @export
 #'
@@ -120,7 +120,7 @@ flac.formula <- function(x, data, ...){
   prob <- temp.fit2$prob[which("temp.pseudo"!=names(temp.fit2$prob))]
   ci.lower <- temp.fit2$ci.lower[which("temp.pseudo"!=names(temp.fit2$ci.lower))]
   ci.upper <- temp.fit2$ci.upper[which("temp.pseudo"!=names(temp.fit2$ci.upper))]
-  var <- diag(temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)])^0.5
+  #var <- diag(temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)])^0.5
   
   res <- list(coefficients=coefficients,
               fitted = fitted, 
@@ -130,13 +130,14 @@ flac.formula <- function(x, data, ...){
               ci.lower=ci.lower,
               ci.upper=ci.upper,
               call=match.call(), alpha = temp.fit1$alpha, 
-              var=var, 
+              var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
               loglik = temp.fit1$loglik, 
               n=temp.fit1$n, formula=formula(formula), augmented.data = newdat, 
-              terms=colnames(x)[-1], df = (temp.fit2$df-1), #-1 because temp.fit2 has one variable more: weights 
+              df = (temp.fit2$df-1), #-1 because temp.fit2 has one variable more: weights 
               formula=formula, 
               method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)], 
-              control = temp.fit2$control
+              control = temp.fit2$control, 
+              terms = colnames(x)
               )
   attr(res, "class") <- c("flac")
   res
@@ -176,7 +177,7 @@ flac.logistf <- function(x, ... ){
   prob <- lfobject$prob
   ci.lower <- temp.fit2$ci.lower[which("temp.pseudo"!=names(temp.fit2$ci.lower))]
   ci.upper <- temp.fit2$ci.upper[which("temp.pseudo"!=names(temp.fit2$ci.upper))]
-  var <- diag(temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)])^0.5
+  #var <- diag(temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)])^0.5
   
   
   res <- list(coefficients=coefficients,
@@ -187,7 +188,7 @@ flac.logistf <- function(x, ... ){
               ci.lower=ci.lower,
               ci.upper=ci.upper,
               call=match.call(), alpha = lfobject$alpha, 
-              var=var, 
+              var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
               loglik = lfobject$loglik, 
               n=lfobject$n, formula=lfobject$formula, augmented.data = newdat, 
               terms=lfobject$terms, df = lfobject$df, 

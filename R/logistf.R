@@ -39,26 +39,26 @@
 #' @param ... Further arguments to be passed to \code{logistf}
 #' 
 #' @return The object returned is of the class \code{logistf} and has the following attributes:
-#'    \item{coefficients}{ the coefficients of the parameter in the fitted model.}
-#'    \item{alpha}{ the significance level (1- the confidence level) as specified in the input.}
+#'    \item{coefficients}{the coefficients of the parameter in the fitted model.}
+#'    \item{alpha}{the significance level (1- the confidence level) as specified in the input.}
 #'    \item{terms}{the column names of the design matrix}
-#'    \item{var}{ the variance-covariance-matrix of the parameters.}
-#'    \item{df}{ the number of degrees of freedom in the model.}
-#'    \item{loglik}{ a vector of the (penalized) log-likelihood of the restricted and the full models.}
-#'    \item{iter}{ the number of iterations needed in the fitting process.}
-#'    \item{n}{ the number of observations.}
-#'    \item{y}{ the response-vector, i. e. 1 for successes (events) and 0 for failures.}
-#'    \item{formula}{ the formula object.}
-#'    \item{call}{ the call object.}
+#'    \item{var}{the variance-covariance-matrix of the parameters.}
+#'    \item{df}{the number of degrees of freedom in the model.}
+#'    \item{loglik}{a vector of the (penalized) log-likelihood of the restricted and the full models.}
+#'    \item{iter}{the number of iterations needed in the fitting process.}
+#'    \item{n}{the number of observations.}
+#'    \item{y}{the response-vector, i. e. 1 for successes (events) and 0 for failures.}
+#'    \item{formula}{the formula object.}
+#'    \item{call}{the call object.}
 #'    \item{terms}{the model terms (column names of design matrix).}
 #'    \item{linear.predictors}{ a vector with the linear predictor of each observation.}
-#'    \item{predict}{ a vector with the predicted probability of each observation.}
-#'    \item{hat.diag}{ a vector with the diagonal elements of the Hat Matrix.}
+#'    \item{predict}{a vector with the predicted probability of each observation.}
+#'    \item{hat.diag}{a vector with the diagonal elements of the Hat Matrix.}
 #'    \item{conv}{the convergence status at last iteration: a vector of length 3 with elements: last change in log likelihood, max(abs(score vector)), max change in beta at last iteration.}
 #'    \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
 #'    \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
-#'    \item{ci.lower}{ the lower confidence limits of the parameter.}
-#'    \item{ci.upper}{ the upper confidence limits of the parameter.}
+#'    \item{ci.lower}{the lower confidence limits of the parameter.}
+#'    \item{ci.upper}{the upper confidence limits of the parameter.}
 #'    \item{prob}{ the p-values of the specific parameters.}
 #'    \item{pl.iter}{only if pl==TRUE: the number of iterations needed for each confidence limit.}
 #'    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}

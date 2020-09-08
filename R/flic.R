@@ -24,8 +24,7 @@
 #'
 #' @return A \code{flic} object with components:
 #'   \item{coefficients}{The coefficients of the parameter in the fitted model.}
-#'   \item{terms}{The model terms (column names of design matrix).}
-#'   \item{predicted.probabilities}{A vector with the predicted probability of each observation}
+#'   \item{predict}{A vector with the predicted probability of each observation}
 #'   \item{linear.predictors}{A vector with the linear predictor of each observation.}
 #'   \item{probabilities}{The p-values of the specific parameters}
 #'   \item{ci.lower}{The lower confidence limits of the parameter.}
@@ -34,12 +33,12 @@
 #'   \item{alpha}{The significance level: 0.95}
 #'   \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
 #'   \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
-#'   \item{var}{The variance-covariance-matrix of the parameters.}
 #'   \item{df}{The number of degrees of freedom in the model.}
 #'   \item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
 #'   \item{n}{The number of observations.}
 #'   \item{formula}{The formula object.}
-#'   \item{data}{A copy of the input dataset.}
+#'   \item{control}{a copy of the control parameters.}  
+#'   \item{terms}{the model terms (column names of design matrix).}
 #'   
 #' 
 #' @export
@@ -120,21 +119,20 @@ flic.formula <- function(x,data,...){
   
   ic <- fit$coef
   res <- list(coefficients=c(ic, FL$coef[-1]),
-              terms=colnames(x), 
-              predicted.probabilities = fit$fitted, 
+              predict = fit$fitted, 
               linear.predictions=fit$linear, 
               probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], FL$prob[-1]),
               ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, FL$ci.upper[-1]),
               call=call_out, 
               alpha = FL$alpha,
-              var=c(beta0.se, diag(FL$var)[-1]^0.5), 
               df=FL$df, loglik=c(FL$loglik[1], full_loglik), 
               n=FL$n, 
               formula=formula(formula), 
               method=FL$method, 
               method.ci=c("Wald", FL$method.ci[-1]), 
-              control = FL$control
+              control = FL$control, 
+              terms=colnames(x)
               )
   attr(res, "class") <- c("flic")
   res
@@ -157,7 +155,6 @@ flic.logistf <- function(x,...){
   response <- formula.tools::lhs.vars(lfobject$formula)
   scope <- formula.tools::rhs.vars(lfobject$formula)
   
-  
   #calculate linear predictors ommiting the intercept
   lp <- lfobject$linear.predictors-lfobject$coefficients[1]
   #determine ML estimate of intercept 
@@ -178,7 +175,7 @@ flic.logistf <- function(x,...){
   
   ic <- fit$coef
   res <- list(coefficients=c(ic, lfobject$coef[-1]), 
-              fitted = fit$fitted, 
+              predict = fit$fitted, 
               linear.predictors=fit$linear, 
               probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], lfobject$prob[-1]),
               ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
@@ -187,11 +184,11 @@ flic.logistf <- function(x,...){
               alpha = lfobject$alpha, 
               method=lfobject$method, 
               method.ci=c("Wald", lfobject$method.ci[-1]), 
-              var=c(beta0.se, diag(lfobject$var)[-1]^0.5), 
-              df=lfobject$df-1, loglik=c(lfobject$loglik[1], full_loglik), 
+              df=lfobject$df, loglik=c(lfobject$loglik[1], full_loglik), 
               n=lfobject$n, 
               formula=lfobject$formula, 
-              control = lfobject$control)
+              control = lfobject$control,
+              terms=colnames(designmat))
   attr(res, "class") <- c("flic")
   res
 }

@@ -23,8 +23,7 @@ flic(x, ...)
 \value{
 A \code{flic} object with components:
   \item{coefficients}{The coefficients of the parameter in the fitted model.}
-  \item{terms}{The model terms (column names of design matrix).}
-  \item{predicted.probabilities}{A vector with the predicted probability of each observation}
+  \item{predict}{A vector with the predicted probability of each observation}
   \item{linear.predictors}{A vector with the linear predictor of each observation.}
   \item{probabilities}{The p-values of the specific parameters}
   \item{ci.lower}{The lower confidence limits of the parameter.}
@@ -33,12 +32,12 @@ A \code{flic} object with components:
   \item{alpha}{The significance level: 0.95}
   \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
   \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
-  \item{var}{The variance-covariance-matrix of the parameters.}
   \item{df}{The number of degrees of freedom in the model.}
   \item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
   \item{n}{The number of observations.}
   \item{formula}{The formula object.}
-  \item{data}{A copy of the input dataset.}
+  \item{control}{a copy of the control parameters.}  
+  \item{terms}{the model terms (column names of design matrix).}
 }
 \description{
 \code{flic} implements Firth's bias-Reduced penalized-likelihood logistic regression with intercept correction.

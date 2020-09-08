@@ -23,7 +23,7 @@ flac(x, ...)
 \value{
 A \code{flac} object with components:
   \item{coefficients}{The coefficients of the parameter in the fitted model.}
-  \item{predicted.probabilities}{A vector with the predicted probability of each observation}
+  \item{predict}{A vector with the predicted probability of each observation}
   \item{linear.predictions}{A vector with the linear predictor of each observation.}
   \item{probabilities}{The p-values of the specific parameters}
   \item{ci.lower}{The lower confidence limits of the parameter.}
@@ -35,10 +35,11 @@ A \code{flac} object with components:
   \item{n}{The number of observations.}
   \item{formula}{The formula object.}
   \item{augmented.data}{The augmented dataset used}
-  \item{terms}{The model terms (column names of design matrix).}
   \item{df}{The number of degrees of freedom in the model.}
   \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
   \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
+  \item{control}{a copy of the control parameters.}  
+  \item{terms}{the model terms (column names of design matrix).}
 }
 \description{
 \code{flac} implements Firth's bias-reduced penalized-likelihood logistic regression with added covariate.
