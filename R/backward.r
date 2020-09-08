@@ -115,12 +115,14 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     tmp <- match(removal, variables)
     tofit <- variables[-tmp]
     if (length(tofit)==0){
-      newform <- as.formula(~ 1)
-      working<-update(working,newform)#, data=object$data)
+      #newform <- as.formula(~ 1)
+      #working<-update(working,newform)#, data=object$data)
+      working<-update(working,terms.fit="Intercept")
     }
     else {
-      newform <- as.formula(paste("~",paste(tofit, collapse="+")))
-      working<-update(working,newform,terms.fit=tofit)#, data=object$data)
+      #newform <- as.formula(paste("~",paste(tofit, collapse="+")))
+      #working<-update(working,newform,terms.fit=tofit)#, data=object$data)
+      working<-update(working,terms.fit=tofit)
     }
   }
   return(working)

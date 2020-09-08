@@ -175,14 +175,17 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     if (!is.null(extras$terms.fit)){
       colfit <- eval(extras$terms.fit)
       matched <- match(colfit, cov.name[-1])+1
-      n_termsfit <- length(matched)
-      matched <- c(1, matched)
+      if (length(matched)==1 && is.na(matched)){ #only fit intercept
+        matched <- 1
+      }
+      else {
+        matched <- c(1, matched)
+      }
       colfit <- (1:k)[matched]
       call_out$terms.fit <- extras$terms.fit
     }
     else {
       colfit <- 1:k
-      n_termsfit <- 0 
     }
     
     fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
