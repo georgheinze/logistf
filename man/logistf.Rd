@@ -88,6 +88,8 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
    \item{control}{a copy of the control parameters.}
+   \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
+keeping all other coefficients constant. According to input of logistf.}
 }
 \description{
 Implements Firth's bias-Reduced penalized-likelihood logistic regression.
