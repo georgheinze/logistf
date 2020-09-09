@@ -5,10 +5,21 @@ summary.flac <- function(object, ...)
   print(object$call)
   cat("\nModel fitted by", object$method)
   
+  #check if flac was called with logistf object:
+  if(!is.null(object$call$lfobject)){
+    lfobject <- eval(object$call$lfobject, parent.frame())
+    if(!is.null(lfobject$call$terms.fit)){
+      terms.fit <- lfobject$call$terms.fit
+    }
+    else terms.fit <- NULL
+  }
+  else terms.fit <- NULL
+  
+  
   #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
   call <- object$call
-  if(!is.null(call$terms.fit) | !is.null(call$lfobject$terms.fit)){
-    terms.fit <- c(call$terms.fit,call$lfobject$terms.fit)[!is.null(c(call$terms.fit,call$lfobject$terms.fit))]
+  if(!is.null(call$terms.fit) | !is.null(terms.fit)){
+    terms.fit <- c(call$terms.fit,terms.fit)[!is.null(c(call$terms.fit,terms.fit))]
     terms.fit <- eval(terms.fit, parent.frame())
     loc <- match(terms.fit, object$terms)
     var.red <- object$var[loc,loc]
