@@ -63,7 +63,7 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
   #
   
   mf <- match.call(expand.dots =FALSE)
-  m <- match("fitted", names(mf), 0L)
+  m <- match(c("fitted","which"), names(mf), 0L)
   mf <- mf[c(1, m)]
   fitted <- eval(mf$fitted, parent.frame())
   variables <- fitted$terms[-1]
@@ -104,6 +104,9 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
     if(!missing(which)) cov.name2 <- labels(model.matrix(which, model.frame(fitted)))[[2]] ## Label des Test-Fakt.
     else cov.name2 <- variable
     pos <- match(cov.name2, cov.name) ## Position des Testfakors
+    if(is.na(pos)) {
+      stop(paste(variable,"is not a model term."))
+    }
     fit<-logistf.fit(x, y, weight=weight, offset=offset, firth=firth, control=control) 
     std.pos <- diag(fit$var)[pos]^0.5
    
