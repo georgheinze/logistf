@@ -245,10 +245,7 @@ anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
 print.anova.logistf <-function(x,...){
     cat("Comparison of logistf models:\n")
     obj<-x
-    pdat<-data.frame(Formula=c(paste(as.character(obj$model1)[c(2,1,3)],collapse=" "),
-      if(length(as.character(obj$model2))==3) paste(as.character(obj$model2)[c(2,1,3)],collapse=" ")
-      else paste("- [",paste(as.character(obj$model2)[c(2)],collapse=" "),"]")
-      ), ChiSquared=c(obj$PLR1,obj$PLR2))
+    pdat<-data.frame(Formula=c(as.character(obj$model1),as.character(obj$model2)), ChiSquared=c(obj$PLR1,obj$PLR2))
     pdatrows<-capture.output(print(pdat))
     for(i in 1:3) cat(pdatrows[i],"\n")
     cat("\nMethod: ", obj$method, "\n")
