@@ -20,23 +20,19 @@
 #' @exportS3Method predict logistf
 predict.logistf <- function (object, newdata, type = c("link", "response"), flic=FALSE, ...) 
 {
-  
   type <- match.arg(type)
   if (missing(newdata)) {#no data - return linear.predictors or response according to type
     if (flic) {
       #check if flic=TRUE was set in object
       if(object$flic) {
-        pred <- switch(type, link = object$flic.linear.predictors, response = object$flic.predict)
+        pred <- switch(type, link = object$linear.predictors, response = object$predict)
       }
       #if intercept is not already altered refit the model:
       else {
         message("predict called with flic=TRUE but logistf-object was called with flic=FALSE: refitting model for predictions")
         object.flic <- update(object, flic=TRUE)
-        pred <- switch(type, link = object.flic$flic.linear.predictors, response = object.flic$flic.predict)
+        pred <- switch(type, link = object.flic$linear.predictors, response = object.flic$predict)
       }
-    }
-    else if(object$flic) {
-      pred <- switch(type, link = object$flic.linear.predictors, response = object$flic.predict)
     }
     else {
       pred <- switch(type, link = object$linear.predictors, response = object$predict)
@@ -46,20 +42,16 @@ predict.logistf <- function (object, newdata, type = c("link", "response"), flic
     newlin <- c(object$coefficients[-1] %*% t(newdata))
     if (flic) {
       if(object$flic) {
-        pred <- switch(type, link = object$flic.coefficients[1]+newlin, 
-                   response = 1/(1+exp(-(object$flic.coefficients[1]+newlin))) )
+        pred <- switch(type, link = object$coefficients[1]+newlin, 
+                   response = 1/(1+exp(-(object$coefficients[1]+newlin))) )
       }
       else{
         message("predict called with flic=TRUE but logistf-object was called with flic=FALSE: refitting model for predictions")
         object.flic <- update(object, flic=TRUE)
-        pred <- switch(type, link = object.flic$flic.coefficients[1]+newlin, 
-                       response = 1/(1+exp(-(object.flic$flic.coefficients[1]+newlin))))
+        pred <- switch(type, link = object.flic$coefficients[1]+newlin, 
+                       response = 1/(1+exp(-(object.flic$coefficients[1]+newlin))))
       }
     
-    }
-    else if (object$flic) {
-      pred <- switch(type, link = object$flic.coefficients[1]+newlin, 
-                     response = 1/(1+exp(-(object$flic.coefficients[1]+newlin))) )
     }
     else {
       pred <- switch(type, link = object$coefficients[1]+newlin , 

@@ -14,9 +14,6 @@
 #' @exportS3Method predict flic
 predict.flic <- function(object, newdata, type = c("link", "response"), ...){
   type <- match.arg(type)
-  names(object)[4] <- "flic.linear.predictors"
-  names(object)[2] <- "flic.predict"
-  object$flic.coefficients <- object$coefficients
   object$flic <- TRUE
   predict.logistf(object, newdata, type,flic=TRUE)
 } 

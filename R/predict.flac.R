@@ -14,8 +14,6 @@
 #' @exportS3Method predict flac
 predict.flac <- function(object, newdata, type = c("link", "response"), ...){
   type <- match.arg(type)
-  names(object)[4] <- "linear.predictors"
-  names(object)[2] <- "predict"
   object$flic <- FALSE
   predict.logistf(object, newdata, type,flic=FALSE)
 } 

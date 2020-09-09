@@ -291,11 +291,12 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
         W <- diag(fit_flic$fitted.values*(1-fit_flic$fitted.values))
         tmp.var <- solve(t(x)%*%W%*%x)
         beta0.se <- sqrt(tmp.var[1,1])
-        fit$flic.coefficients <- c(fit_flic$coef, fit$coef[-1])
-        fit$flic.ci.lower <- c(fit_flic$coef-beta0.se*1.96, fit$ci.lower[-1])
-        fit$flic.ci.upper <- c(fit_flic$coef+beta0.se*1.96, fit$ci.upper[-1])
-        fit$flic.linear.predictors <- fit_flic$linear
-        fit$flic.predict <-fit_flic$fitted
+        fit$coefficients <- c(fit_flic$coef, fit$coef[-1])
+        fit$ci.lower <- c(fit_flic$coef-beta0.se*1.96, fit$ci.lower[-1])
+        fit$ci.upper <- c(fit_flic$coef+beta0.se*1.96, fit$ci.upper[-1])
+        fit$linear.predictors <- fit_flic$linear
+        fit$predict <-fit_flic$fitted
+        fit$var <- W
       }
     else fit$flic <- FALSE
     
