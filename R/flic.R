@@ -4,7 +4,7 @@
 #'
 #' Flic is a simple modification of Firth's logistic regression which provides average predicted
 #' probabilities equal to the observed proportion of events, while preserving the ability to deal
-#' with seperation.
+#' with separation.
 #' 
 #' In general the average predicted probability in FL regression is not equal to the observed 
 #' proportion of events. Because the determinant of the Fisher-Information matrix is maximized 
@@ -13,13 +13,16 @@
 #' Flic fits a logistic regression model applying Firth’s correction to the likelihood with a 
 #' correction of the intercept, such that the predicted probabilities become unbiased while
 #' keeping all other coefficients constant.
-#' The following generic methods are available for flic's output object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
+#' The following generic methods are available for flic's output object: \code{print, summary, coef, confint, anova, extractAIC, add1, drop1, 
 #' profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
 #' that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
 #' ratios.
 #' 
-#' @param x Either formula and data or \code{\link{logistf}} object
-#' @param data If using with formula, a data framecontaining the variables in the model. 
+#' @param formula A formula object, with the response on the left of the operator, 
+#' and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and 
+#' \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.
+#' @param data If using with formula, a data frame containing the variables in the model. 
+#' @param lfobject A fitted \code{\link{logistf}} object
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flic} object with components:

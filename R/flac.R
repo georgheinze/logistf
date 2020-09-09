@@ -12,14 +12,17 @@
 #' \eqn{h_i/2} with unchanged covariate values and with response values set to \eqn{y=0} and \eqn{y=1}
 #' respectively. The basic idea of Flac is to discriminate between original and pseudo-observations
 #' in the alternative formulation of Firth's estimation as an iterative data augmentation procedure.
-#' The following generic methods are available for flac's output object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
+#' The following generic methods are available for flac's output object: \code{print, summary, coef, confint, anova, extractAIC, add1, drop1, 
 #' profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
 #' that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
 #' ratios.
 #' @encoding UTF-8
 #' 
-#' @param x Either formula or \code{\link{logistf}} object
-#' @param data If using with formula, a data framecontaining the variables in the model. 
+#' @param formula A formula object, with the response on the left of the operator, 
+#' and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and 
+#' \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.
+#' @param data If using with formula, a data frame containing the variables in the model. 
+#' @param lfobject A fitted \code{\link{logistf}} object
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flac} object with components:
@@ -56,7 +59,7 @@
 #' @references Puhr, R., Heinze, G., Nold, M., Lusa, L., and Geroldinger, A. (2017) Firth's logistic regression with rare events: accurate effect estimates and predictions?. Statist. Med., 36: 2302– 2317. doi: 10.1002/sim.7273.
 #' 
 #' @seealso [logistf()] for Firth's bias-Reduced penalized-likelihood logistic regression.
-#' 
+#' @importFrom stats formula
 #' @rdname flac
 #' @export flac
 flac <- function(...){

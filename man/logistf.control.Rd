@@ -9,9 +9,9 @@ logistf.control(
   maxit = 25,
   maxhs = 5,
   maxstep = 5,
-  lconv = 0.00001,
-  gconv = 0.00001,
-  xconv = 0.00001,
+  lconv = 1e-05,
+  gconv = 1e-05,
+  xconv = 1e-05,
   collapse = TRUE
 )
 }
