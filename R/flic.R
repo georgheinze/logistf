@@ -26,6 +26,7 @@
 #'   \item{coefficients}{The coefficients of the parameter in the fitted model.}
 #'   \item{predict}{A vector with the predicted probability of each observation}
 #'   \item{linear.predictors}{A vector with the linear predictor of each observation.}
+#'   \item{var}{The variance-covariance-matrix of the parameters.}
 #'   \item{probabilities}{The p-values of the specific parameters}
 #'   \item{ci.lower}{The lower confidence limits of the parameter.}
 #'   \item{ci.upper}{The upper confidence limits of the parameter.}
@@ -60,22 +61,20 @@
 #' 
 #' @rdname flic
 #' @export flic
-flic <- function(x,...){
-  UseMethod("flic",x)
+flic <- function(...){
+  UseMethod("flic")
 }
 #'
 #' @method flic formula
 #' @exportS3Method flic formula
 #' @describeIn flic With formula and data
 #' @export flic.formula
-flic.formula <- function(x,data,...){
-  formula <- x
-  
+flic.formula <- function(formula,data,...){
   extras <- list(...)
   call_out <- match.call()
   
   mf <- match.call(expand.dots =FALSE)
-  m <- match(c("x", "data","weights","na.action","offset"), names(mf), 0L)
+  m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
   
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
@@ -83,22 +82,12 @@ flic.formula <- function(x,data,...){
   mf <- eval(mf, parent.frame())
   mt <- attr(mf, "terms")  
   
-  formula <- x
   y <- model.response(mf)
   n <- length(y)
   x <- model.matrix(mt, mf)
   
-  
-  
-  if (!is.null(extras$terms.fit)){
-    termsfit <- eval(extras$terms.fit)
-    call_out$terms.fit <- extras$terms.fit
-    # estimate profile likelihood confidence intervals only for variables in terms.fit
-    plconf <- match(termsfit, formula.tools::rhs.vars(formula))
-    # logistf call
-    FL <- logistf(formula, data=mf, terms.fit=termsfit,plconf = plconf, ...)
-  }
-  else FL <- logistf(formula, data=mf)
+  FL <- logistf(formula, data=mf, ...)
+
   response <- lhs.vars(formula) 
   
   #calculate linear predictors ommiting the intercept
@@ -116,10 +105,21 @@ flic.formula <- function(x,data,...){
   loglik <- sum(log(fit$fitted^(FL$y)*(1-fit$fitted)^(1-FL$y)))
   I <- 0.5*log(det(XWX))
   full_loglik <- loglik+I
-  
   ic <- fit$coef
+  if (!is.null(extras$terms.fit)){
+    colfit <- eval(extras$terms.fit)
+    call_out$terms.fit <- extras$terms.fit
+  }
+  
+  #variance covariance matrix: (X^TWX)^-1
+  pred.prob <- as.vector(1/(1+exp(-x%*%c(ic, FL$coef[-1]))))
+  W <- diag(pred.prob, nrow=length(pred.prob))
+  var <- solve(t(x)%*%W%*%x)
+  
+  
   res <- list(coefficients=c(ic, FL$coef[-1]),
-              predict = fit$fitted, 
+              predict = pred.prob, 
+              var = tmp.var,
               linear.predictions=fit$linear, 
               probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], FL$prob[-1]),
               ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
@@ -143,12 +143,14 @@ flic.formula <- function(x,data,...){
 #' @describeIn flic With logistf object
 #' @method flic logistf
 #' @exportS3Method flic logistf
-flic.logistf <- function(x,...){
+flic.logistf <- function(lfobject,...){
+  extras <- list(...)
+  call_out <- match.call()
 
   mf <- match.call(expand.dots =FALSE)
-  m <- match("x", names(mf), 0L)
+  m <- match("lfobject", names(mf), 0L)
   mf <- mf[c(1, m)]
-  lfobject <- eval(mf$x, parent.frame())
+  lfobject <- eval(mf$lfobject, parent.frame())
   variables <- lfobject$terms[-1]
   data <- model.frame(lfobject)
   
@@ -172,15 +174,26 @@ flic.logistf <- function(x,...){
   loglik <- sum(log(fit$fitted^(lfobject$y)*(1-fit$fitted)^(1-lfobject$y)))
   I <- 0.5*log(det(XWX))
   full_loglik <- loglik+I
-  
   ic <- fit$coef
+  #variance covariance matrix: (X^TWX)^-1
+  pred.prob <- as.vector(1/(1+exp(-designmat%*%c(ic, lfobject$coef[-1]))))
+  W <- diag(pred.prob, nrow=length(pred.prob))
+  var <- solve(t(designmat)%*%W%*%designmat)
+  
+  if (!is.null(extras$terms.fit)){
+    colfit <- eval(extras$terms.fit)
+    call_out$terms.fit <- extras$terms.fit
+  }
+  
+  
   res <- list(coefficients=c(ic, lfobject$coef[-1]), 
-              predict = fit$fitted, 
+              predict = pred.prob, 
+              var = var,
               linear.predictors=fit$linear, 
               probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], lfobject$prob[-1]),
               ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, lfobject$ci.upper[-1]),
-              call=match.call(), 
+              call=call_out, 
               alpha = lfobject$alpha, 
               method=lfobject$method, 
               method.ci=c("Wald", lfobject$method.ci[-1]), 

@@ -7,18 +7,18 @@
 \alias{flac.logistf}
 \title{FLAC - Firth's logistic regression with added covariate}
 \usage{
-flac(x, ...)
+flac(...)
 
-\method{flac}{formula}(x, data, ...)
+\method{flac}{formula}(formula, data, ...)
 
-\method{flac}{logistf}(x, ...)
+\method{flac}{logistf}(lfobject, ...)
 }
 \arguments{
-\item{x}{Either formula or \code{\link{logistf}} object}
-
 \item{...}{Further arguments passed to the method or \code{\link{logistf}}-call.}
 
 \item{data}{If using with formula, a data framecontaining the variables in the model.}
+
+\item{x}{Either formula or \code{\link{logistf}} object}
 }
 \value{
 A \code{flac} object with components:
