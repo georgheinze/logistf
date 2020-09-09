@@ -174,15 +174,15 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     #for backward function to update logistf object
     if (!is.null(extras$terms.fit)){
       colfit <- eval(extras$terms.fit)
-      matched <- match(colfit, cov.name[-1])+1
-      n_termsfit <- length(matched)
-      matched <- c(1, matched)
+      matched <- match(colfit, cov.name)
+      nterms <- length(matched)
       colfit <- (1:k)[matched]
       call_out$terms.fit <- extras$terms.fit
+      rest_plconf <- (1:k)[-matched] #compute confidence intervals for variables not specified in terms.fit with Wald
     }
     else {
       colfit <- 1:k
-      n_termsfit <- 0 
+      nterms <- k
     }
     
     fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
@@ -192,7 +192,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
     }
     
-    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = (k-int), loglik =c(fit.null$loglik, fit.full$loglik),
+    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = nterms-int, loglik =c(fit.null$loglik, fit.full$loglik),
         iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv)
     
     names(fit$conv)<-c("LL change","max abs score","beta change")
@@ -205,12 +205,24 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     fit$hat.diag <- fit.full$Hdiag
     if(firth) fit$method <- "Penalized ML"
     else fit$method <- "Standard ML"
-    vars <- diag(covs)
+    
+    if (!is.null(extras$terms.fit)){ #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
+      loc <- match(extras$terms.fit, fit$terms)
+      var.red <- fit$var[loc,loc]
+      vars <- diag(var.red)
+      waldprob <- 1 - pchisq((beta[loc]^2/vars), 1)
+      wald_ci.lower <- as.vector(beta[loc] + qnorm(alpha/2) * vars^0.5)
+      wald_ci.upper <- as.vector(beta[loc] + qnorm(1 - alpha/2) * vars^0.5)
+    }
+    else {
+      vars <- diag(covs)
+      waldprob <- 1 - pchisq((beta^2/vars), 1)
+      wald_ci.lower <- as.vector(beta + qnorm(alpha/2) * vars^0.5)
+      wald_ci.upper <- as.vector(beta + qnorm(1 - alpha/2) * vars^0.5)
+    }
+
     fit$alpha<-alpha
     fit$conflev<-1-alpha
-    waldprob <- 1 - pchisq((beta^2/vars), 1)
-    wald_ci.lower <- as.vector(beta + qnorm(alpha/2) * vars^0.5)
-    wald_ci.upper <- as.vector(beta + qnorm(1 - alpha/2) * vars^0.5)
     
     if(pl) {
         #intialisation
@@ -249,18 +261,9 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
           
         fit$betahist<-list(lower=betahist.lo, upper=betahist.up)
         fit$pl.conv<-pl.conv
-        if (!is.null(extras$terms.fit)){ #compute confidence intervals for variables not specified in terms.fit with Wald
-          rest_plconf <- (1:k)[-matched]
-        }
         if(sum(iters>=control$maxit)>0){ #check if algorithms for all models have converged
           notconv <- cov.name[iters>=control$maxit]
           warning(paste("Maximum number of iterations for variables:",paste0(notconv,collapse=", ")), " exceeded. P-value may be incorrect. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control")
-        }
-        for (i in rest_plconf){
-          fit$ci.lower[i] <- wald_ci.lower[i]
-          fit$ci.upper[i] <- wald_ci.upper[i]
-          fit$prob[i] <- waldprob[i]
-          fit$method.ci[i] <- "Wald"
         }
     }
     else { 
@@ -268,6 +271,12 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       fit$method.ci <- rep("Wald",k)
       fit$ci.lower <- wald_ci.lower
       fit$ci.upper <- wald_ci.upper
+    }
+    for (i in rest_plconf){
+      fit$ci.lower[i] <- 0
+      fit$ci.upper[i] <- 0
+      fit$prob[i] <- 0
+      fit$method.ci[i] <- "-"
     }
     names(fit$prob) <- names(fit$ci.upper) <- names(fit$ci.lower) <- names(fit$coefficients) <- dimnames(x)[[2]]
     #flic: 

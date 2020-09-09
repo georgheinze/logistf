@@ -7,24 +7,25 @@
 \alias{flic.logistf}
 \title{FLIC - Firth's logistic regression with intercept correction}
 \usage{
-flic(x, ...)
+flic(...)
 
-\method{flic}{formula}(x, data, ...)
+\method{flic}{formula}(formula, data, ...)
 
-\method{flic}{logistf}(x, ...)
+\method{flic}{logistf}(lfobject, ...)
 }
 \arguments{
-\item{x}{Either formula and data or \code{\link{logistf}} object}
-
 \item{...}{Further arguments passed to the method or \code{\link{logistf}}-call.}
 
 \item{data}{If using with formula, a data framecontaining the variables in the model.}
+
+\item{x}{Either formula and data or \code{\link{logistf}} object}
 }
 \value{
 A \code{flic} object with components:
   \item{coefficients}{The coefficients of the parameter in the fitted model.}
   \item{predict}{A vector with the predicted probability of each observation}
   \item{linear.predictors}{A vector with the linear predictor of each observation.}
+  \item{var}{The variance-covariance-matrix of the parameters.}
   \item{probabilities}{The p-values of the specific parameters}
   \item{ci.lower}{The lower confidence limits of the parameter.}
   \item{ci.upper}{The upper confidence limits of the parameter.}

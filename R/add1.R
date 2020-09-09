@@ -98,11 +98,11 @@ drop1.logistf<-function(object, scope, test="PLR", ...){
     #full.penalty option of backward function
     if (!is.null(full.penalty.vec)&& nvar!=length(full.penalty.vec)){
       newform <- as.formula(paste("~", paste(variables[i], paste(full.penalty.vec,collapse="+"), sep="+")))
-      res<-anova(object, formula=newform, method="nested", col.fit.object=ind)
+      res<-anova(object, formula=newform, method="nested", col.fit.object=ind, ...)
     }
     else {
       newform<-as.formula(paste("~",variables[i]))
-      res<-anova(object, formula=newform, method="nested")
+      res<-anova(object, formula=newform, method="nested",...)
     }
     mat[i,1]<-res$chisq
     mat[i,2]<-res$df
@@ -122,5 +122,5 @@ drop1.flic<-function(object, scope, test="PLR", ...){
 #' @method drop1 flac
 #' @exportS3Method drop1 flac
 drop1.flac<-function(object, scope, test="PLR", ...){
-  drop1.logistf(object, scope, test="PLR", ...)
+  drop1.logistf(object, scope, test="PLR", augmented_data=TRUE,...)
 }

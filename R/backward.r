@@ -113,15 +113,8 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   if(trace) cat("\n")
   if(full.penalty){
     tmp <- match(removal, variables)
-    tofit <- variables[-tmp]
-    if (length(tofit)==0){
-      newform <- as.formula(~ 1)
-      working<-update(working,newform)#, data=object$data)
-    }
-    else {
-      newform <- as.formula(paste("~",paste(tofit, collapse="+")))
-      working<-update(working,newform,terms.fit=tofit)#, data=object$data)
-    }
+    tofit <- object$terms[-(tmp+1)]
+    working<-update(working,terms.fit=tofit)
   }
   return(working)
 }
@@ -130,7 +123,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
 #' @method backward flic
 #' @rdname backward
 backward.flic<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
-   return (backward.logistf(object, scope, steps, slstay, trace, printwork,full.penalty,...))
+   message("It is intended to call backward() on a logistf-object and afterwards to call flic() on the reduced model.")
 }
 
 #' @export forward
@@ -210,7 +203,7 @@ backward.flac<-function(object, steps=1000, slstay=0.05, trace=TRUE, printwork=F
       cat("\n\n")
     }
   }
-  scope<-attr(terms(working),"term.labels") #scope missing - use terms of object fit
+  scope<-attr(terms(working$formula),"term.labels") #scope missing - use terms of object fit
   if(full.penalty) { #if TRUE, use start model and save all removals in vector removal
     removal <- vector()
   }
@@ -265,8 +258,8 @@ backward.flac<-function(object, steps=1000, slstay=0.05, trace=TRUE, printwork=F
   }
   if(full.penalty) {
     tmp <- match(removal, variables)
-    tofit <- variables[-tmp]
-    working<-update(working, terms.fit=tofit)
+    tofit <- object$terms[-(tmp+1)]
+    working<-update(working,formula=working$formula, terms.fit=tofit)
   }
   return(working)
 }

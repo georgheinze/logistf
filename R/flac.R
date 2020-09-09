@@ -59,19 +59,18 @@
 #' 
 #' @rdname flac
 #' @export flac
-flac <- function(x,...){
-  UseMethod("flac",x)
+flac <- function(...){
+  UseMethod("flac")
 }
 #' @method flac formula
 #' @exportS3Method flac formula
 #' @describeIn flac With formula and data
-flac.formula <- function(x, data, ...){
-  call <- match.call()
+flac.formula <- function(formula, data, ...){
   extras <- list(...)
-  call_out <- match.call()  
+  call_out <- match.call()
   
   mf <- match.call(expand.dots =FALSE)
-  m <- match(c("x", "data","weights","na.action","offset"), names(mf), 0L)
+  m <- match(c("formula", "data"), names(mf), 0L)
   
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
@@ -79,21 +78,20 @@ flac.formula <- function(x, data, ...){
   mf <- eval(mf, parent.frame())
   mt <- attr(mf, "terms")
   
-  formula <- x
   y <- model.response(mf)
   n <- length(y)
   x <- model.matrix(mt, mf)
   
+  if (!is.null(extras$terms.fit)){
+    colfit <- eval(extras$terms.fit)
+    call_out$terms.fit <- extras$terms.fit
+  }
+  
   response <- formula.tools::lhs.vars(formula)
   scope <- formula.tools::rhs.vars(formula)
   
-  if (!is.null(extras$terms.fit)){
-    termsfit <- eval(extras$terms.fit)
-    n_termsfit <- length(termsfit)
-    call_out$terms.fit <- extras$terms.fit
-    temp.fit1 <- logistf(formula, data=mf, terms.fit=termsfit, pl=F,...)
-  }
-  else temp.fit1 <- logistf(formula, data=mf, pl=FALSE, ...)
+  temp.fit1 <- logistf(formula, data=mf, pl=F,...)
+  
   #apply firths logistic regression and calculate diagonal elements h_i of hat matrix
   #and construct augmented dataset and definition of indicator variable g
   temp.pseudo <- c(rep(0,length(y)), rep(1,2*length(y)))
@@ -106,13 +104,8 @@ flac.formula <- function(x, data, ...){
   #ML estimation on augmented dataset
   rhs <- paste(paste(scope, collapse="+"),"temp.pseudo", sep="+")
   newform <- paste("newresp", "~", rhs)
-  if (!is.null(extras$terms.fit)) {
-    temp.fit2 <- logistf(newform,data=newdat, weights=temp.neww,terms.fit=termsfit, firth=FALSE, ...)
-  }
-  else {
-    temp.fit2 <- logistf(newform, data=newdat, weights=temp.neww, firth=FALSE, ...)
-  }
-  
+  temp.fit2 <- logistf(newform,data=newdat, weights=temp.neww, firth=FALSE, ...)
+
   #outputs
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients) & "`(weights)`"!=names(temp.fit2$coefficients))]
   fitted <- temp.fit2$predict[1:length(temp.fit1$y)]
@@ -129,12 +122,12 @@ flac.formula <- function(x, data, ...){
               probabilities=prob,
               ci.lower=ci.lower,
               ci.upper=ci.upper,
-              call=match.call(), alpha = temp.fit1$alpha, 
+              call=call_out, alpha = temp.fit1$alpha, 
               var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
               loglik = temp.fit1$loglik, 
-              n=temp.fit1$n, formula=formula(formula), augmented.data = newdat, 
-              df = (temp.fit2$df-1), #-1 because temp.fit2 has one variable more: weights 
-              formula=formula, 
+              n=temp.fit1$n, augmented.data = newdat, 
+              df = (temp.fit1$df), 
+              formula=formula(formula), 
               method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)], 
               control = temp.fit2$control, 
               terms = colnames(x)
@@ -146,14 +139,21 @@ flac.formula <- function(x, data, ...){
 #' @method flac logistf
 #' @exportS3Method flac logistf
 #' @describeIn flac With logistf object
-flac.logistf <- function(x, ... ){
+flac.logistf <- function(lfobject, ... ){
+  extras <- list(...)
+  call_out <- match.call()
   
   mf <- match.call(expand.dots =FALSE)
-  m <- match("x", names(mf), 0L)
+  m <- match("lfobject", names(mf), 0L)
   mf <- mf[c(1, m)]
-  lfobject <- eval(mf$x, parent.frame())
+  lfobject <- eval(mf$lfobject, parent.frame())
   variables <- lfobject$terms[-1]
   data <- model.frame(lfobject)
+  
+  if (!is.null(extras$terms.fit)){
+    colfit <- eval(extras$terms.fit)
+    call_out$terms.fit <- extras$terms.fit
+  }
   
   response <- formula.tools::lhs.vars(lfobject$formula)
   scope <- formula.tools::rhs.vars(lfobject$formula)
@@ -168,7 +168,7 @@ flac.logistf <- function(x, ... ){
   #ML estimation on augmented dataset
   rhs <- paste(paste(scope, collapse="+"),"temp.pseudo", sep="+")
   newform <- paste("newresp", "~", rhs)
-  temp.fit2 <- logistf(newform,data=newdat, weights=temp.neww, firth=FALSE, ...)
+  temp.fit2 <- update(lfobject, formula. = newform, data=newdat, weights=temp.neww, firth=FALSE)#logistf(newform,data=newdat, weights=temp.neww, firth=FALSE, ...)
   
   #outputs
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients)& "`(weights)`"!=names(temp.fit2$coefficients))]
@@ -177,8 +177,6 @@ flac.logistf <- function(x, ... ){
   prob <- lfobject$prob
   ci.lower <- temp.fit2$ci.lower[which("temp.pseudo"!=names(temp.fit2$ci.lower))]
   ci.upper <- temp.fit2$ci.upper[which("temp.pseudo"!=names(temp.fit2$ci.upper))]
-  #var <- diag(temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)])^0.5
-  
   
   res <- list(coefficients=coefficients,
               fitted = fitted, 
@@ -187,12 +185,12 @@ flac.logistf <- function(x, ... ){
               probabilities=prob,
               ci.lower=ci.lower,
               ci.upper=ci.upper,
-              call=match.call(), alpha = lfobject$alpha, 
+              call=call_out, alpha = lfobject$alpha, 
               var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
               loglik = lfobject$loglik, 
-              n=lfobject$n, formula=lfobject$formula, augmented.data = newdat, 
+              n=lfobject$n, augmented.data = newdat, 
               terms=lfobject$terms, df = lfobject$df, 
-              formula=lfobject$formula, 
+              formula=formula(lfobject$formula), 
               method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)], #exclude estimation of CI of temp.pseudo
               control = temp.fit2$control
               )
