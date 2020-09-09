@@ -30,7 +30,7 @@ A \code{flic} object with components:
   \item{predict}{A vector with the predicted probability of each observation}
   \item{linear.predictors}{A vector with the linear predictor of each observation.}
   \item{var}{The variance-covariance-matrix of the parameters.}
-  \item{probabilities}{The p-values of the specific parameters}
+  \item{prob}{The p-values of the specific parameters}
   \item{ci.lower}{The lower confidence limits of the parameter.}
   \item{ci.upper}{The upper confidence limits of the parameter.}
   \item{call}{The call object.}

@@ -28,8 +28,8 @@
 #' @return A \code{flac} object with components:
 #'   \item{coefficients}{The coefficients of the parameter in the fitted model.}
 #'   \item{predict}{A vector with the predicted probability of each observation}
-#'   \item{linear.predictions}{A vector with the linear predictor of each observation.}
-#'   \item{probabilities}{The p-values of the specific parameters}
+#'   \item{linear.predictors}{A vector with the linear predictor of each observation.}
+#'   \item{prob}{The p-values of the specific parameters}
 #'   \item{ci.lower}{The lower confidence limits of the parameter.}
 #'   \item{ci.upper}{The upper confidence limits of the parameter.}
 #'   \item{call}{The call object.}
@@ -117,25 +117,25 @@ flac.formula <- function(formula, data, ...){
   prob <- temp.fit2$prob[which("temp.pseudo"!=names(temp.fit2$prob))]
   ci.lower <- temp.fit2$ci.lower[which("temp.pseudo"!=names(temp.fit2$ci.lower))]
   ci.upper <- temp.fit2$ci.upper[which("temp.pseudo"!=names(temp.fit2$ci.upper))]
-  #var <- diag(temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)])^0.5
   
   res <- list(coefficients=coefficients,
-              fitted = fitted, 
+              alpha = temp.fit1$alpha, 
+              terms = colnames(x),
+              var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
+              df = (temp.fit1$df),
+              loglik = c(temp.fit2$loglik[2],temp.fit3$loglik[2]),
+              n=temp.fit1$n,
+              formula=formula(formula), 
+              call=call_out,
+              linear.predictors=linear.predictors, 
+              predict = fitted, 
+              prob=prob,
               method = temp.fit2$method,
-              linear.predictions=linear.predictors, 
-              probabilities=prob,
+              method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)], 
               ci.lower=ci.lower,
               ci.upper=ci.upper,
-              call=call_out, alpha = temp.fit1$alpha, 
-              var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
-              loglik = c(temp.fit2$loglik[2],temp.fit3$loglik[2]) , 
-              n=temp.fit1$n, augmented.data = newdat, 
-              df = (temp.fit1$df), 
-              formula=formula(formula), 
-              method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)], 
               control = temp.fit2$control, 
-              terms = colnames(x)
-              )
+              augmented.data = newdat)
   attr(res, "class") <- c("flac")
   res
 }
@@ -179,24 +179,26 @@ flac.logistf <- function(lfobject, ... ){
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients)& "`(weights)`"!=names(temp.fit2$coefficients))]
   fitted <- temp.fit2$predict[1:length(lfobject$y)]
   linear.predictors <- temp.fit2$linear.predictors[1:length(lfobject$y)]
-  prob <- lfobject$prob
+  prob <- temp.fit2$prob[which("temp.pseudo"!=names(temp.fit2$prob))]
   ci.lower <- temp.fit2$ci.lower[which("temp.pseudo"!=names(temp.fit2$ci.lower))]
   ci.upper <- temp.fit2$ci.upper[which("temp.pseudo"!=names(temp.fit2$ci.upper))]
   
-  res <- list(coefficients=coefficients,
-              fitted = fitted, 
+  res <- list(coefficients=coefficients, 
+              alpha = lfobject$alpha,
+              terms=lfobject$terms, 
+              var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
+              df = lfobject$df,  
+              loglik = c(temp.fit2$loglik[2],temp.fit3$loglik[2]),
+              n=lfobject$n,
+              formula=formula(lfobject$formula),
+              call=call_out,
+              linear.predictors=linear.predictors, 
+              predict = fitted, prob=prob,
               method = temp.fit2$method,
-              linear.predictions=linear.predictors, 
-              probabilities=prob,
+              method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)],
               ci.lower=ci.lower,
               ci.upper=ci.upper,
-              call=call_out, alpha = lfobject$alpha, 
-              var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
-              loglik = c(temp.fit2$loglik[2],temp.fit3$loglik[2]) , 
-              n=lfobject$n, augmented.data = newdat, 
-              terms=lfobject$terms, df = lfobject$df, 
-              formula=formula(lfobject$formula), 
-              method.ci = temp.fit2$method.ci[-length(temp.fit2$method.ci)], #exclude estimation of CI of temp.pseudo
+              augmented.data = newdat, 
               control = temp.fit2$control
               )
   attr(res, "class") <- c("flac")

@@ -28,8 +28,8 @@ and the model terms on the right. The response must be a vector with 0 and 1 or 
 A \code{flac} object with components:
   \item{coefficients}{The coefficients of the parameter in the fitted model.}
   \item{predict}{A vector with the predicted probability of each observation}
-  \item{linear.predictions}{A vector with the linear predictor of each observation.}
-  \item{probabilities}{The p-values of the specific parameters}
+  \item{linear.predictors}{A vector with the linear predictor of each observation.}
+  \item{prob}{The p-values of the specific parameters}
   \item{ci.lower}{The lower confidence limits of the parameter.}
   \item{ci.upper}{The upper confidence limits of the parameter.}
   \item{call}{The call object.}

@@ -30,7 +30,7 @@
 #'   \item{predict}{A vector with the predicted probability of each observation}
 #'   \item{linear.predictors}{A vector with the linear predictor of each observation.}
 #'   \item{var}{The variance-covariance-matrix of the parameters.}
-#'   \item{probabilities}{The p-values of the specific parameters}
+#'   \item{prob}{The p-values of the specific parameters}
 #'   \item{ci.lower}{The lower confidence limits of the parameter.}
 #'   \item{ci.upper}{The upper confidence limits of the parameter.}
 #'   \item{call}{The call object.}
@@ -121,21 +121,22 @@ flic.formula <- function(formula,data,...){
   
   
   res <- list(coefficients=c(ic, FL$coef[-1]),
-              predict = pred.prob, 
-              var = tmp.var,
-              linear.predictions=fit$linear, 
-              probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], FL$prob[-1]),
-              ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
-              ci.upper=c(ic+beta0.se*1.96, FL$ci.upper[-1]),
-              call=call_out, 
               alpha = FL$alpha,
-              df=FL$df, loglik=c(FL$loglik[1], full_loglik), 
+              terms=colnames(x),
+              var = tmp.var,
+              df=FL$df,
+              loglik=c(FL$loglik[1], full_loglik), 
               n=FL$n, 
               formula=formula(formula), 
+              call=call_out, 
+              linear.predictors=fit$linear, 
+              predict = pred.prob,
+              prob=c(summary(fit)$coef[, "Pr(>|z|)"], FL$prob[-1]),
               method=FL$method, 
               method.ci=c("Wald", FL$method.ci[-1]), 
+              ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
+              ci.upper=c(ic+beta0.se*1.96, FL$ci.upper[-1]),
               control = FL$control, 
-              terms=colnames(x)
               )
   attr(res, "class") <- c("flic")
   res
@@ -190,21 +191,23 @@ flic.logistf <- function(lfobject,...){
   
   
   res <- list(coefficients=c(ic, lfobject$coef[-1]), 
-              predict = pred.prob, 
-              var = var,
-              linear.predictors=fit$linear, 
-              probabilities=c(summary(fit)$coef[, "Pr(>|z|)"], lfobject$prob[-1]),
-              ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
-              ci.upper=c(ic+beta0.se*1.96, lfobject$ci.upper[-1]),
-              call=call_out, 
               alpha = lfobject$alpha, 
-              method=lfobject$method, 
-              method.ci=c("Wald", lfobject$method.ci[-1]), 
-              df=lfobject$df, loglik=c(lfobject$loglik[1], full_loglik), 
+              terms=colnames(designmat),
+              var = var,
+              df=lfobject$df,
+              loglik=c(lfobject$loglik[1], full_loglik), 
               n=lfobject$n, 
               formula=lfobject$formula, 
+              call=call_out, 
+              linear.predictors=fit$linear, 
+              predict = pred.prob, 
+              prob=c(summary(fit)$coef[, "Pr(>|z|)"], lfobject$prob[-1]),
+              method=lfobject$method, 
+              method.ci=c("Wald", lfobject$method.ci[-1]), 
+              ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
+              ci.upper=c(ic+beta0.se*1.96, lfobject$ci.upper[-1]),
               control = lfobject$control,
-              terms=colnames(designmat))
+              )
   attr(res, "class") <- c("flic")
   res
 }

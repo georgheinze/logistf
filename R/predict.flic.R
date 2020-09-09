@@ -15,5 +15,5 @@
 predict.flic <- function(object, newdata, type = c("link", "response"), ...){
   type <- match.arg(type)
   object$flic <- TRUE
-  predict.logistf(object, newdata, type,flic=TRUE)
+  return(predict.logistf(object, newdata, type,flic=TRUE))
 } 

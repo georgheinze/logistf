@@ -330,6 +330,7 @@ confint.logistf<-function(object,parm, level=0.95, exp=FALSE, ...){
 }
 
 #' @method vcov logistf
+#' @exportS3Method vcov logistf
 vcov.logistf<-function(object,...){
   return(object$var)
 }

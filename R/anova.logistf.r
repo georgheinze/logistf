@@ -74,12 +74,14 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
   
    fit1<-object
    if(missing(formula)){
+     out2 <- fit2$formula
      if(fit1$df<fit2$df) {
       ff0<-fit1 #swap
       fit1<-fit2
       fit2<-ff0
       }
-    }
+   }
+   else out2 <- formula
    
    if(method=="PLR"){
      if(fit1$df==fit2$df) stop("Models not comparable (equal df).\n")
@@ -124,7 +126,7 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
       pval<-test$prob
       model2<-as.character(f3)
    }
-   res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method=method, model1=as.character(fit1$formula), model2=model2, PLR1=PLR1, PLR2=PLR2)
+   res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method=method, model1=as.character(fit1$formula), model2=out2, PLR1=PLR1, PLR2=PLR2)
    attr(res,"class")<-"anova.logistf"
    return(res)
 }
@@ -136,12 +138,14 @@ anova.flic<-function(object,  fit2, formula, method="nested", ...){
   # needed in logistf class: $firth, $data
   fit1<-object
   if(missing(formula)){
+    out2 <- fit2$formula
     if(fit1$df<fit2$df) {
       ff0<-fit1
       fit1<-fit2
       fit2<-ff0
     }
   }
+  else out2 <- formula
   if(method=="nested"){
     f1<-fit1$formula
     a<-attr(terms(f1),"term.labels")
@@ -173,7 +177,7 @@ anova.flic<-function(object,  fit2, formula, method="nested", ...){
     pval<-test$prob
     model2<-as.character(f3)
   }
-  res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method=method, model1=as.character(fit1$formula), model2=model2, PLR1=PLR1, PLR2=PLR2)
+  res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method=method, model1=as.character(fit1$formula), model2=out2, PLR1=PLR1, PLR2=PLR2)
   attr(res,"class")<-"anova.flic"
   return(res)
 }
@@ -189,12 +193,14 @@ anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
   
   fit1<-object
   if(missing(formula)){
+    out2 <- fit2$formula
     if(fit1$df<fit2$df) {
       ff0<-fit1
       fit1<-fit2
       fit2<-ff0
     }
   }
+  else out2 <- formula
   
   f1<-fit1$formula
   if (augmented_data){
@@ -236,7 +242,7 @@ anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
   df<-test$df
   pval<-test$prob
   model2<-as.character(f3)
-  res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method="nested", model1=as.character(fit1$formula), model2=model2, PLR1=PLR1, PLR2=PLR2)
+  res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method="nested", model1=as.character(fit1$formula), model2=out2, PLR1=PLR1, PLR2=PLR2)
   attr(res,"class")<-"anova.flic"
   return(res)
 }

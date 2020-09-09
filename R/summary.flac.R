@@ -4,6 +4,7 @@ summary.flac <- function(object, ...)
   cat("Firth's logistic regression with added covariate\n\n")
   print(object$call)
   cat("\nModel fitted by", object$method)
+  cat(" on augmented data")
   
   #check if flac was called with logistf object:
   if(!is.null(object$call$lfobject)){
