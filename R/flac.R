@@ -105,7 +105,8 @@ flac.formula <- function(formula, data, ...){
   rhs <- paste(paste(scope, collapse="+"),"temp.pseudo", sep="+")
   newform <- paste("newresp", "~", rhs)
   temp.fit2 <- logistf(newform,data=newdat, weights=temp.neww, firth=FALSE, ...)
-
+  temp.fit3 <- logistf(newresp ~ temp.pseudo,data=newdat, weights=temp.neww, firth=FALSE, ...)
+  
   #outputs
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients) & "`(weights)`"!=names(temp.fit2$coefficients))]
   fitted <- temp.fit2$predict[1:length(temp.fit1$y)]
@@ -124,7 +125,7 @@ flac.formula <- function(formula, data, ...){
               ci.upper=ci.upper,
               call=call_out, alpha = temp.fit1$alpha, 
               var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
-              loglik = temp.fit2$loglik, 
+              loglik = c(temp.fit2$loglik[2],temp.fit3$loglik[2]) , 
               n=temp.fit1$n, augmented.data = newdat, 
               df = (temp.fit1$df), 
               formula=formula(formula), 
@@ -168,7 +169,8 @@ flac.logistf <- function(lfobject, ... ){
   #ML estimation on augmented dataset
   rhs <- paste(paste(scope, collapse="+"),"temp.pseudo", sep="+")
   newform <- paste("newresp", "~", rhs)
-  temp.fit2 <- update(lfobject, formula. = newform, data=newdat, weights=temp.neww, firth=FALSE)#logistf(newform,data=newdat, weights=temp.neww, firth=FALSE, ...)
+  temp.fit2 <- update(lfobject, formula. = newform, data=newdat, weights=temp.neww, firth=FALSE)
+  temp.fit3 <- update(lfobject, formula. = newresp ~ temp.pseudo, data=newdat, weights=temp.neww, firth=FALSE)
   
   #outputs
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients)& "`(weights)`"!=names(temp.fit2$coefficients))]
@@ -187,7 +189,7 @@ flac.logistf <- function(lfobject, ... ){
               ci.upper=ci.upper,
               call=call_out, alpha = lfobject$alpha, 
               var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
-              loglik = temp.fit2$loglik, 
+              loglik = c(temp.fit2$loglik[2],temp.fit3$loglik[2]) , 
               n=lfobject$n, augmented.data = newdat, 
               terms=lfobject$terms, df = lfobject$df, 
               formula=formula(lfobject$formula), 
