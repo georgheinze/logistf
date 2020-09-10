@@ -9,7 +9,7 @@
 #' @param pitch Alternatively to steps, one may specify the step width in multiples of standard errors
 #' @param limits Lower and upper limits of parameter values at which profile likelihood is to be evaluated
 #' @param alpha The significance level (1-\eqn{\alpha} the confidence level, 0.05 as default).
-#' @param firth Use of Firth’s penalized maximum likelihood (\code{firth=TRUE}, default) 
+#' @param firth Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) 
 #' or the standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression.
 #' @param legends legends to be included in the optional plot
 #' @param control Controls Newton-Raphson iteration. Default is \code{control= logistf.control(maxstep, 

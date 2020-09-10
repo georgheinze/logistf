@@ -129,13 +129,13 @@ backward.flic<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, prin
    message("It is intended to call backward() on a logistf-object and afterwards to call flic() on the reduced model.")
 }
 
+#' @describeIn backward Forward Selection 
 #' @export forward
 forward <- function(object,...){
-  UseMethod("backward",object)
+  UseMethod("forward",object)
 }
 #' @exportS3Method forward logistf
 #' @method forward logistf
-#' @describeIn backward Forward Selection 
 forward.logistf<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork=FALSE, pl=TRUE, ...){
   istep<-0
   

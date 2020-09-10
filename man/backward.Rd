@@ -32,16 +32,7 @@ backward(object, ...)
   ...
 )
 
-\method{forward}{logistf}(
-  object,
-  scope,
-  steps = 1000,
-  slentry = 0.05,
-  trace = TRUE,
-  printwork = FALSE,
-  pl = TRUE,
-  ...
-)
+forward(object, ...)
 
 \method{backward}{flac}(
   object,
@@ -88,9 +79,9 @@ The variable selection is simply performed by repeatedly calling add1 or drop1 m
 and is based on penalized likelihood ratio test. It can also properly handle variables that were 
 defined as factors in the original data set.
 }
-\section{Methods (by class)}{
+\section{Functions}{
 \itemize{
-\item \code{logistf}: Forward Selection
+\item \code{forward}: Forward Selection
 }}
 
 \examples{

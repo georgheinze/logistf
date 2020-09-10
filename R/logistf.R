@@ -105,7 +105,7 @@
 #' fitf
 #' 
 #' @author Georg Heinze and Meinhard Ploner
-#' @references Firth D (1993). Bias reduction of maximum likelihood estimates. Biometrika 80, 27–38. 
+#' @references Firth D (1993). Bias reduction of maximum likelihood estimates. Biometrika 80, 27-38. 
 #' Heinze G, Schemper M (2002). A solution to the problem of separation in logistic regression. 
 #' Statistics in Medicine 21: 2409-2419.
 #' 

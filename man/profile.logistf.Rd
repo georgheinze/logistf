@@ -36,7 +36,7 @@
 
 \item{alpha}{The significance level (1-\eqn{\alpha} the confidence level, 0.05 as default).}
 
-\item{firth}{Use of Firth’s penalized maximum likelihood (\code{firth=TRUE}, default) 
+\item{firth}{Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) 
 or the standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression.}
 
 \item{legends}{legends to be included in the optional plot}

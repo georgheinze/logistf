@@ -59,7 +59,7 @@ In general the average predicted probability in FL regression is not equal to th
 proportion of events. Because the determinant of the Fisher-Information matrix is maximized 
 for \eqn{\pi_i = \frac{1}{2}} it is concluded that Firth's penalization tends to push the 
 predicted probabilities towards one-half compared with ML-estimation.
-Flic fits a logistic regression model applying Firth’s correction to the likelihood with a 
+Flic fits a logistic regression model applying Firth's correction to the likelihood with a 
 correction of the intercept, such that the predicted probabilities become unbiased while
 keeping all other coefficients constant.
 The following generic methods are available for flic's output object: \code{print, summary, coef, confint, anova, extractAIC, add1, drop1, 
@@ -85,7 +85,7 @@ flic(lf)
 
 }
 \references{
-Puhr, R., Heinze, G., Nold, M., Lusa, L., and Geroldinger, A. (2017) Firth's logistic regression with rare events: accurate effect estimates and predictions?. Statist. Med., 36: 2302– 2317. doi: 10.1002/sim.7273.
+Puhr, R., Heinze, G., Nold, M., Lusa, L., and Geroldinger, A. (2017) Firth's logistic regression with rare events: accurate effect estimates and predictions?. Statist. Med., 36: 2302-2317. doi: 10.1002/sim.7273.
 }
 \seealso{
 \code{\link{logistf}} for Firth's bias-Reduced penalized-likelihood logistic regression.

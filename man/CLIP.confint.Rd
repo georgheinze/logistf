@@ -61,7 +61,7 @@ An object of class \code{CLIP.confint}, with items:
 \description{
 This function implements the new combination of likelihood profiles (CLIP) method described in 
 Heinze, Ploner and Beyea (2013). This method is useful for computing confidence intervals for 
-parameters after multiple imputation of data sets, if the normality assumption on parameter estimates and consequently the validity of applying Rubin‘s rules (pooling of variances) is in doubt. It 
+parameters after multiple imputation of data sets, if the normality assumption on parameter estimates and consequently the validity of applying Rubin's rules (pooling of variances) is in doubt. It 
 consists of combining the profile likelihoods into a posterior. The function CLIP.confint searches 
 for those values of a regression coefficient, at which the cumulative distribution function of the 
 posterior is equal to the values specified in the argument ci.level (usually 0.025 and 0.975). The 

@@ -13,7 +13,7 @@ Description: Fit a logistic regression model using Firth's bias reduction method
 	solution to the problem of separation in logistic regression. If needed, the bias reduction can be turned off such that ordinary
 	maximum likelihood logistic regression is obtained.
 License: GPL
-URL: http://cemsiis.meduniwien.ac.at/en/kb/science-research/software/statistical-software/fllogistf/
+URL: https://cemsiis.meduniwien.ac.at/en/kb/science-research/software/statistical-software/fllogistf/
 LazyLoad: yes
 NeedsCompilation: yes
 RoxygenNote: 7.1.1
