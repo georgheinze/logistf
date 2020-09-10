@@ -36,6 +36,7 @@
 #' confidence intervals should be computed. Default is to compute for all variables
 #' @param flic If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant
+#' @param model  If TRUE the corresponding components of the fit are returned.
 #' @param ... Further arguments to be passed to \code{logistf}
 #' 
 #' @return The object returned is of the class \code{logistf} and has the following attributes:
@@ -66,6 +67,7 @@
 #'    \item{control}{a copy of the control parameters.}
 #'    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant. According to input of logistf.}  
+#'    \item{model}{if requested (the default), the model frame used.}
 #'     
 #' @export
 #'
@@ -122,7 +124,7 @@
 #' @seealso [add1.logistf, drop1.logistf, anova.logistf]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE, ...){
    call <- match.call()
    extras <- list(...)
    call_out <- match.call()
@@ -175,6 +177,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     if (!is.null(extras$terms.fit)){
       colfit <- eval(extras$terms.fit)
       matched <- match(colfit, cov.name)
+      if(any(is.na(matched))) stop(paste0("term(s): ", paste(colfit[is.na(matched)],collapse=", ")," not found in formula.\n"))
       nterms <- length(matched)
       colfit <- (1:k)[matched]
       call_out$terms.fit <- extras$terms.fit
@@ -296,11 +299,13 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
         fit$ci.upper <- c(fit_flic$coef+beta0.se*1.96, fit$ci.upper[-1])
         fit$linear.predictors <- fit_flic$linear
         fit$predict <-fit_flic$fitted
-        fit$var <- W
+        fit$var <- tmp.var
+        fit$method.ci[1] <- "Wald"
       }
     else fit$flic <- FALSE
     
     fit$control <- control
+    if (model) fit$model <- mf
     attr(fit, "class") <- c("logistf")
     fit
 }
@@ -332,7 +337,9 @@ confint.logistf<-function(object,parm, level=0.95, exp=FALSE, ...){
 #' @method vcov logistf
 #' @exportS3Method vcov logistf
 vcov.logistf<-function(object,...){
-  return(object$var)
+  var <- object$var
+  colnames(var) <- rownames(var) <- object$terms
+  return(var)
 }
   
   

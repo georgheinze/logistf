@@ -9,9 +9,9 @@
 \usage{
 flic(...)
 
-\method{flic}{formula}(formula, data, ...)
+\method{flic}{formula}(formula, data, model = TRUE, ...)
 
-\method{flic}{logistf}(lfobject, ...)
+\method{flic}{logistf}(lfobject, model = TRUE, ...)
 }
 \arguments{
 \item{...}{Further arguments passed to the method or \code{\link{logistf}}-call.}
@@ -21,6 +21,8 @@ and the model terms on the right. The response must be a vector with 0 and 1 or 
 \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.}
 
 \item{data}{If using with formula, a data frame containing the variables in the model.}
+
+\item{model}{If TRUE the corresponding components of the fit are returned.}
 
 \item{lfobject}{A fitted \code{\link{logistf}} object}
 }
@@ -43,6 +45,7 @@ A \code{flic} object with components:
   \item{formula}{The formula object.}
   \item{control}{a copy of the control parameters.}  
   \item{terms}{the model terms (column names of design matrix).}
+  \item{model}{if requested (the default), the model frame used.}
 }
 \description{
 \code{flic} implements Firth's bias-Reduced penalized-likelihood logistic regression with intercept correction.

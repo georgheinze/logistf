@@ -23,6 +23,7 @@
 #' \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.
 #' @param data If using with formula, a data frame containing the variables in the model. 
 #' @param lfobject A fitted \code{\link{logistf}} object
+#' @param model If TRUE the corresponding components of the fit are returned.
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flac} object with components:
@@ -44,6 +45,7 @@
 #'   \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
 #'   \item{control}{a copy of the control parameters.}  
 #'   \item{terms}{the model terms (column names of design matrix).}
+#'   \item{model}{if requested (the default), the model frame used.}
 #' 
 #' @export
 #'
@@ -68,7 +70,7 @@ flac <- function(...){
 #' @method flac formula
 #' @exportS3Method flac formula
 #' @describeIn flac With formula and data
-flac.formula <- function(formula, data, ...){
+flac.formula <- function(formula, data, model=TRUE,...){
   extras <- list(...)
   call_out <- match.call()
   
@@ -108,7 +110,7 @@ flac.formula <- function(formula, data, ...){
   rhs <- paste(paste(scope, collapse="+"),"temp.pseudo", sep="+")
   newform <- paste("newresp", "~", rhs)
   temp.fit2 <- logistf(newform,data=newdat, weights=temp.neww, firth=FALSE, ...)
-  temp.fit3 <- logistf(newresp ~ temp.pseudo,data=newdat, weights=temp.neww, firth=FALSE, ...)
+  temp.fit3 <- logistf(newresp ~ temp.pseudo,data=newdat, weights=temp.neww, firth=FALSE, terms.fit=NULL,...)
   
   #outputs
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients) & "`(weights)`"!=names(temp.fit2$coefficients))]
@@ -123,7 +125,7 @@ flac.formula <- function(formula, data, ...){
               terms = colnames(x),
               var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
               df = (temp.fit1$df),
-              loglik = c(temp.fit2$loglik[2],temp.fit3$loglik[2]),
+              loglik = c(temp.fit3$loglik[2],temp.fit2$loglik[2]),
               n=temp.fit1$n,
               formula=formula(formula), 
               call=call_out,
@@ -136,6 +138,7 @@ flac.formula <- function(formula, data, ...){
               ci.upper=ci.upper,
               control = temp.fit2$control, 
               augmented.data = newdat)
+  if(model) res$model <- mf
   attr(res, "class") <- c("flac")
   res
 }
@@ -143,7 +146,7 @@ flac.formula <- function(formula, data, ...){
 #' @method flac logistf
 #' @exportS3Method flac logistf
 #' @describeIn flac With logistf object
-flac.logistf <- function(lfobject, ... ){
+flac.logistf <- function(lfobject, model=TRUE, ... ){
   extras <- list(...)
   call_out <- match.call()
   
@@ -151,8 +154,13 @@ flac.logistf <- function(lfobject, ... ){
   m <- match("lfobject", names(mf), 0L)
   mf <- mf[c(1, m)]
   lfobject <- eval(mf$lfobject, parent.frame())
+  if(!is.null(extras$formula)) lfobject <- update(lfobject, formula. = extras$formula) #to update flac.logistf objects at least with formula
+
   variables <- lfobject$terms[-1]
   data <- model.frame(lfobject)
+  
+  
+  if(lfobject$flic) stop("Please call flac() only on logistf-objects with flic=FALSE")
   
   if (!is.null(extras$terms.fit)){
     colfit <- eval(extras$terms.fit)
@@ -173,7 +181,7 @@ flac.logistf <- function(lfobject, ... ){
   rhs <- paste(paste(scope, collapse="+"),"temp.pseudo", sep="+")
   newform <- paste("newresp", "~", rhs)
   temp.fit2 <- update(lfobject, formula. = newform, data=newdat, weights=temp.neww, firth=FALSE)
-  temp.fit3 <- update(lfobject, formula. = newresp ~ temp.pseudo, data=newdat, weights=temp.neww, firth=FALSE)
+  temp.fit3 <- update(lfobject, formula. = newresp ~ temp.pseudo, data=newdat, weights=temp.neww, firth=FALSE, terms.fit=NULL)
   
   #outputs
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients)& "`(weights)`"!=names(temp.fit2$coefficients))]
@@ -188,7 +196,7 @@ flac.logistf <- function(lfobject, ... ){
               terms=lfobject$terms, 
               var=temp.fit2$var[-nrow(temp.fit2$var), -ncol(temp.fit2$var)], 
               df = lfobject$df,  
-              loglik = c(temp.fit2$loglik[2],temp.fit3$loglik[2]),
+              loglik = c(temp.fit3$loglik[2],temp.fit2$loglik[2]),
               n=lfobject$n,
               formula=formula(lfobject$formula),
               call=call_out,
@@ -201,6 +209,10 @@ flac.logistf <- function(lfobject, ... ){
               augmented.data = newdat, 
               control = temp.fit2$control
               )
+  
+  if(model) {
+    res$model <-lfobject$model
+  }
   attr(res, "class") <- c("flac")
   res
 }

@@ -48,6 +48,9 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   mf <- mf[c(1, m)]
   object <- eval(mf$object, parent.frame())
   variables <- object$terms[-1]
+  
+  terms.fit <- object$call$terms.fit
+  if(!is.null(terms.fit)) stop("Please call backward on a logistf-object with all terms fitted.")
 
   working<-object
   if(trace){
@@ -137,6 +140,9 @@ forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork
   object <- eval(mf$object, parent.frame())
   variables <- object$terms[-1]
   
+  terms.fit <- object$call$terms.fit
+  if(!is.null(terms.fit)) stop("Please call forward on a logistf-object with all terms fitted.")
+  
   working<-object
   if(missing(scope)) {
     stop("Please provide scope (vector of variable names).\n")
@@ -194,6 +200,9 @@ backward.flac<-function(object, steps=1000, slstay=0.05, trace=TRUE, printwork=F
   mf <- mf[c(1, m)]
   object <- eval(mf$object, parent.frame())
   variables <- object$terms[-1]
+  
+  terms.fit <- object$call$terms.fit
+  if(!is.null(terms.fit)) stop("Please call backward on a logistf-object with all terms fitted.")
   
   working<-object
   if(trace){
