@@ -9,9 +9,9 @@
 \usage{
 flac(...)
 
-\method{flac}{formula}(formula, data, ...)
+\method{flac}{formula}(formula, data, model = TRUE, ...)
 
-\method{flac}{logistf}(lfobject, ...)
+\method{flac}{logistf}(lfobject, model = TRUE, ...)
 }
 \arguments{
 \item{...}{Further arguments passed to the method or \code{\link{logistf}}-call.}
@@ -21,6 +21,8 @@ and the model terms on the right. The response must be a vector with 0 and 1 or 
 \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.}
 
 \item{data}{If using with formula, a data frame containing the variables in the model.}
+
+\item{model}{If TRUE the corresponding components of the fit are returned.}
 
 \item{lfobject}{A fitted \code{\link{logistf}} object}
 }
@@ -44,6 +46,7 @@ A \code{flac} object with components:
   \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
   \item{control}{a copy of the control parameters.}  
   \item{terms}{the model terms (column names of design matrix).}
+  \item{model}{if requested (the default), the model frame used.}
 }
 \description{
 \code{flac} implements Firth's bias-reduced penalized-likelihood logistic regression with added covariate.

@@ -23,6 +23,7 @@
 #' \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.
 #' @param data If using with formula, a data frame containing the variables in the model. 
 #' @param lfobject A fitted \code{\link{logistf}} object
+#' @param model If TRUE the corresponding components of the fit are returned.
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flic} object with components:
@@ -43,6 +44,7 @@
 #'   \item{formula}{The formula object.}
 #'   \item{control}{a copy of the control parameters.}  
 #'   \item{terms}{the model terms (column names of design matrix).}
+#'   \item{model}{if requested (the default), the model frame used.}
 #'   
 #' 
 #' @export
@@ -72,7 +74,7 @@ flic <- function(...){
 #' @exportS3Method flic formula
 #' @describeIn flic With formula and data
 #' @export flic.formula
-flic.formula <- function(formula,data,...){
+flic.formula <- function(formula,data,model = TRUE,...){
   extras <- list(...)
   call_out <- match.call()
   
@@ -136,8 +138,11 @@ flic.formula <- function(formula,data,...){
               method.ci=c("Wald", FL$method.ci[-1]), 
               ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, FL$ci.upper[-1]),
-              control = FL$control, 
+              control = FL$control 
               )
+  if(model) {
+    res$model <- mf
+  }
   attr(res, "class") <- c("flic")
   res
 }
@@ -147,7 +152,7 @@ flic.formula <- function(formula,data,...){
 #' @describeIn flic With logistf object
 #' @method flic logistf
 #' @exportS3Method flic logistf
-flic.logistf <- function(lfobject,...){
+flic.logistf <- function(lfobject,model=TRUE,...){
   extras <- list(...)
   call_out <- match.call()
 
@@ -155,6 +160,8 @@ flic.logistf <- function(lfobject,...){
   m <- match("lfobject", names(mf), 0L)
   mf <- mf[c(1, m)]
   lfobject <- eval(mf$lfobject, parent.frame())
+  if(!is.null(extras$formula)) lfobject <- update(lfobject, formula. = extras$formula) #to update flac.logistf objects at least with formula
+  
   variables <- lfobject$terms[-1]
   data <- model.frame(lfobject)
   
@@ -206,8 +213,11 @@ flic.logistf <- function(lfobject,...){
               method.ci=c("Wald", lfobject$method.ci[-1]), 
               ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, lfobject$ci.upper[-1]),
-              control = lfobject$control,
+              control = lfobject$control
               )
+  if(model) {
+    res$model <- lfobject$model
+  }
   attr(res, "class") <- c("flic")
   res
 }

@@ -85,7 +85,7 @@ drop1.logistf<-function(object, scope, test="PLR", ...){
     full.penalty.vec <- extras$full.penalty.vec
   }
   else full.penalty.vec <- NULL
-  variables<-attr(terms(object$formula),"term.labels")
+  variables<-object$terms[-1]#attr(terms(object$formula),"term.labels")
   nvar<-length(variables)
   if(!is.null(full.penalty.vec) && nvar!=length(full.penalty.vec)){ #exclude already removed variables - see backward
     matched <- match(full.penalty.vec, variables)+1 #+1: to include intercept

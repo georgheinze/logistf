@@ -17,6 +17,7 @@ logistf(
   weights,
   plconf = NULL,
   flic = FALSE,
+  model = TRUE,
   ...
 )
 }
@@ -59,6 +60,8 @@ confidence intervals should be computed. Default is to compute for all variables
 \item{flic}{If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
 keeping all other coefficients constant}
 
+\item{model}{If TRUE the corresponding components of the fit are returned.}
+
 \item{...}{Further arguments to be passed to \code{logistf}}
 }
 \value{
@@ -89,7 +92,8 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
    \item{control}{a copy of the control parameters.}
    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
-keeping all other coefficients constant. According to input of logistf.}
+keeping all other coefficients constant. According to input of logistf.}  
+   \item{model}{if requested (the default), the model frame used.}
 }
 \description{
 Implements Firth's bias-Reduced penalized-likelihood logistic regression.
