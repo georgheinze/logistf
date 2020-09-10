@@ -5,6 +5,7 @@
 \alias{backward.logistf}
 \alias{backward.flic}
 \alias{forward}
+\alias{forward.logistf}
 \alias{backward.flac}
 \title{Backward Elimination/Forward Selection of Model Terms in logistf Models}
 \usage{
@@ -33,6 +34,17 @@ backward(object, ...)
 )
 
 forward(object, ...)
+
+\method{forward}{logistf}(
+  object,
+  scope,
+  steps = 1000,
+  slentry = 0.05,
+  trace = TRUE,
+  printwork = FALSE,
+  pl = TRUE,
+  ...
+)
 
 \method{backward}{flac}(
   object,

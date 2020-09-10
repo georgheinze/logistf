@@ -136,6 +136,7 @@ forward <- function(object,...){
 }
 #' @exportS3Method forward logistf
 #' @method forward logistf
+#' @rdname backward
 forward.logistf<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork=FALSE, pl=TRUE, ...){
   istep<-0
   

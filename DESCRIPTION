@@ -17,3 +17,4 @@ URL: https://cemsiis.meduniwien.ac.at/en/kb/science-research/software/statistica
 LazyLoad: yes
 NeedsCompilation: yes
 RoxygenNote: 7.1.1
+LazyData: true
