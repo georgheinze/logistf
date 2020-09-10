@@ -32,7 +32,9 @@ backward(object, ...)
   ...
 )
 
-forward(
+backward(object, ...)
+
+\method{backward}{logistf}(
   object,
   scope,
   steps = 1000,
@@ -88,11 +90,6 @@ The variable selection is simply performed by repeatedly calling add1 or drop1 m
 and is based on penalized likelihood ratio test. It can also properly handle variables that were 
 defined as factors in the original data set.
 }
-\section{Functions}{
-\itemize{
-\item \code{forward}: Forward Selection
-}}
-
 \examples{
 data(sex2) 
 fit<-logistf(data=sex2, case~1, pl=FALSE) 

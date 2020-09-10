@@ -129,6 +129,15 @@ backward.flic<-function(object, scope, steps=1000, slstay=0.05, trace=TRUE, prin
    message("It is intended to call backward() on a logistf-object and afterwards to call flic() on the reduced model.")
 }
 
+#' @rdname backward
+#' @export backward
+backward <- function(object,...){
+  UseMethod("backward",object)
+}
+#' @exportS3Method backward logistf
+#' @method backward logistf
+#' @rdname backward
+
 #' @export forward
 #' @describeIn backward Forward Selection 
 forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork=FALSE, pl=TRUE, ...){
@@ -194,6 +203,7 @@ forward<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork
 #' @method backward flac
 #' @rdname backward
 backward.flac<-function(object, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE,...){
+  stop("Currently not implemented.")
   istep<-0 #index of steps
   mf <- match.call(expand.dots =FALSE)
   m <- match("object", names(mf), 0L)

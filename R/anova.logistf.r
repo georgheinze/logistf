@@ -185,6 +185,7 @@ anova.flic<-function(object,  fit2, formula, method="nested", ...){
 #' @method anova flac
 #' @exportS3Method anova flac
 anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
+  stop("Currently not implemented.")
   mf <- match.call(expand.dots =FALSE)
   m <- match(c("object","fit2","formula","method"), names(mf), 0L)
   mf <- mf[c(1, m)]
@@ -231,7 +232,11 @@ anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
   else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""), env = environment(object$formula))
     
   if (augmented_data) {
-    test<-logistftest(object=fit1, test=f3, TRUE, weights=fit1$weights,data=fit1$augmented_data,...)
+    f4 <- as.formula(paste("newresp ~ ", paste(attr(terms(f3),"term.labels"), collapse="+"), "-1 + temp.pseudo"))
+    new <- fit1
+    new$formula <- as.formula(paste("newresp ~ ", paste(attr(terms(fit1$formula),"term.labels"), collapse="+"), "+ temp.pseudo"))
+    new$model <- model.frame(new$formula, data=fit1$augmented.data)
+    test<-logistftest(object=new, test=f4, FALSE, weights=new$augmented.data[, "temp.neww"], data=new$augmented.data,...)
   }
   else {
     test<-logistftest(object=fit1, test=f3, TRUE, weights=fit1$weights,...)
@@ -243,7 +248,7 @@ anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
   pval<-test$prob
   model2<-as.character(f3)
   res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method="nested", model1=as.character(fit1$formula), model2=out2, PLR1=PLR1, PLR2=PLR2)
-  attr(res,"class")<-"anova.flic"
+  attr(res,"class")<-"anova.flac"
   return(res)
 }
 
