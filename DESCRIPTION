@@ -5,7 +5,8 @@ Title: Firth's Bias-Reduced Logistic Regression
 Authors@R: c(person("Georg", "Heinze", role=c("aut", "cre"), email="georg.heinze@meduniwien.ac.at"),
 			 person("Meinhard", "Ploner", role=c("aut")),
 			 person("Daniela","Dunkler", role=c("ctb")),
-			 person("Harry", "Southworth", role=c("ctb")))
+			 person("Harry", "Southworth", role=c("ctb")), 
+			 person("Lena", "Jiricka", role=c("aut")),)
 Depends: R (>= 3.0.0)
 Imports: mice, mgcv, formula.tools
 Description: Fit a logistic regression model using Firth's bias reduction method, equivalent to penalization of the log-likelihood by the Jeffreys 
