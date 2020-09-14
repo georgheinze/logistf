@@ -19,3 +19,4 @@ LazyLoad: yes
 NeedsCompilation: yes
 RoxygenNote: 7.1.1
 LazyData: true
+BugReports: http://github.com/georgheinze/logistf/issues
