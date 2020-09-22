@@ -4,7 +4,8 @@
 \name{sexagg}
 \alias{sexagg}
 \title{Urinary Tract Infection in American College Students}
-\format{sexagg: an aggregated data.frame containing 31 observations with case weights (COUNT).
+\format{
+sexagg: an aggregated data.frame containing 31 observations with case weights (COUNT).
 \describe{
 \item{case}{urinary tract infection, the study outcome variable}
 \item{age}{>= 24 years}
@@ -13,7 +14,8 @@
 \item{vic}{use of condom}
 \item{vicl}{use of lubricated condom}
 \item{vis}{use of spermicide}
-}}
+}
+}
 \source{
 <http://www.cytel.com/>
 }

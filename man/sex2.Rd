@@ -4,7 +4,8 @@
 \name{sex2}
 \alias{sex2}
 \title{Urinary Tract Infection in American College Students}
-\format{sex2: a data.frame containing 239 observations
+\format{
+sex2: a data.frame containing 239 observations
 \describe{
 \item{case}{urinary tract infection, the study outcome variable}
 \item{age}{>= 24 years}
@@ -13,7 +14,8 @@
 \item{vic}{use of condom}
 \item{vicl}{use of lubricated condom}
 \item{vis}{use of spermicide}
-}}
+}
+}
 \source{
 <http://www.cytel.com/>
 }
