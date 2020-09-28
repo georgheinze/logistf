@@ -64,7 +64,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   if (full.penalty) { #if TRUE, use start model and save all removals in vector removal
     removal <- vector()
   }
-  while(istep<steps & working$df>=1){
+  while(istep<steps & working$df>1){
     if(full.penalty && istep!=0){ #check with istep!=0 if removal is an empty vector - not possible to pass such to drop1
       mat <- drop1(object, full.penalty.vec=removal)
     }
@@ -96,10 +96,13 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     }
     if(!full.penalty){ #update working only if full.penalty==FALSE
       if(working$df==2 | working$df==mat[mat[,3]==max(mat[,3]),2]){
-        working<-update(working, formula=newform, pl=FALSE)#, data=object$data)
+        working<-update(working, formula=newform, pl=FALSE, evaluate = FALSE)
+        working <- eval.parent(working)
       }
       else {
-        working<-update(working, formula=newform)#, data=object$data)
+        working<-update(working, formula. =newform, evaluate = FALSE)
+        working <- eval.parent(working)
+        
       }
     }
     else {
@@ -117,7 +120,8 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   if(full.penalty){
     tmp <- match(removal, variables)
     tofit <- object$terms[-(tmp+1)]
-    working<-update(working,terms.fit=tofit)
+    working<-update(working,terms.fit=tofit, evaluate = FALSE)
+    working <- eval.parent(working)
   }
   return(working)
 }
