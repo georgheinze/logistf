@@ -213,9 +213,10 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       loc <- match(extras$terms.fit, fit$terms)
       var.red <- fit$var[loc,loc]
       vars <- diag(var.red)
-      waldprob <- 1 - pchisq((beta[loc]^2/vars), 1)
-      wald_ci.lower <- as.vector(beta[loc] + qnorm(alpha/2) * vars^0.5)
-      wald_ci.upper <- as.vector(beta[loc] + qnorm(1 - alpha/2) * vars^0.5)
+      waldprob <- wald_ci.lower <- wald_ci.upper <- vector(length = k)
+      waldprob[loc] <- 1 - pchisq((beta[loc]^2/vars), 1)
+      wald_ci.lower[loc] <- as.vector(beta[loc] + qnorm(alpha/2) * vars^0.5)
+      wald_ci.upper[loc] <- as.vector(beta[loc] + qnorm(1 - alpha/2) * vars^0.5)
     }
     else {
       vars <- diag(covs)

@@ -119,9 +119,12 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   if(trace) cat("\n")
   if(full.penalty){
     tmp <- match(removal, variables)
-    tofit <- object$terms[-(tmp+1)]
+    if(!length(tmp)==0){
+      tofit <- object$terms[-(tmp+1)]
+    assign("tofit", value = tofit, pos = 1)
     working<-update(working,terms.fit=tofit, evaluate = FALSE)
     working <- eval.parent(working)
+    }
   }
   return(working)
 }
