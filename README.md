@@ -29,3 +29,7 @@ data(sex2)
 lf <- logistf(formula = case ~ age + oc + vic + vicl + vis + dia, data = sex2)
 summary(lf)
 ```
+
+## Acknowledgment
+
+This work was supported by the Austrian Science Fund (FWF) (award I 2276).
