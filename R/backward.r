@@ -78,11 +78,11 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     inscope<-match(scope,rownames(mat))
     inscope<-inscope[!is.na(inscope)]
     if (full.penalty){
-      removal <- c(removal, rownames(mat)[mat[,3]==max(mat[inscope,3])])
-      curr_removal <- removal[istep] #if two pvalues are the same, both are taken 
+      removal <- c(removal, rownames(mat)[mat[,3]==max(mat[inscope,3])][1])
+      curr_removal <- removal[istep]
     }
     else { #if full.penalty = FALSE: save only current removal
-      removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])] #remove highest pvalue - if p-values are the same fot two variables: delete both
+      removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])][1] #remove highest pvalue - if p-values are the same for two variables: delete randomly first one
       curr_removal <- removal
     }
     #check if object$formula contains a dot shortcut i.e. last character: 
@@ -95,7 +95,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
         newform=as.formula(paste("~.-",paste(curr_removal, collapse = "-")))
     }
     if(!full.penalty){ #update working only if full.penalty==FALSE
-      if(working$df==2 | working$df==mat[mat[,3]==max(mat[,3]),2]){
+      if(working$df==2 | working$df==mat[mat[,3]==max(mat[,3]),2][1]){
         working<-update(working, formula=newform, pl=FALSE, evaluate = FALSE)
         working <- eval.parent(working)
       }
@@ -109,7 +109,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
       working$df <- working$df-1 #update only degrees of freedom in case of full.penalty 
     }
     if(trace){
-      cat("Step ", istep, ": removed ", curr_removal, " (P=", max(mat[,3]),")\n")
+      cat("Step ", istep, ": removed ", curr_removal, " (P=", max(mat[,3])[1],")\n")
       if(printwork) {
         print(working)
         cat("\n\n")

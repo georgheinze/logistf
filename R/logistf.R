@@ -212,7 +212,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     if (!is.null(extras$terms.fit)){ #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
       loc <- match(extras$terms.fit, fit$terms)
       var.red <- fit$var[loc,loc]
-      vars <- diag(var.red)
+      vars <- diag(as.matrix(var.red))
       waldprob <- wald_ci.lower <- wald_ci.upper <- vector(length = k)
       waldprob[loc] <- 1 - pchisq((beta[loc]^2/vars), 1)
       wald_ci.lower[loc] <- as.vector(beta[loc] + qnorm(alpha/2) * vars^0.5)

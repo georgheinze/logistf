@@ -138,7 +138,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     }
     beta <- offset1  ########################################
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=(1:k)[-pos], control=control, init=beta)
-    loglik<-c(fit.null$loglik,fit.full$loglik)
+    loglik<-c(fit.null$loglik, fit.full$loglik)
     
     offset1[ - pos] <- NA
     names(offset1) <- cov.name
