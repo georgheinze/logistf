@@ -47,7 +47,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   m <- match("object", names(mf), 0L)
   mf <- mf[c(1, m)]
   object <- eval(mf$object, parent.frame())
-  variables <- object$terms[-1]
+  variables <- attr(terms(object$formula),"term.labels")#object$terms[-1]
   
   terms.fit <- object$call$terms.fit
   if(!is.null(terms.fit)) stop("Please call backward on a logistf-object with all terms fitted.")
