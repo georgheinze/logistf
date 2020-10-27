@@ -66,10 +66,10 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   }
   while(istep<steps & working$df>1){
     if(full.penalty && istep!=0){ #check with istep!=0 if removal is an empty vector - not possible to pass such to drop1
-      mat <- drop1(object, full.penalty.vec=removal)
+      mat <- drop1(object, full.penalty.vec=removal,...)
     }
     else {
-      mat<-drop1(working)
+      mat<-drop1(working,...)
     }
     istep<-istep+1
     if(all(mat[,3]<slstay)) {
@@ -78,16 +78,16 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     inscope<-match(scope,rownames(mat))
     inscope<-inscope[!is.na(inscope)]
     if (full.penalty){
-      removal <- c(removal, rownames(mat)[mat[,3]==max(mat[inscope,3])][1])
+      removal <- c(removal, rownames(mat[inscope,])[mat[inscope,3]==max(mat[inscope,3])][1])
       curr_removal <- removal[istep]
     }
     else { #if full.penalty = FALSE: save only current removal
-      removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])][1] #remove highest pvalue - if p-values are the same for two variables: delete randomly first one
+      removal<-rownames(mat[inscope,])[mat[inscope,3]==max(mat[inscope,3])][1] #remove highest pvalue - if p-values are the same for two variables: delete randomly first one
       curr_removal <- removal
     }
     #check if object$formula contains a dot shortcut i.e. last character: 
-    if (sapply(grepl("\\.", working$formula), tail, 1)){
-      char <- paste(working$terms[-1], collapse=" + ") #get variables from data without intercept
+    if (grepl(".", substr(working$formula, nchar(working$formula)-1+1, nchar(working$formula)))){
+      char <- paste(attr(terms(working$formula),"term.labels"), collapse=" + ") #get variables from data without intercept
       variables <- paste(char, paste(removal, collapse="-"), sep="-") #remove target variable
       newform <- as.formula(paste("", variables, sep="~")) #coerce to formula
     }
