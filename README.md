@@ -29,3 +29,7 @@ data(sex2)
 lf <- logistf(formula = case ~ age + oc + vic + vicl + vis + dia, data = sex2)
 summary(lf)
 ```
+
+<!-- badges: start -->
+[![R build status](https://github.com/georgheinze/logistf/workflows/R-CMD-check/badge.svg)](https://github.com/georgheinze/logistf/actions)
+<!-- badges: end -->
