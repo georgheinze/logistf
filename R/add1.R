@@ -35,7 +35,7 @@
 #' @exportS3Method add1 logistf
 add1.logistf<-function(object, scope, test="PLR", ...){
   if(missing(scope)) stop("please provide scope: no terms in scope for adding to object")
-  else if(is.numeric(scope)) scope<-attr(terms(object$formula),"term.labels")[scope]
+  else if(is.numeric(scope)) scope<-attr(terms(object),"term.labels")[scope]
   else if(!is.character(scope)) scope <- add.scope(object, update.formula(object, scope))
 
   mf <- match.call(expand.dots =FALSE)
@@ -85,7 +85,7 @@ drop1.logistf<-function(object, scope, test="PLR", ...){
     full.penalty.vec <- extras$full.penalty.vec
   }
   else full.penalty.vec <- NULL
-  variables<-attr(terms(object$formula),"term.labels")
+  variables<-attr(terms(object),"term.labels")
   nvar<-length(variables)
   if(!is.null(full.penalty.vec) && nvar!=length(full.penalty.vec)){ #exclude already removed variables - see backward
     matched <- match(full.penalty.vec, variables)+1 #+1: to include intercept

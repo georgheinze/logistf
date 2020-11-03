@@ -47,7 +47,8 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   m <- match("object", names(mf), 0L)
   mf <- mf[c(1, m)]
   object <- eval(mf$object, parent.frame())
-  variables <- attr(terms(object$formula),"term.labels")#object$terms[-1]
+  variables <- attr(terms(object),"term.labels")
+  form <- formula(terms(object)) #to take care of dot shortcut
   
   terms.fit <- object$call$terms.fit
   if(!is.null(terms.fit)) stop("Please call backward on a logistf-object with all terms fitted.")
@@ -85,16 +86,9 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
       removal<-rownames(mat[inscope,])[mat[inscope,3]==max(mat[inscope,3])][1] #remove highest pvalue - if p-values are the same for two variables: delete randomly first one
       curr_removal <- removal
     }
-    #check if object$formula contains a dot shortcut i.e. last character: 
-    if (grepl(".", substr(working$formula, nchar(working$formula)-1+1, nchar(working$formula)))){
-      char <- paste(attr(terms(working$formula),"term.labels"), collapse=" + ") #get variables from data without intercept
-      variables <- paste(char, paste(removal, collapse="-"), sep="-") #remove target variable
-      newform <- as.formula(paste("", variables, sep="~")) #coerce to formula
-    }
-    else {
-        newform=as.formula(paste("~.-",paste(curr_removal, collapse = "-")))
-    }
+    
     if(!full.penalty){ #update working only if full.penalty==FALSE
+      newform <- update.formula(formula(terms(working)), as.formula(paste("~.-",paste(curr_removal, collapse = "-"))))
       if(working$df==2 | working$df==mat[mat[,3]==max(mat[,3]),2][1]){
         working<-update(working, formula=newform, pl=FALSE, evaluate = FALSE)
         working <- eval.parent(working)
