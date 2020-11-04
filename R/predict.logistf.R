@@ -18,6 +18,7 @@
 #'
 #' @rdname predict.logistf
 #' @exportS3Method predict logistf
+
 predict.logistf <- function (object, newdata, type = c("link", "response"), flic=FALSE, ...) 
 {
   type <- match.arg(type)
@@ -39,23 +40,23 @@ predict.logistf <- function (object, newdata, type = c("link", "response"), flic
     }
   }
   else {
-    newlin <- c(object$coefficients[-1] %*% t(newdata))
+    X <-  model.matrix(formula(object),  newdata)
     if (flic) {
       if(object$flic) {
-        pred <- switch(type, link = object$coefficients[1]+newlin, 
-                   response = 1/(1+exp(-(object$coefficients[1]+newlin))) )
+        prepred <- switch(type, link =object$coefficients %*% t(X), 
+                   response = 1/(1+exp(-(object$coefficients %*% t(X)))) )
       }
       else{
         message("predict called with flic=TRUE but logistf-object was called with flic=FALSE: refitting model for predictions")
         object.flic <- update(object, flic=TRUE)
-        pred <- switch(type, link = object.flic$coefficients[1]+newlin, 
-                       response = 1/(1+exp(-(object.flic$coefficients[1]+newlin))))
+        pred <- switch(type, link = object$coefficients %*% t(X), 
+                       response = 1/(1+exp(-(object$coefficients %*% t(X)))))
       }
     
     }
     else {
-      pred <- switch(type, link = object$coefficients[1]+newlin , 
-                     response = 1/(1+exp(-(object$coefficients[1]+newlin))))
+      pred <- switch(type, link = object$coefficients %*% t(X) , 
+                     response = 1/(1+exp(-(object$coefficients %*% t(X)))))
     }
   }
   pred
