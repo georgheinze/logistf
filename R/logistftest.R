@@ -107,7 +107,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     }
     
     if(fit.full$iter>=control$maxit){
-        warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
+        warning(paste("logistftest: Maximum number of iterations for full model exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
     }
 
     pos<-coltotest
@@ -138,6 +138,11 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     }
     beta <- offset1  ########################################
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=(1:k)[-pos], control=control, init=beta)
+
+    if(fit.null$iter>=control$maxit){
+        warning(paste("logistftest: Maximum number of iterations for null model exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
+    }
+
     loglik<-c(fit.null$loglik, fit.full$loglik)
     
     offset1[ - pos] <- NA
