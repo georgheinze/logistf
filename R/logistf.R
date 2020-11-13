@@ -261,7 +261,8 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
             fit$method.ci[i] <- "Profile Likelihood"
         }
-        fit$pl.iter<-pl.iter
+        fit$pl.iter<-cbind(pl.iter, iters)
+        colnames(fit$pl.iter)<-c("Lower", "Upper", "Null model")
         if(sum(fit$pl.iter>=plcontrol$maxit)){
           notconv <- cov.name[apply(fit$pl.iter>=plcontrol$maxit, 1, sum)>0]
           warning(paste("Nonconverged PL confidence limits: maximum number of iterations for variables:",paste0(notconv,collapse=", ")), " exceeded. Try to increase the number of iterations by passing 'logistpl.control(maxit=...)' to parameter plcontrol")
@@ -271,7 +272,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
         fit$pl.conv<-pl.conv
         if(sum(iters>=control$maxit)>0){ #check if algorithms for all models have converged
           notconv <- cov.name[iters>=control$maxit]
-          warning(paste("Maximum number of iterations for variables:",paste0(notconv,collapse=", ")), " exceeded. P-value may be incorrect. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control")
+          warning(paste("Maximum number of iterations for PLR test for variables:",paste0(notconv,collapse=", ")), " exceeded. P-value may be incorrect. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control")
         }
     }
     else { 
