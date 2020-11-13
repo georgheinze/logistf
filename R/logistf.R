@@ -33,7 +33,7 @@
 #' @param weights specifies case weights. Each line of the input data set is multiplied 
 #' by the corresponding element of weights
 #' @param plconf specifies the variables (as vector of their indices) for which profile likelihood 
-#' confidence intervals should be computed. Default is to compute for all variables
+#' confidence intervals should be computed. Default is to compute for all variables.
 #' @param flic If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant
 #' @param model  If TRUE the corresponding components of the fit are returned.
@@ -192,7 +192,10 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
     
     if(fit.full$iter>=control$maxit){
-      warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
+      warning(paste("logistf.fit: Maximum number of iterations for full model exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
+    }
+    if(fit.null$iter>=control$maxit){
+      warning(paste("logistf.fit: Maximum number of iterations for null model exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
     }
     
     fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = nterms-int, loglik =c(fit.null$loglik, fit.full$loglik),
@@ -229,7 +232,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     fit$conflev<-1-alpha
     
     if(pl) {
-        #intialisation
+        #initialisation
         betahist.lo<-vector(length(plconf),mode="list")
         betahist.up<-vector(length(plconf),mode="list")
         pl.conv<-matrix(0,length(plconf),4)
@@ -252,6 +255,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
             betahist.up[[icount]]<-inter$betahist
             pl.conv.upper<-t(inter$conv)
             pl.conv[icount,]<-cbind(pl.conv.lower,pl.conv.upper)
+            
             fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=(1:k)[-i], control=control)
             iters <- c(iters, fit.i$iter)
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
