@@ -43,14 +43,14 @@ predict.logistf <- function (object, newdata, type = c("link", "response"), flic
     X <-  model.matrix(formula(object),  newdata)
     if (flic) {
       if(object$flic) {
-        prepred <- switch(type, link =object$coefficients %*% t(X), 
+        pred <- switch(type, link =object$coefficients %*% t(X), 
                    response = 1/(1+exp(-(object$coefficients %*% t(X)))) )
       }
       else{
         message("predict called with flic=TRUE but logistf-object was called with flic=FALSE: refitting model for predictions")
-        object.flic <- update(object, flic=TRUE)
-        pred <- switch(type, link = object$coefficients %*% t(X), 
-                       response = 1/(1+exp(-(object$coefficients %*% t(X)))))
+        object.flic <- update(object, flic=TRUE, pl=FALSE)
+        pred <- switch(type, link = object.flic$coefficients %*% t(X), 
+                       response = 1/(1+exp(-(object.flic$coefficients %*% t(X)))))
       }
     
     }
