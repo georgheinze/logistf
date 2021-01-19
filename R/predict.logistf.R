@@ -40,7 +40,10 @@ predict.logistf <- function (object, newdata, type = c("link", "response"), flic
     }
   }
   else {
-    X <-  model.matrix(formula(object),  newdata)
+    Terms <- delete.response(terms(object))
+    m <- model.frame(Terms, newdata)
+    if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl,m)
+    X <-  model.matrix(Terms, m)
     if (flic) {
       if(object$flic) {
         pred <- switch(type, link =object$coefficients %*% t(X), 
