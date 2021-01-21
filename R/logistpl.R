@@ -1,4 +1,4 @@
-logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, length(y)), weight=rep(1,length(y)), plcontrol) {
+logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, length(y)), weight=rep(1,length(y)), plcontrol, tau = 0.5) {
     n<-nrow(x)
     k<-ncol(x)
     if (is.null(init)) init<-rep(0,k)
@@ -8,6 +8,12 @@ logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, 
     if (missing(plcontrol)) {
         plcontrol<-logistpl.control()
     }    
+    if (!is.numeric(tau) | length(tau)>1){
+      stop("Invalid value for degree of penalization tau: Must be numeric.")
+    }
+    if (tau<=0|tau>=1){
+      stop("Invalid value for degree of penalization tau: Must be a value in (0,1).")
+    }     
     maxit<-plcontrol$maxit
     maxstep<-plcontrol$maxstep
     maxhs<-plcontrol$maxhs
@@ -19,11 +25,11 @@ logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, 
     betahist <- matrix(double(k * maxit), maxit) 
     mode(x) <- mode(weight) <- mode(beta) <- mode(offset) <- mode(LL.0) <- "double"
     mode(y) <- mode(firth) <- mode(n) <- mode(k) <- "integer"
-    mode(maxstep) <- mode(lconv) <- mode(xconv) <- mode(loglik) <- "double"
+    mode(maxstep) <- mode(lconv) <- mode(xconv) <- mode(loglik) <- mode(tau) <- "double"
     mode(maxit) <- mode(maxhs) <- mode(i) <- mode(which) <- mode(iter) <- "integer"
     
     res <- .C("logistpl", x, y, n, k, weight, offset, beta=beta, i, which, LL.0, firth, maxit, 
-    maxstep, maxhs, lconv, xconv, betahist=betahist, loglik=loglik, iter=iter, conv=conv,
+    maxstep, maxhs, lconv, xconv,tau, betahist=betahist, loglik=loglik, iter=iter, conv=conv,
     PACKAGE="logistf")
     
     #if(res$iter>=maxit){

@@ -37,6 +37,7 @@
 #' @param flic If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant
 #' @param model  If TRUE the corresponding components of the fit are returned.
+#' @param tau  Degree of penalization (default = 0.5)
 #' @param ... Further arguments to be passed to \code{logistf}
 #' 
 #' @return The object returned is of the class \code{logistf} and has the following attributes:
@@ -124,7 +125,7 @@
 #' @seealso [add1.logistf, drop1.logistf, anova.logistf]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE, ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5, ...){
    call <- match.call()
    extras <- list(...)
    call_out <- match.call()
@@ -201,8 +202,8 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       nterms <- k
     }
     
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control, tau=tau)
     
     if(fit.full$iter>=control$maxit){
       warning(paste("logistf.fit: Maximum number of iterations for full model exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
@@ -212,7 +213,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     }
     
     fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = nterms-int, loglik =c(fit.null$loglik, fit.full$loglik),
-        iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv)
+        iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv, tau = tau)
     
     names(fit$conv)<-c("LL change","max abs score","beta change")
     beta<-fit.full$beta
@@ -269,7 +270,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
             pl.conv.upper<-t(inter$conv)
             pl.conv[icount,]<-cbind(pl.conv.lower,pl.conv.upper)
             
-            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=(1:k)[-i], control=control)
+            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=(1:k)[-i], control=control, tau=tau)
             iters <- c(iters, fit.i$iter)
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
             fit$method.ci[i] <- "Profile Likelihood"

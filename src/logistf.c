@@ -13,7 +13,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 								double *beta, // beta is I/O
 								int *colfit, int *ncolfit_l, int *firth_l, 
 								int *maxit, double *maxstep, int *maxhs,
-								double *lconv, double *gconv, double *xconv,
+								double *lconv, double *gconv, double *xconv, double* tau, 
 								// output: 
 								double *fisher_cov,		// k x k
 								double *Ustar,				// k
@@ -146,7 +146,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	  }
 	  else {
 	    linpack_inv(fisher_cov, &k); //if not singular then compute inverse
-	    *loglik += 0.5 * logdet;
+	    *loglik += *tau * logdet;
 	  }
 	} 
 	else {
@@ -185,7 +185,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 		}
 		if(firth) 
 			for(i=0; i < n; i++){
-				w[i] = weight[i] * ((double)y[i] - pi[i]) + Hdiag[i] * (0.5 - pi[i]);
+				w[i] = weight[i] * ((double)y[i] - pi[i]) + Hdiag[i] * (*tau - pi[i]);
 		    //Rprintf(" y %5.2f: ", y[i]);
 		    //Rprintf(" pi %5.2f: ", pi[i]);
 		    //Rprintf(" H %5.2f: ", Hdiag[i]);
@@ -290,7 +290,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 					linpack_det(fisher_cov, &k, &logdet); // fisher_cov is unchanged here; only det computed
 					//bIsInverted = 0;
 					
-					*loglik += 0.5 * logdet;
+					*loglik += *tau * logdet;
 				}
 				(*evals)++;
 				
@@ -341,7 +341,7 @@ void logistpl(double *x, int *y, int *n_l, int *k_l,
 							int *iSel, int *which, double *LL0, int *firth_l, 
 							// control parameter:
 							int *maxit, double *maxstep, int *maxhs,
-							double *lconv, double *xconv,
+							double *lconv, double *xconv, double *tau,
 							// output: 
 							double *betahist,			// k * maxit
 							double *loglik,				// 1
@@ -462,7 +462,7 @@ void logistpl(double *x, int *y, int *n_l, int *k_l,
 	
 	if(firth == 1) {
 		linpack_det(fisher, &k, &logdet);
-		*loglik += 0.5 * logdet;
+		*loglik += *tau * logdet;
 	} 
 	
 //	Rprintf("*** loop start ***\n");
@@ -487,7 +487,7 @@ void logistpl(double *x, int *y, int *n_l, int *k_l,
 		
 		if(firth) 
 			for(i=0; i < n; i++)
-				w[i] = weight[i] * ((double)y[i] - pi[i]) + Hdiag[i] * (0.5 - pi[i]);
+				w[i] = weight[i] * ((double)y[i] - pi[i]) + Hdiag[i] * (*tau - pi[i]);
 		else
 			for(i=0; i < n; i++)
 				w[i] = weight[i] * ((double)y[i] - pi[i]);
@@ -549,7 +549,7 @@ void logistpl(double *x, int *y, int *n_l, int *k_l,
 //				Rprintf("fisher : "); Rprintf(fisher, k, k);
 				linpack_det(fisher, &k, &logdet); // fisher_cov is unchanged here; only det computed
 				
-				*loglik += 0.5 * logdet;
+				*loglik += *tau * logdet;
 			}
 			
 			//Rprintf("loglik %f  old: %f \n", *loglik, loglik_old);
