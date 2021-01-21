@@ -139,7 +139,20 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     mf[[1L]] <- quote(stats::model.frame)
     mf <- eval(mf, parent.frame())
     mt <- attr(mf, "terms")
-    y <- model.response(mf)
+    y <- model.response(mf, type="any")
+    if(is.logical(y)){
+      y <- as.numeric(y)
+    }
+    else if(is.factor(y)){
+      if(length(levels(y))==2){
+        warning(paste0("Ivalid response variable: Changing value ", levels(y)[1], " to 0 and value ",  levels(y)[2], " to 1." ))
+        y <- as.numeric(y)-1
+      }
+      
+    }else if(!is.numeric(y)){
+      stop("Invalid response variable: must be logical or numeric")
+    }
+    
     n <- length(y)
     x <- model.matrix(mt, mf)
     
