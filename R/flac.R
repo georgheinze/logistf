@@ -21,7 +21,7 @@
 #' @param formula A formula object, with the response on the left of the operator, 
 #' and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and 
 #' \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.
-#' @param data If using with formula, a data frame containing the variables in the model. 
+#' @param data A data frame containing the variables in the model. 
 #' @param lfobject A fitted \code{\link{logistf}} object
 #' @param model If TRUE the corresponding components of the fit are returned.
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
@@ -151,19 +151,17 @@ flac.formula <- function(formula, data, model=TRUE,...){
 #' @method flac logistf
 #' @exportS3Method flac logistf
 #' @describeIn flac With logistf object
-flac.logistf <- function(lfobject, model=TRUE, ... ){
+flac.logistf <- function(lfobject, data, model=TRUE, ... ){
   extras <- list(...)
   call_out <- match.call()
   
   mf <- match.call(expand.dots =FALSE)
-  m <- match("lfobject", names(mf), 0L)
+  m <- match(c("lfobject", "data"), names(mf), 0L)
   mf <- mf[c(1, m)]
   lfobject <- eval(mf$lfobject, parent.frame())
   if(!is.null(extras$formula)) lfobject <- update(lfobject, formula. = extras$formula) #to update flac.logistf objects at least with formula
 
   variables <- lfobject$terms[-1]
-  data <- model.frame(lfobject)
-  
   
   if(lfobject$flic) stop("Please call flac() only on logistf-objects with flic=FALSE")
   
@@ -184,7 +182,7 @@ flac.logistf <- function(lfobject, model=TRUE, ... ){
   names(newdat)[match(names(newdat), response)] <- "newresp"
   
   #ML estimation on augmented dataset
-  newform <- update(formula, ~ .+temp.pseudo)
+  newform <- update(lfobject$formula, ~ .+temp.pseudo)
   newform <- update(newform, newresp ~ . )
   temp.fit2 <- update(lfobject, formula. = newform, data=newdat, weights=temp.neww, firth=FALSE)
   temp.fit3 <- update(lfobject, formula. = newresp ~ temp.pseudo, data=newdat, weights=temp.neww, firth=FALSE, terms.fit=NULL)
