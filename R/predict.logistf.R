@@ -10,7 +10,8 @@
 #' @param newdata Optionally, a data frame in which to look for variables with which to predict. 
 #' If omitted, the fitted linear predictors are used.  
 #' @param type The type of prediction required. The default is on the scale of the linear predictors. 
-#' The alternative \code{response} gives the predicted probabilities. 
+#' The alternative \code{response} gives the predicted probabilities. Type \code{terms} returns a matrix with the fitted
+#' values of each term in the formula on the linear predictor scale.
 #' @param flic If \code{TRUE}(default = \code{FALSE}), predictions are computed with intercept correction.
 #' @param ... further arguments passed to or from other methods.
 #'
@@ -19,24 +20,50 @@
 #' @rdname predict.logistf
 #' @exportS3Method predict logistf
 
-predict.logistf <- function (object, newdata, type = c("link", "response"), flic=FALSE, ...) 
+predict.logistf <- function (object, newdata, type = c("link", "response", "terms"), flic=FALSE, ...) 
 {
+  predict_terms <- function(object, model_matrix = NULL){
+    if(is.null(model_matrix)){
+      mm <- model.matrix(object$formula, object$model)
+    } else {
+      mm <- model_matrix
+    }
+      aa <- attr(mm, "assign")
+      ll <- attr(terms(object), "term.labels")
+      ll <- c("(Intercept)", ll)
+      aaa <- factor(aa, labels = ll)
+      asgn <- split(order(aa), aaa)
+      asgn$"(Intercept)" <- NULL
+      avx <- colMeans(mm)
+      beta <- object$coefficients
+      termsconst <- sum(avx * beta)
+      nterms <- length(asgn)
+      predictor <- matrix(ncol = nterms, nrow = NROW(mm))
+      dimnames(predictor) <- list(rownames(mm), names(asgn))
+      X <- sweep(mm, 2L, avx, check.margin = FALSE)
+      for (i in seq.int(1L, nterms, length.out = nterms)) {
+          iipiv <- asgn[[i]]
+          predictor[, i] <- X[, iipiv, drop = FALSE] %*% beta[iipiv]
+      }
+      attr(predictor, "constant") <- termsconst
+      return(predictor)
+  }
   type <- match.arg(type)
   if (missing(newdata)) {#no data - return linear.predictors or response according to type
     if (flic) {
       #check if flic=TRUE was set in object
       if(object$flic) {
-        pred <- switch(type, link = object$linear.predictors, response = object$predict)
+        pred <- switch(type, link = object$linear.predictors, response = object$predict, terms = predict_terms(object))
       }
       #if intercept is not already altered refit the model:
       else {
         message("predict called with flic=TRUE but logistf-object was called with flic=FALSE: refitting model for predictions")
         object.flic <- update(object, flic=TRUE)
-        pred <- switch(type, link = object.flic$linear.predictors, response = object.flic$predict)
+        pred <- switch(type, link = object.flic$linear.predictors, response = object.flic$predict, terms = predict_terms(object.flic))
       }
     }
     else {
-      pred <- switch(type, link = object$linear.predictors, response = object$predict)
+      pred <- switch(type, link = object$linear.predictors, response = object$predict, terms = predict_terms(object))
     }
   }
   else {
@@ -53,13 +80,16 @@ predict.logistf <- function (object, newdata, type = c("link", "response"), flic
         message("predict called with flic=TRUE but logistf-object was called with flic=FALSE: refitting model for predictions")
         object.flic <- update(object, flic=TRUE, pl=FALSE)
         pred <- switch(type, link = object.flic$coefficients %*% t(X), 
-                       response = 1/(1+exp(-(object.flic$coefficients %*% t(X)))))
+                       response = 1/(1+exp(-(object.flic$coefficients %*% t(X)))), 
+                       terms = predict_terms(object.flic)
+                         )
       }
     
     }
     else {
       pred <- switch(type, link = object$coefficients %*% t(X) , 
-                     response = 1/(1+exp(-(object$coefficients %*% t(X)))))
+                     response = 1/(1+exp(-(object$coefficients %*% t(X)))), 
+                     terms = predict_terms(object))
     }
   }
   pred
