@@ -8,3 +8,5 @@
 * Fixed a bug in `backward()` when `data` is called data (#34).
 * Updated `predict()` function for easier handling.
 * Fixed a bug in `backward()` when function is called with factors as covariates (#34).
+* `logistf()`, `flic()` and `flac()` are now compatible with `termplot()` because of the added prediction type `terms`
+in `predict.logistf()`, `predict.flic()` and `predict.flac()`.
