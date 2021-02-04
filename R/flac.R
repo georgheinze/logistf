@@ -56,7 +56,7 @@
 #' 
 #' #With a logistf object:
 #' lf <- logistf(formula = case ~ age + oc + vic + vicl + vis + dia, data = sex2)
-#' flac(lf)
+#' flac(lf, data=sex2)
 #' 
 #' @references Puhr, R., Heinze, G., Nold, M., Lusa, L., and Geroldinger, A. (2017) Firth's logistic regression with rare events: accurate effect estimates and predictions?. Statist. Med., 36: 2302-2317. doi: 10.1002/sim.7273.
 #' 

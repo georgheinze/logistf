@@ -28,7 +28,7 @@ logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, 
     mode(maxstep) <- mode(lconv) <- mode(xconv) <- mode(loglik) <- mode(tau) <- "double"
     mode(maxit) <- mode(maxhs) <- mode(i) <- mode(which) <- mode(iter) <- "integer"
     
-    res <- .C("logistpl", x, y, n, k, weight, offset, beta=beta, i, which, LL.0, firth, maxit, 
+    res <- .C("logistplfit", x, y, n, k, weight, offset, beta=beta, i, which, LL.0, firth, maxit, 
     maxstep, maxhs, lconv, xconv,tau, betahist=betahist, loglik=loglik, iter=iter, conv=conv,
     PACKAGE="logistf")
     

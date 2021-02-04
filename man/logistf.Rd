@@ -18,6 +18,7 @@ logistf(
   plconf = NULL,
   flic = FALSE,
   model = TRUE,
+  tau = 0.5,
   ...
 )
 }
@@ -55,12 +56,14 @@ logistic regression parameters.}
 by the corresponding element of weights}
 
 \item{plconf}{specifies the variables (as vector of their indices) for which profile likelihood 
-confidence intervals should be computed. Default is to compute for all variables}
+confidence intervals should be computed. Default is to compute for all variables.}
 
 \item{flic}{If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
 keeping all other coefficients constant}
 
 \item{model}{If TRUE the corresponding components of the fit are returned.}
+
+\item{tau}{Degree of penalization (default = 0.5)}
 
 \item{...}{Further arguments to be passed to \code{logistf}}
 }

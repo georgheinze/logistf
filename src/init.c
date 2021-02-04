@@ -8,14 +8,14 @@
 /* .C calls */
 extern void linpack_choleski(void *, void *);
 extern void linpack_inv_det(void *, void *, void *);
-extern void logistffit(void *, void *, void *, void*, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
-extern void logistpl(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void logistffit(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void logistplfit(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CMethodDef CEntries[] = {
     {"linpack_choleski", (DL_FUNC) &linpack_choleski,  2},
     {"linpack_inv_det",  (DL_FUNC) &linpack_inv_det,   3},
     {"logistffit",       (DL_FUNC) &logistffit,       25},
-    {"logistpl",         (DL_FUNC) &logistpl,         21},
+    {"logistplfit",      (DL_FUNC) &logistplfit,      21},
     {NULL, NULL, 0}
 };
 

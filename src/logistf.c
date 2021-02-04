@@ -335,7 +335,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 
 
 // profile likelihood
-void logistpl(double *x, int *y, int *n_l, int *k_l, 
+void logistplfit(double *x, int *y, int *n_l, int *k_l, 
 							double *weight, double *offset, 
 							double *beta, // beta is I/O (init)
 							int *iSel, int *which, double *LL0, int *firth_l, 

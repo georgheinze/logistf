@@ -11,7 +11,7 @@ flac(...)
 
 \method{flac}{formula}(formula, data, model = TRUE, ...)
 
-\method{flac}{logistf}(lfobject, model = TRUE, ...)
+\method{flac}{logistf}(lfobject, data, model = TRUE, ...)
 }
 \arguments{
 \item{...}{Further arguments passed to the method or \code{\link{logistf}}-call.}
@@ -20,7 +20,7 @@ flac(...)
 and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and 
 \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.}
 
-\item{data}{If using with formula, a data frame containing the variables in the model.}
+\item{data}{A data frame containing the variables in the model.}
 
 \item{model}{If TRUE the corresponding components of the fit are returned.}
 
@@ -81,7 +81,7 @@ flac(case ~ age + oc + vic + vicl + vis + dia, sex2)
 
 #With a logistf object:
 lf <- logistf(formula = case ~ age + oc + vic + vicl + vis + dia, data = sex2)
-flac(lf)
+flac(lf, data=sex2)
 
 }
 \references{

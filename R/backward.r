@@ -135,9 +135,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     tmp <- match(removal, variables)
     if(!length(tmp)==0){
       tofit <- object$terms[-(tmp+1)]
-    assign("tofit", value = tofit, pos = 1)
-    working<-update(working,terms.fit=tofit, evaluate = FALSE)
-    working <- eval.parent(working)
+      working<-update(working,terms.fit=tofit)
     }
   }
   return(working)
@@ -222,81 +220,4 @@ forward.logistf<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, p
 #' @rdname backward
 backward.flac<-function(object, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE,...){
   stop("Currently not implemented.")
-  istep<-0 #index of steps
-  mf <- match.call(expand.dots =FALSE)
-  m <- match("object", names(mf), 0L)
-  mf <- mf[c(1, m)]
-  object <- eval(mf$object, parent.frame())
-  variables <- object$terms[-1]
-  
-  terms.fit <- object$call$terms.fit
-  if(!is.null(terms.fit)) stop("Please call backward on a logistf-object with all terms fitted.")
-  
-  working<-object
-  if(trace){
-    cat("Step ", istep, ": starting model\n")
-    if(printwork){
-      print(working)
-      cat("\n\n")
-    }
-  }
-  scope<-attr(terms(working$formula),"term.labels") #scope missing - use terms of object fit
-  if(full.penalty) { #if TRUE, use start model and save all removals in vector removal
-    removal <- vector()
-  }
-  while(istep<steps & working$df>=1){
-    if(full.penalty && istep!=0){ #check with istep!=0 if removal is an empty vector - not possible to pass such to drop1
-      mat <- drop1(object, full.penalty.vec=removal)
-    }
-    else {
-      mat<-drop1(working)
-    }
-    istep<-istep+1
-    if(all(mat[,3]<slstay)) {
-      break
-    } #check p-value of variables in scope
-    inscope<-match(scope,rownames(mat))
-    inscope<-inscope[!is.na(inscope)]
-    if (full.penalty){
-      removal <- c(removal, rownames(mat)[mat[,3]==max(mat[inscope,3])])
-      curr_removal <- removal[istep] #if two pvalues are the same, both are taken 
-    }
-    else { #if full.penalty = FALSE: save only current removal
-      removal<-rownames(mat)[mat[,3]==max(mat[inscope,3])] #remove highest pvalue
-      curr_removal <- removal
-    }
-    #check if object$formula contains a dot shortcut i.e. last character: 
-    if (sapply(grepl("\\.", working$formula), tail, 1)){
-      char <- paste(working$terms[-1], collapse=" + ") #get variables from data without intercept
-      variables <- paste(char, paste(removal, collapse="-"), sep="-") #remove target variable
-      newform <- as.formula(paste("", variables, sep="~")) #coerce to formula
-    }
-    else {
-      newform=as.formula(paste("~.-",paste(curr_removal, collapse = "-")))
-    }
-    if(!full.penalty){ #udate working only if full.penalty==FALSE
-      if(working$df==1 | working$df==mat[mat[,3]==max(mat[,3]),2]){
-        working<-update(working, formula=newform, pl=FALSE)
-      }
-      else {
-        working<-update(working, formula=newform)
-      }
-    }
-    if(trace){
-      cat("Step ", istep, ": removed ", curr_removal, " (P=", max(mat[,3]),")\n")
-      if(printwork) {
-        print(working)
-        cat("\n\n")
-      }
-    }
-  }
-  if(trace) {
-    cat("\n")
-  }
-  if(full.penalty) {
-    tmp <- match(removal, variables)
-    tofit <- object$terms[-(tmp+1)]
-    working<-update(working,formula=working$formula, terms.fit=tofit)
-  }
-  return(working)
 }
