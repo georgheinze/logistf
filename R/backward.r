@@ -47,8 +47,10 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   m <- match("object", names(mf), 0L)
   mf <- mf[c(1, m)]
   object <- eval(mf$object, parent.frame())
+  object <- update(object, formula=object$formula)
   variables <- attr(terms(object),"term.labels")
   form <- formula(terms(object)) #to take care of dot shortcut
+  Terms <- terms(object)
   
   terms.fit <- object$call$terms.fit
   if(!is.null(terms.fit)) stop("Please call backward on a logistf-object with all terms fitted.")
@@ -61,46 +63,64 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
       cat("\n\n")
     }
   }
-  if(missing(scope)) scope<-variables #scope missing - use terms of object fit
+  if(missing(scope)){
+    fdrop <- numeric()
+  } else {
+    fdrop <- if (!is.null(fdrop <- scope$lower))
+      attr(terms(update.formula(object, fdrop)), "factors")
+    else numeric()
+  }
+
   if (full.penalty) { #if TRUE, use start model and save all removals in vector removal
+    #check if formula contains interactions or functions: 
+    if((grepl("*", working$formula, fixed = TRUE)) | (grepl(":", working$formula, fixed = TRUE))){
+      stop("Full penalty option on logistf models with interactions is not supported.")
+    }
     removal <- vector()
+    newform.fp <- working$formula
   }
   while(istep<steps & working$df>1){
+    #check p-value of variables in scope
+    inscope <- attr(Terms, "factors")
+    inscope <- factor.scope(inscope, list(drop = fdrop))$drop
+    
     if(full.penalty && istep!=0){ #check with istep!=0 if removal is an empty vector - not possible to pass such to drop1
-      mat <- drop1(object, full.penalty.vec=removal,...)
+      mat <- drop1(object, scope=inscope, full.penalty.vec=removal,...)
     }
     else {
-      mat<-drop1(working,...)
+      mat<-drop1(working,scope=inscope,...)
     }
     istep<-istep+1
     if(all(mat[,3]<slstay)) {
       break
-    } #check p-value of variables in scope
-    inscope<-match(scope,rownames(mat))
-    inscope<-inscope[!is.na(inscope)]
+    }
+
     if (full.penalty){
-      removal <- c(removal, rownames(mat[inscope,])[mat[inscope,3]==max(mat[inscope,3])][1])
+      removal <- c(removal, rownames(mat)[mat[,"P-value"]==max(mat[, "P-value"])])
       curr_removal <- removal[istep]
     }
     else { #if full.penalty = FALSE: save only current removal
-      removal<-rownames(mat[inscope,])[mat[inscope,3]==max(mat[inscope,3])][1] #remove highest pvalue - if p-values are the same for two variables: delete randomly first one
+      removal<- rownames(mat)[mat[,"P-value"]==max(mat[, "P-value"])] #remove highest pvalue - if p-values are the same for two variables: delete randomly first one
       curr_removal <- removal
     }
     
     if(!full.penalty){ #update working only if full.penalty==FALSE
-      newform <- update.formula(formula(terms(working)), as.formula(paste("~.-",paste(curr_removal, collapse = "-"))))
+      newform <- update.formula(working$formula,paste("~ . -", curr_removal))
       if(working$df==2 | working$df==mat[mat[,3]==max(mat[,3]),2][1]){
         working<-update(working, formula=newform, pl=FALSE, evaluate = FALSE)
         working <- eval.parent(working)
       }
       else {
-        working<-update(working, formula. =newform, evaluate = FALSE)
+        working<-update(working, formula=newform, evaluate = FALSE)
         working <- eval.parent(working)
         
       }
+      Terms <- terms(working)
     }
     else {
       working$df <- working$df-1 #update only degrees of freedom in case of full.penalty 
+      newform.fp <- update.formula(newform.fp,paste("~ . -", curr_removal))
+      Terms <- terms(newform.fp)
     }
     if(trace){
       cat("Step ", istep, ": removed ", curr_removal, " (P=", max(mat[,3])[1],")\n")

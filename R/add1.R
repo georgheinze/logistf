@@ -85,18 +85,20 @@ drop1.logistf<-function(object, scope, test="PLR", ...){
     full.penalty.vec <- extras$full.penalty.vec
   }
   else full.penalty.vec <- NULL
-  variables<-attr(terms(object),"term.labels")
-  nvar<-length(variables)
-  if(!is.null(full.penalty.vec) && nvar!=length(full.penalty.vec)){ #exclude already removed variables - see backward
-    matched <- match(full.penalty.vec, variables)+1 #+1: to include intercept
-    ind <- (1:(nvar+1))[-matched] #for col.fit.object
-    variables <- variables[-(matched-1)]
-    nvar<-length(variables)
+  if(missing(scope)){
+    variables <-attr(terms(object),"term.labels")
   }
+  else {
+    variables<-scope
+  }
+
+  nvar<-length(variables)
+  
   mat<-matrix(0,nvar,3) #initialise output
   for(i in 1:nvar){ #for every variable: omit from the object model fitin anova
     #full.penalty option of backward function
     if (!is.null(full.penalty.vec)&& nvar!=length(full.penalty.vec)){
+      ind <- match(full.penalty.vec, attr(terms(object), "term.labels"))
       newform <- as.formula(paste("~", paste(variables[i], paste(full.penalty.vec,collapse="+"), sep="+")))
       res<-anova(object, formula=newform, method="nested", col.fit.object=ind, ...)
     }

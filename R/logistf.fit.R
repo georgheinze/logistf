@@ -7,7 +7,8 @@ logistf.fit <- function(
   col.fit=NULL, 
   init=NULL,
   tau = 0.5,
-  control
+  control, 
+  ...
 ) {
   n <- nrow(x)
   k <- ncol(x)
