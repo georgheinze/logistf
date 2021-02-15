@@ -161,7 +161,7 @@ Venzon DJ, Moolgavkar AH (1988). A method for computing profile-likelihood based
 intervals. Applied Statistics 37:87-94.
 }
 \seealso{
-[add1.logistf, drop1.logistf, anova.logistf]
+[add1.logistf()], [drop1.logistf()], [anova.logistf()]
 }
 \author{
 Georg Heinze and Meinhard Ploner

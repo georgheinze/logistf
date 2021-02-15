@@ -122,7 +122,7 @@
 #' 
 #' Venzon DJ, Moolgavkar AH (1988). A method for computing profile-likelihood based confidence 
 #' intervals. Applied Statistics 37:87-94.
-#' @seealso [add1.logistf, drop1.logistf, anova.logistf]
+#' @seealso [add1.logistf()], [drop1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
 function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5, ...){
