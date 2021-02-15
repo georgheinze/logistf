@@ -4,7 +4,13 @@
 \alias{predict.flic}
 \title{Predict Method for flic Fits}
 \usage{
-\method{predict}{flic}(object, newdata, type = c("link", "response", "terms"), ...)
+\method{predict}{flic}(
+  object,
+  newdata,
+  type = c("link", "response", "terms"),
+  se.fit = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{A fitted object of class \code{flic}.}
@@ -14,6 +20,8 @@
 \item{type}{The type of prediction required. The default is on the scale of the linear predictors. 
 The alternative \code{response} gives the predicted probabilities. Type \code{terms} returns a matrix with the fitted
 values of each term in the formula on the linear predictor scale.}
+
+\item{se.fit}{If \code{TRUE}(default = \code{FALSE}) standard errors are computed.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

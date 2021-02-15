@@ -9,6 +9,7 @@
   newdata,
   type = c("link", "response", "terms"),
   flic = FALSE,
+  se.fit = FALSE,
   ...
 )
 }
@@ -23,6 +24,8 @@ The alternative \code{response} gives the predicted probabilities. Type \code{te
 values of each term in the formula on the linear predictor scale.}
 
 \item{flic}{If \code{TRUE}(default = \code{FALSE}), predictions are computed with intercept correction.}
+
+\item{se.fit}{If \code{TRUE}(default = \code{FALSE}) standard errors are computed.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

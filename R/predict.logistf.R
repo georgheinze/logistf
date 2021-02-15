@@ -13,7 +13,7 @@
 #' The alternative \code{response} gives the predicted probabilities. Type \code{terms} returns a matrix with the fitted
 #' values of each term in the formula on the linear predictor scale.
 #' @param flic If \code{TRUE}(default = \code{FALSE}), predictions are computed with intercept correction.
-#' @param se.fit 
+#' @param se.fit  If \code{TRUE}(default = \code{FALSE}) standard errors are computed.
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return A vector or matrix of predictions.
