@@ -13,6 +13,7 @@
 #' The alternative \code{response} gives the predicted probabilities. Type \code{terms} returns a matrix with the fitted
 #' values of each term in the formula on the linear predictor scale.
 #' @param flic If \code{TRUE}(default = \code{FALSE}), predictions are computed with intercept correction.
+#' @param se.fit 
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return A vector or matrix of predictions.
@@ -20,7 +21,7 @@
 #' @rdname predict.logistf
 #' @exportS3Method predict logistf
 
-predict.logistf <- function (object, newdata, type = c("link", "response", "terms"), flic=FALSE, ...) 
+predict.logistf <- function (object, newdata, type = c("link", "response", "terms"), flic=FALSE, se.fit = FALSE,...) 
 {
   predict_terms <- function(object, model_matrix = NULL){
     if(is.null(model_matrix)){
@@ -45,25 +46,46 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
           iipiv <- asgn[[i]]
           predictor[, i] <- X[, iipiv, drop = FALSE] %*% beta[iipiv]
       }
+      if(se.fit){
+        se <- matrix(ncol = nterms, nrow = NROW(mm))
+        dimnames(se) <- list(rownames(mm), names(asgn))
+        for(t in attr(terms(object), "term.labels")){
+          ind <- asgn[[t]]
+          se_t <- apply(mm[,ind, drop=FALSE], 1, function(x){
+            t(x) %*% object$var[ind,ind] %*% x
+          })
+          se_t <- sqrt(se_t)
+          se[, t] <- se_t
+        }
+      }
       attr(predictor, "constant") <- termsconst
-      return(predictor)
+      if (se.fit) {
+        return(list(predictor = predictor, se.fit = se))
+      } else {
+        return(predictor)
+      }
   }
   type <- match.arg(type)
   if (missing(newdata)) {#no data - return linear.predictors or response according to type
     if (flic) {
       #check if flic=TRUE was set in object
-      if(object$flic) {
-        pred <- switch(type, link = object$linear.predictors, response = object$predict, terms = predict_terms(object))
-      }
-      #if intercept is not already altered refit the model:
-      else {
+      if(!object$flic) {
         message("predict called with flic=TRUE but logistf-object was called with flic=FALSE: refitting model for predictions")
-        object.flic <- update(object, flic=TRUE)
-        pred <- switch(type, link = object.flic$linear.predictors, response = object.flic$predict, terms = predict_terms(object.flic))
+        object <- update(object, flic=TRUE)
       }
     }
-    else {
-      pred <- switch(type, link = object$linear.predictors, response = object$predict, terms = predict_terms(object))
+    pred <- switch(type, link = object$linear.predictors, response = object$predict, terms = predict_terms(object))
+    X <- model.matrix(object$formula, object$model)
+    if(se.fit && type!="terms"){
+      se <- apply(X, 1, function(x){
+              t(x) %*% object$var %*% x
+      })
+      se <- sqrt(se)
+      se <- unname(se)
+      if(type == "response"){
+        ci_lower <- pred - 1.96*se
+        ci_upper <- pred + 1.96*se
+      }
     }
   }
   else {
@@ -72,25 +94,37 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
     if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl,m)
     X <-  model.matrix(Terms, m)
     if (flic) {
-      if(object$flic) {
-        pred <- switch(type, link =object$coefficients %*% t(X), 
-                   response = 1/(1+exp(-(object$coefficients %*% t(X)))) )
-      }
-      else{
+      if(!object$flic) {
         message("predict called with flic=TRUE but logistf-object was called with flic=FALSE: refitting model for predictions")
-        object.flic <- update(object, flic=TRUE, pl=FALSE)
-        pred <- switch(type, link = object.flic$coefficients %*% t(X), 
-                       response = 1/(1+exp(-(object.flic$coefficients %*% t(X)))), 
-                       terms = predict_terms(object.flic)
-                         )
+        object <- update(object, flic=TRUE, pl=FALSE)
       }
-    
     }
-    else {
-      pred <- switch(type, link = object$coefficients %*% t(X) , 
-                     response = 1/(1+exp(-(object$coefficients %*% t(X)))), 
+    pred <- switch(type, link = (object$coefficients %*% t(X)) , 
+                     response = (1/(1+exp(-(object$coefficients %*% t(X))))), 
                      terms = predict_terms(object))
+    if(se.fit && type!="terms"){
+      se <- apply(X, 1, function(x){
+              t(x) %*% object$var %*% x
+      })
+      se <- sqrt(se)
+      se <- unname(se)
+      if(type == "response"){
+        ci_lower <- pred - 1.96*se
+        ci_upper <- pred + 1.96*se
+      }
     }
   }
-  pred
+  if (se.fit) {
+    if (type=="terms"){
+      names(pred$predictor) <- NULL
+      names(pred$se.fit) <- NULL
+      return(list(fit = pred$predictor, se.fit = pred$se.fit))
+    } else if(type=="response"){
+      return(list(fit = (pred), lower = (ci_lower), upper=(ci_upper)))
+    } else {
+      return(list(fit = (pred), se.fit = (se)))
+    }
+  } else {
+    return((pred))
+  }
 }

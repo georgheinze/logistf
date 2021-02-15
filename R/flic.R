@@ -91,7 +91,7 @@ flic.formula <- function(formula,data,model = TRUE,...){
   n <- length(y)
   x <- model.matrix(mt, mf)
   
-  FL <- logistf(formula, data=mf, ...)
+  FL <- logistf(formula, data=data, ...)
 
   response <- lhs.vars(formula) 
   
