@@ -14,6 +14,7 @@
 #' values of each term in the formula on the linear predictor scale.
 #' @param flic If \code{TRUE}(default = \code{FALSE}), predictions are computed with intercept correction.
 #' @param se.fit  If \code{TRUE}(default = \code{FALSE}) standard errors are computed.
+#' @param reference  A named vector of reference values for each variable for \code{type="terms"}.
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return A vector or matrix of predictions.
@@ -21,7 +22,7 @@
 #' @rdname predict.logistf
 #' @exportS3Method predict logistf
 
-predict.logistf <- function (object, newdata, type = c("link", "response", "terms"), flic=FALSE, se.fit = FALSE,...) 
+predict.logistf <- function (object, newdata, type = c("link", "response", "terms"), flic=FALSE, se.fit = FALSE, reference,...) 
 {
   predict_terms <- function(object, model_matrix = NULL){
     if(is.null(model_matrix)){
@@ -49,9 +50,13 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
       if(se.fit){
         se <- matrix(ncol = nterms, nrow = NROW(mm))
         dimnames(se) <- list(rownames(mm), names(asgn))
+        Terms <- delete.response(terms(object))
+        m <- model.frame(Terms, data.frame(t(reference)))
+        reference <- model.matrix(Terms, m)
         for(t in attr(terms(object), "term.labels")){
           ind <- asgn[[t]]
-          se_t <- apply(mm[,ind, drop=FALSE], 1, function(x){
+          diffs <- mm[,ind,drop=FALSE]-reference[,ind]
+          se_t <- apply(diffs, 1, function(x){
             t(x) %*% object$var[ind,ind] %*% x
           })
           se_t <- sqrt(se_t)
@@ -66,6 +71,10 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
       }
   }
   type <- match.arg(type)
+  X <- model.matrix(object$formula, object$model)
+  if(type == "terms" && missing(reference)){
+    stop("Please provide a named vector of reference values for each variable for type=terms.")
+  }
   if (missing(newdata)) {#no data - return linear.predictors or response according to type
     if (flic) {
       #check if flic=TRUE was set in object
@@ -75,7 +84,6 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
       }
     }
     pred <- switch(type, link = object$linear.predictors, response = object$predict, terms = predict_terms(object))
-    X <- model.matrix(object$formula, object$model)
     if(se.fit && type!="terms"){
       se <- apply(X, 1, function(x){
               t(x) %*% object$var %*% x
