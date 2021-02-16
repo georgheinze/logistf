@@ -10,6 +10,7 @@
   type = c("link", "response", "terms"),
   flic = FALSE,
   se.fit = FALSE,
+  reference,
   ...
 )
 }
@@ -26,6 +27,8 @@ values of each term in the formula on the linear predictor scale.}
 \item{flic}{If \code{TRUE}(default = \code{FALSE}), predictions are computed with intercept correction.}
 
 \item{se.fit}{If \code{TRUE}(default = \code{FALSE}) standard errors are computed.}
+
+\item{reference}{A named vector of reference values for each variable for \code{type="terms"}.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

@@ -51,7 +51,7 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
         se <- matrix(ncol = nterms, nrow = NROW(mm))
         dimnames(se) <- list(rownames(mm), names(asgn))
         Terms <- delete.response(terms(object))
-        m <- model.frame(Terms, data.frame(t(reference)))
+        m <- model.frame(Terms, reference)
         reference <- model.matrix(Terms, m)
         for(t in attr(terms(object), "term.labels")){
           ind <- asgn[[t]]
@@ -73,7 +73,13 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
   type <- match.arg(type)
   X <- model.matrix(object$formula, object$model)
   if(type == "terms" && missing(reference)){
-    stop("Please provide a named vector of reference values for each variable for type=terms.")
+      orig <- eval(object$call$data)[1,]
+      reference <- numeric(ncol(orig))
+      orig[1,] <- reference
+      reference <- orig
+    #stop("Please provide a named vector of reference values for each variable for type=terms.")
+  } else if(!missing(reference)){
+    reference <- data.frame(t(reference))
   }
   if (missing(newdata)) {#no data - return linear.predictors or response according to type
     if (flic) {
