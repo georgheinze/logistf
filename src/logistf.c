@@ -3,8 +3,155 @@
 #include <Rdefines.h>
 #include "memory.h"
 #include "Rmath.h"
-//#include <Rcpp>
 #include "veclib.h"
+
+void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l, 
+								double *weight, double *offset, 
+								double *beta, // beta is I/O
+								int *colfit, int *ncolfit_l, int *firth_l, 
+								int *maxit, double *maxstep, int *maxhs,
+								double *lconv, double *gconv, double *xconv, double* tau, 
+								// output: 
+								double *fisher_cov,		// k x k
+								double *pi,						// n
+								double *Hdiag,				// n
+								double *loglik,
+								int *evals,
+								int *iter,
+								double *convergence		// 3
+){
+	long n = (long)*n_l, k = (long)*k_l, ncolfit = (long)*ncolfit_l;
+	double wi;
+	long i, j;
+	double logdet;	
+	// memory allocations
+
+	double *xt;
+	double *beta_old;
+	double *xw2;
+	double *xw2t;
+	double *tmpNxK;
+	int *selcol;
+	double *tmp; //to check if pi could get too small
+	double *newresponse; // newresponse of IRLS
+	double *tmp1; 
+	double *beta_new;
+
+	 if (NULL == (xt = (double *) R_alloc(k * n, sizeof(double))))
+	 {
+	 error("no memory available\n");
+	 }
+	 if (NULL == (beta_old = (double *) R_alloc(k ,sizeof(double))))
+	 {
+	 error("no memory available\n");
+	 }
+	 if (NULL == (xw2 = (double *) R_alloc(k * n, sizeof(double))))
+	 {
+	 error("no memory available\n");
+	 }
+	 if (NULL == (xw2t = (double *) R_alloc(n * k, sizeof(double))))
+	 {
+	 error("no memory available\n");
+	 }
+	 if (NULL == (tmpNxK = (double *) R_alloc(n * k, sizeof(double))))
+	 {
+	 error("no memory available\n");
+	 }
+	 if (NULL == (selcol = (int *) R_alloc(ncolfit, sizeof(int))))
+	 {
+	 error("no memory available\n");
+	 }
+	 if (NULL == (tmp = (double *) R_alloc(n, sizeof(double))))
+	 {
+	   error("no memory available\n");
+	 }
+	 if (NULL == (newresponse = (double *) R_alloc(n, sizeof(double))))
+	 {
+	   error("no memory available\n");
+	 }
+	 if (NULL == (tmp1 = (double *) R_alloc(n * k, sizeof(double))))
+	 {
+	 error("no memory available\n");
+	 }
+	 if (NULL == (beta_new = (double *) R_alloc(k, sizeof(double))))
+	 {
+	 error("no memory available\n");
+	 }
+	trans(x, xt, n, k);
+	
+	// init loglik
+	double loglik_old, loglik_change = 5.0;
+	*loglik = 0.0;
+	
+	*evals = 1, *iter = 0;
+	int bStop = 0;
+	
+	for(;;){
+	//int s;
+	//for(s = 0; s < 10; s++) {
+	  loglik_old = *loglik;
+		copy(beta, beta_old, k);
+		
+		// calculation of pi
+	  XtY(xt, beta, pi, k, n, 1);	// X'beta -> temporary pi
+	  for(i = 0; i < n; i++){
+	    tmp[i] = exp( - pi[i] - offset[i]);
+	    if(tmp[i]>1.0e+34){
+	       error("predicted probabilities too small in %d . element, numerator: %e",i+1, tmp[i]);
+	    }
+		  pi[i] = 1.0 / (1.0 + tmp[i]);	// final pi
+	  }
+	  
+	  *loglik = 0.0;
+	  for(i = 0; i < n; i++)
+		  *loglik += (y[i] == 1) ? log(pi[i]) : log(1.0 - pi[i]);
+
+		for(i = 0; i < n; i++) {
+			wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
+		  for(j = 0; j < k; j++){
+			  	xw2[i*k + j] = x[i + j*n] * wi;	// multiply whole col with weight
+			}
+		}
+			
+		trans(xw2, xw2t, k, n);
+		XtXasy(xw2t, fisher_cov, n, k); //XWX
+		linpack_inv(fisher_cov, &k); // fisher is changed here to covs
+		linpack_det(fisher_cov, &k, &logdet);
+	  *loglik += *tau * logdet;
+      
+		// compute diagonal of H
+		XtY(xw2, fisher_cov, tmpNxK, k, n, k);
+		XYdiag(tmpNxK, xw2, Hdiag, n, k);
+		  
+		XtY(xt, beta, newresponse, k, n, 1);
+		
+		for(i=0; i < n; i++){
+		  wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i]));
+			newresponse[i] = 1/wi*((double)y[i]-pi[i]+ *tau * (Hdiag[i]-pi[i]));
+		}
+		
+		XY(fisher_cov, xw2, tmp1, k, k, n);
+	  XY(tmp1, newresponse, beta_new, n, k, 1);
+	  
+	  for(i=0; i < k; i++){
+					beta[i] = beta_new[i];  
+	  }
+	  
+	  loglik_change = *loglik - loglik_old;
+    
+    if((*iter >= *maxit)){// || ((loglik_change < *lconv)) ) {
+      bStop = 1;
+    }
+    if(bStop) {
+      break;
+    }
+		(*evals)++;
+		(*iter)++;
+	}
+	convergence[0] = 0.0;
+	convergence[1] = 0.0;
+	convergence[2] = 0.0;
+}
 
 
 // fit
@@ -24,8 +171,6 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 								int *iter,
 								double *convergence		// 3
 )
-
-
 {
 	long n = (long)*n_l, k = (long)*k_l, firth = (long)*firth_l, ncolfit = (long)*ncolfit_l;
 	double wi, logdet;
@@ -331,8 +476,6 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	convergence[1] = maxabsInds(Ustar, selcol, ncolfit);
 	convergence[2] = maxabsInds(delta, selcol, ncolfit);
 }
-
-
 
 // profile likelihood
 void logistplfit(double *x, int *y, int *n_l, int *k_l, 

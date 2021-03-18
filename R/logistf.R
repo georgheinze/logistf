@@ -38,6 +38,7 @@
 #' keeping all other coefficients constant
 #' @param model  If TRUE the corresponding components of the fit are returned.
 #' @param tau  Degree of penalization (default = 0.5)
+#' @param fit  Fitted method used. One of "NewtonRaphson", "IRLS"
 #' @param ... Further arguments to be passed to \code{logistf}
 #' 
 #' @return The object returned is of the class \code{logistf} and has the following attributes:
@@ -125,7 +126,7 @@
 #' @seealso [add1.logistf()], [drop1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5, ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5,fit = "NewtonRaphson",  ...){
    call <- match.call()
    extras <- list(...)
    call_out <- match.call()
@@ -201,9 +202,13 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       colfit <- 1:k
       nterms <- k
     }
-    
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
+    if(fit == "IRLS"){
+      fit.full<-logistf.fit_IRLS(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
+    } else if(fit == "NewtonRaphson"){
+      fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
+    }
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control, tau=tau)
+
     
     if(fit.full$iter>=control$maxit){
       warning(paste("logistf.fit: Maximum number of iterations for full model exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
