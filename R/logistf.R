@@ -202,9 +202,17 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       colfit <- 1:k
       nterms <- k
     }
-    if(fit == "IRLS"){
+    
+    if(!firth & fit == "IRLS"){
+        warning("Fitting method IRLS with firth = FALSE currently not implemented. Using Newton-Raphson.")
+    }
+    if(!all.equal(colfit, (1:k)) & fit == "IRLS"){
+        warning("Fitting method IRLS with colfit != 1:k currently not implemented. Using Newton-Raphson.")
+    }
+    
+    if(fit == "IRLS" & firth & all.equal(colfit, (1:k))){
       fit.full<-logistf.fit_IRLS(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
-    } else if(fit == "NewtonRaphson"){
+    } else {
       fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
     }
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control, tau=tau)
@@ -274,7 +282,6 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
             betahist.up[[icount]]<-inter$betahist
             pl.conv.upper<-t(inter$conv)
             pl.conv[icount,]<-cbind(pl.conv.lower,pl.conv.upper)
-            
             fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=(1:k)[-i], control=control, tau=tau)
             iters <- c(iters, fit.i$iter)
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)

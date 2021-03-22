@@ -166,8 +166,6 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 		}
 	  
 	  loglik_change = *loglik - loglik_old;
-	  Rprintf("Iter %d\n", *iter);
-	  Rprintf("loglik change %f\n", loglik_change);
 	  for(i=0; i < k; i++){
 			delta[i] = beta[i]-beta_old[i];
 	  }
