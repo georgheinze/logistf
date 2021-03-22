@@ -35,6 +35,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	double *tmp; //to check if pi could get too small
 	double *newresponse; // newresponse of IRLS
 	double *tmp1; 
+	double *delta;
 	double *beta_new;
 
 	 if (NULL == (xt = (double *) R_alloc(k * n, sizeof(double))))
@@ -77,6 +78,12 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	 {
 	 error("no memory available\n");
 	 }
+	 if (NULL == (delta = (double *) R_alloc( k, sizeof(double))))
+	 {
+	 error("no memory available\n");
+	 }
+	
+	
 	trans(x, xt, n, k);
 	
 	// init loglik
@@ -86,12 +93,21 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	*evals = 1, *iter = 0;
 	int bStop = 0;
 	
+	//init delta: difference between beta values in iteration i-1 and i
+	for(i=0; i < k; i++){
+			delta[i] = 5.0;
+	 }
+	
+	for(i=0; i < ncolfit; i++){
+	  selcol[i] = colfit[i] - 1;
+	 }
+  
+  //Start IRLS: 
 	for(;;){
-	//int s;
-	//for(s = 0; s < 10; s++) {
+	  
 	  loglik_old = *loglik;
 		copy(beta, beta_old, k);
-		
+
 		// calculation of pi
 	  XtY(xt, beta, pi, k, n, 1);	// X'beta -> temporary pi
 	  for(i = 0; i < n; i++){
@@ -100,57 +116,79 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	       error("predicted probabilities too small in %d . element, numerator: %e",i+1, tmp[i]);
 	    }
 		  pi[i] = 1.0 / (1.0 + tmp[i]);	// final pi
-	  }
+	  } 
 	  
 	  *loglik = 0.0;
-	  for(i = 0; i < n; i++)
+	  for(i = 0; i < n; i++){
 		  *loglik += (y[i] == 1) ? log(pi[i]) : log(1.0 - pi[i]);
-
+	  }
+    
+    
+    // XW^(1/2)
 		for(i = 0; i < n; i++) {
-			wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
+			wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
 		  for(j = 0; j < k; j++){
-			  	xw2[i*k + j] = x[i + j*n] * wi;	// multiply whole col with weight
+			  	xw2[i*k + j] = x[i + j*n] * wi;
 			}
 		}
 			
-		trans(xw2, xw2t, k, n);
-		XtXasy(xw2t, fisher_cov, n, k); //XWX
-		linpack_inv(fisher_cov, &k); // fisher is changed here to covs
+		trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
+		XtXasy(xw2t, fisher_cov, n, k); //X^TWX
+		linpack_inv(fisher_cov, &k); // fisher is inverted here
 		linpack_det(fisher_cov, &k, &logdet);
 	  *loglik += *tau * logdet;
       
 		// compute diagonal of H
 		XtY(xw2, fisher_cov, tmpNxK, k, n, k);
 		XYdiag(tmpNxK, xw2, Hdiag, n, k);
-		  
-		XtY(xt, beta, newresponse, k, n, 1);
 		
+		XtY(xt, beta_old, newresponse, k, n, 1);
 		for(i=0; i < n; i++){
-		  wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i]));
-			newresponse[i] = 1/wi*((double)y[i]-pi[i]+ *tau * (Hdiag[i]-pi[i]));
+		  wi = weight[i] * pi[i] * (1.0 - pi[i]); //W^(-1)
+			newresponse[i] += 1/wi*((double)y[i]-pi[i]+ Hdiag[i] * (*tau - pi[i]));
+		}
+		//X^TW
+		for(i = 0; i < n; i++) {
+			wi = (weight[i] * pi[i] * (1.0 - pi[i])); 
+		  for(j = 0; j < k; j++){
+			  	xw2[i*k + j] = x[i + j*n] * wi;
+			}
 		}
 		
 		XY(fisher_cov, xw2, tmp1, k, k, n);
-	  XY(tmp1, newresponse, beta_new, n, k, 1);
-	  
-	  for(i=0; i < k; i++){
-					beta[i] = beta_new[i];  
-	  }
+	  double tmp;
+	  for(j = 0; j < k; j++) {
+	    tmp = 0.0;
+		  for(i = 0; i < n; i++){
+			  	tmp += tmp1[j + i*k]*newresponse[i];
+			}
+		  beta[j] = tmp;
+		}
 	  
 	  loglik_change = *loglik - loglik_old;
+	  Rprintf("Iter %d\n", *iter);
+	  Rprintf("loglik change %f\n", loglik_change);
+	  for(i=0; i < k; i++){
+			delta[i] = beta[i]-beta_old[i];
+	  }
     
-    if((*iter >= *maxit)){// || ((loglik_change < *lconv)) ) {
-      bStop = 1;
-    }
-    if(bStop) {
-      break;
-    }
 		(*evals)++;
 		(*iter)++;
+		
+		if((*iter >= *maxit) || (
+			 (maxabsInds(delta, selcol, ncolfit) <= *xconv) && 
+			 (loglik_change < *lconv)) )
+			bStop = 1;
+		
+		if(bStop){
+		  break;
+		}
+		
+		
 	}
-	convergence[0] = 0.0;
+	convergence[0] = loglik_change;
 	convergence[1] = 0.0;
-	convergence[2] = 0.0;
+	convergence[2] = maxabsInds(delta, selcol, ncolfit);
 }
 
 
