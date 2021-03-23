@@ -70,6 +70,7 @@
 #'    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant. According to input of logistf.}  
 #'    \item{model}{if requested (the default), the model frame used.}
+#'    \item{fit}{The fitting algorithm used.}
 #'     
 #' @export
 #'
@@ -126,7 +127,7 @@
 #' @seealso [add1.logistf()], [drop1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5,fit = "NewtonRaphson",  ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5, fit = "NewtonRaphson",  ...){
    call <- match.call()
    extras <- list(...)
    call_out <- match.call()
@@ -206,18 +207,15 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     
     if(!firth & fit == "IRLS"){
         warning("Fitting method IRLS with firth = FALSE currently not implemented. Using Newton-Raphson.")
+        fit <- "NewtonRaphson"
     }
     # if(!all.equal(colfit, (1:k)) & fit == "IRLS"){
     #     warning("Fitting method IRLS with colfit != 1:k currently not implemented. Using Newton-Raphson.")
     # }
     # 
-    if(fit == "IRLS" & firth){
-      fit.full<-logistf.fit_IRLS(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
-      fit.null<-logistf.fit_IRLS(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control, tau=tau)
-    } else {
-      fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
-      fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control, tau=tau)
-    }
+
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau, fit = fit)
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control, tau=tau, fit = fit)
 
     
     if(fit.full$iter>=control$maxit){
@@ -228,7 +226,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     }
     
     fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = nterms-int, loglik =c(fit.null$loglik, fit.full$loglik),
-        iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv, tau = tau)
+        iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv, tau = tau, fit = fit.full$fit)
     
     names(fit$conv)<-c("LL change","max abs score","beta change")
     beta<-fit.full$beta

@@ -100,6 +100,7 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
 keeping all other coefficients constant. According to input of logistf.}  
    \item{model}{if requested (the default), the model frame used.}
+   \item{fit}{The fitting algorithm used.}
 }
 \description{
 Implements Firth's bias-Reduced penalized-likelihood logistic regression.
