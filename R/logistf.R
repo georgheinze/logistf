@@ -196,6 +196,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       colfit <- (1:k)[matched]
       call_out$terms.fit <- extras$terms.fit
       rest_plconf <- (1:k)[-matched] #compute confidence intervals for variables not specified in terms.fit with Wald
+      plconf <- intersect(plconf, matched)
     }
     else {
       colfit <- 1:k
