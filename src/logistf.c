@@ -109,6 +109,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	
 	// init loglik
 	double loglik_old, loglik_change = 5.0;
+	*loglik = 0.0;
 	
 	*evals = 1, *iter = 0;
 	int bStop = 0;
@@ -137,18 +138,11 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 		  pi[i] = 1.0 / (1.0 + tmp[i]);	// final pi
 	  } 
 	  
-	  Rprintf("Beta: ");
-	  for(i=0; i<k; i++){
-	    Rprintf(" %f ", beta[i]);
-	  }
-	  Rprintf("\n");
-	  
 	  *loglik = 0.0;
 	  for(i = 0; i < n; i++){
+
 		  *loglik += y[i]*log(pi[i]) + (1.0-y[i])*log(1.0-pi[i]);
 	  }
-	  Rprintf("Loglik %f\n", *loglik);
-    
     
     // XW^(1/2)
 		for(i = 0; i < n; i++) {
@@ -172,9 +166,6 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 		linpack_det(fisher_cov, &k, &logdet);
 		linpack_inv(fisher_cov, &k); // fisher is inverted here
 	  *loglik += *tau * logdet;
-	  
-	  Rprintf("Loglik penalized %f\n", *loglik);
-	  Rprintf("Logdet %f\n", logdet);
 	  
 	  if(ncolfit!= k){
 	    trans(xw2_reduced, xw2t_reduced, ncolfit, n);	
@@ -233,16 +224,6 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
   		  beta[j] = tmp;
   		}
 	  }
-	  //int count=0;
-		//if(ncolfit!=k){
-		//  for(i=0; i<k; i++){
-		//    if(selcol[count]!=i){
-		//      beta[i]=0.0;
-		//    } else {
-		//      count++;
-		//    }
-		//  }
-	  //}
 		
 	  loglik_change = *loglik - loglik_old;
 	  for(i=0; i < k; i++){
@@ -266,8 +247,6 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	convergence[0] = loglik_change;
 	convergence[1] = 0.0;
 	convergence[2] = maxabsInds(delta, selcol, ncolfit);
-	
-	Rprintf("-----------------\n");
 }
 
 
@@ -409,7 +388,6 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	  else {
 	    linpack_inv(fisher_cov, &k); //if not singular then compute inverse
 	    *loglik += *tau * logdet;
-	    Rprintf("Logdet %f\n", logdet);
 	  }
 	} 
 	else {
@@ -423,12 +401,6 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	for(;;) {
 		loglik_old = *loglik;
 		copy(beta, beta_old, k);
-		
-		Rprintf("Beta: ");
-	  for(i=0; i<k; i++){
-	    Rprintf(" %f ", beta[i]);
-	  }
-	  Rprintf("\n");
 		
 		if(*iter > 0) {
 			for(i = 0; i < n; i++) {
@@ -540,7 +512,6 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 				*loglik = 0.0;
 				for(i = 0; i < n; i++)
 					*loglik += (y[i] == 1) ? weight[i] * log(pi[i]) : weight[i] * log(1.0 - pi[i]);
-				Rprintf("Loglik %f\n", *loglik);
 				
 				if(firth) {
 					for(i = 0; i < n; i++) {
@@ -563,8 +534,6 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 					
 					*loglik += *tau * logdet;
 				}
-				Rprintf("Loglik penalized %f\n", *loglik);
-				Rprintf("Logdet %f\n", logdet);
 				(*evals)++;
 				
 				//Rprintf("loglik %f  old: %f \n", *loglik, loglik_old);
@@ -579,8 +548,6 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 			//Rprintf("****** beta: "); 
 			//Rprintf(beta, 1, k);
 			//
-			Rprintf("Loglik penalized %f\n", *loglik);
-			Rprintf("Logdet %f\n", logdet);
 		}
 		
 		loglik_change = *loglik - loglik_old;
@@ -606,8 +573,6 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	convergence[0] = loglik_change;
 	convergence[1] = maxabsInds(Ustar, selcol, ncolfit);
 	convergence[2] = maxabsInds(delta, selcol, ncolfit);
-	
-	Rprintf("-----------------\n");
 }
 
 // profile likelihood

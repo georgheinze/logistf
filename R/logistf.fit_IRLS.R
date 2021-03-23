@@ -13,25 +13,8 @@ logistf.fit_IRLS <- function(
   n <- nrow(x)
   k <- ncol(x)
 
-  collapse <- control$collapse
+  collapse <- FALSE
   coll <- FALSE
-
-  if(collapse && isTRUE(all.equal(weight, rep(1, length(weight)))) && isspecnum(col.fit, 1)) {
-    xy <- cbind(x,y)
-    temp <- unique(unlist(sapply(1:ncol(xy), function(X) unique(xy[, X]))))
-    if(length(temp) <= 10) {
-      xc <- uniquecombs(cbind(x,y,offset))
-      xorig <- x
-      yorig <- y
-      weight <- table(attr(xc, "index"))
-      x <- xc[,1:k]
-      y <- xc[,k+1]
-      if(!is.null(offset))
-        offset<-xc[,k+2]
-      n <- nrow(xc)
-      coll <- TRUE
-    }
-  }
 
   if (is.null(init)) init=rep(0,k)
   if (is.null(col.fit)) col.fit=1:k
