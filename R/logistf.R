@@ -206,11 +206,11 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     if(!firth & fit == "IRLS"){
         warning("Fitting method IRLS with firth = FALSE currently not implemented. Using Newton-Raphson.")
     }
-    if(!all.equal(colfit, (1:k)) & fit == "IRLS"){
-        warning("Fitting method IRLS with colfit != 1:k currently not implemented. Using Newton-Raphson.")
-    }
-    
-    if(fit == "IRLS" & firth & all.equal(colfit, (1:k))){
+    # if(!all.equal(colfit, (1:k)) & fit == "IRLS"){
+    #     warning("Fitting method IRLS with colfit != 1:k currently not implemented. Using Newton-Raphson.")
+    # }
+    # 
+    if(fit == "IRLS" & firth){
       fit.full<-logistf.fit_IRLS(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
     } else {
       fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)

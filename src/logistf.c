@@ -147,6 +147,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 		  wi = weight[i] * pi[i] * (1.0 - pi[i]); //W^(-1)
 			newresponse[i] += 1/wi*((double)y[i]-pi[i]+ Hdiag[i] * (*tau - pi[i]));
 		}
+		
 		//X^TW
 		for(i = 0; i < n; i++) {
 			wi = (weight[i] * pi[i] * (1.0 - pi[i])); 
@@ -164,6 +165,17 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 			}
 		  beta[j] = tmp;
 		}
+	  
+	  int count=0;
+		if(ncolfit!=k){
+		  for(i=0; i<k; i++){
+		    if(selcol[count]!=i){
+		      beta[i]=0.0;
+		    } else {
+		      count++;
+		    }
+		  }
+	  }
 	  
 	  loglik_change = *loglik - loglik_old;
 	  for(i=0; i < k; i++){
