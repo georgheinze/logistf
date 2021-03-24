@@ -99,8 +99,9 @@ drop1.logistf<-function(object, scope, test="PLR", ...){
     #full.penalty option of backward function
     if (!is.null(full.penalty.vec)&& nvar!=length(full.penalty.vec)){
       ind <- match(full.penalty.vec, attr(terms(object), "term.labels"))
+      coltofit <- setdiff(0:length(attr(terms(object), "term.labels")), ind)+1 #determine which columns to fit for the full model
       newform <- as.formula(paste("~", paste(variables[i], paste(full.penalty.vec,collapse="+"), sep="+")))
-      res<-anova(object, formula=newform, method="nested", col.fit.object=ind, ...)
+      res<-anova(object, formula=newform, method="nested", col.fit.object=coltofit, ...)
     }
     else {
       newform<-as.formula(paste("~",variables[i]))

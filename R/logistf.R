@@ -266,7 +266,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
         dimnames(pl.conv)[[1]]<-as.list(plconf)
         dimnames(pl.conv)[[2]]<-as.list(c("lower, loglik","lower, beta", "upper, loglik", "upper, beta"))
         LL.0 <- fit.full$loglik - qchisq(1 - alpha, 1)/2
-        pl.iter<-matrix(0,k,2)
+        pl.iter<-matrix(0,k,3)
         icount<-0
         iters <- vector() #number of iterations of fit.i per variable 
         for(i in plconf) {
@@ -283,11 +283,11 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
             pl.conv.upper<-t(inter$conv)
             pl.conv[icount,]<-cbind(pl.conv.lower,pl.conv.upper)
             fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=(1:k)[-i], control=control, tau=tau)
-            iters <- c(iters, fit.i$iter)
+            pl.iter[i,3]<-fit.i$iter
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
             fit$method.ci[i] <- "Profile Likelihood"
         }
-        fit$pl.iter<-cbind(pl.iter, iters)
+        fit$pl.iter <- pl.iter
         colnames(fit$pl.iter)<-c("Lower", "Upper", "Null model")
         if(sum(fit$pl.iter>=plcontrol$maxit)){
           notconv <- cov.name[apply(fit$pl.iter>=plcontrol$maxit, 1, sum)>0]
