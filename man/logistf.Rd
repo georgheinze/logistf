@@ -19,7 +19,6 @@ logistf(
   flic = FALSE,
   model = TRUE,
   tau = 0.5,
-  fit = "NewtonRaphson",
   ...
 )
 }
@@ -65,8 +64,6 @@ keeping all other coefficients constant}
 \item{model}{If TRUE the corresponding components of the fit are returned.}
 
 \item{tau}{Degree of penalization (default = 0.5)}
-
-\item{fit}{Fitted method used. One of "NewtonRaphson", "IRLS"}
 
 \item{...}{Further arguments to be passed to \code{logistf}}
 }

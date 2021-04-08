@@ -7,8 +7,7 @@ logistf.fit <- function(
   col.fit=NULL, 
   init=NULL,
   tau = 0.5,
-  control, 
-  fit = "NewtonRaphson",
+  control,
   ...
 ) {
   n <- nrow(x)
@@ -17,7 +16,7 @@ logistf.fit <- function(
   collapse <- control$collapse
   coll <- FALSE
   
-  if(collapse && isTRUE(all.equal(weight, rep(1, length(weight)))) && isspecnum(col.fit, 1) && fit!="IRLS") {
+  if(collapse && isTRUE(all.equal(weight, rep(1, length(weight)))) && isspecnum(col.fit, 1) & control$fit != "IRLS") {
     xy <- cbind(x,y)
     temp <- unique(unlist(sapply(1:ncol(xy), function(X) unique(xy[, X]))))
     if(length(temp) <= 10) {
@@ -55,6 +54,7 @@ logistf.fit <- function(
   lconv<-control$lconv
   gconv<-control$gconv
   xconv<-control$xconv
+  fit <- control$fit
   beta <- init
   firth <- if(firth) 1 else 0
   ncolfit <- length(col.fit)
@@ -71,8 +71,10 @@ logistf.fit <- function(
   mode(col.fit) <- mode(ncolfit) <- mode(maxit) <- mode(maxhs) <- "integer"
   mode(evals) <- mode(iter) <- "integer"
   
+  print(col.fit)
+  
   res <- switch(fit, 
-                NewtonRaphson = .C(
+                NR = .C(
     "logistffit", 
     x, y, n, k, weight, offset, beta=beta, col.fit, ncolfit, 
     firth, maxit, maxstep, maxhs, lconv, gconv, xconv, tau,
@@ -96,7 +98,7 @@ logistf.fit <- function(
   
   res <- res[c("beta", "var", "Ustar", "pi", "Hdiag", "loglik", 
                "evals", "iter", "conv")]
-  res <- c(res, "tau"=tau, "fit" = fit)
+  res <- c(res, "tau"=tau)
   res
 }
 

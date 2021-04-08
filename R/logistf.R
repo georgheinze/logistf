@@ -38,7 +38,6 @@
 #' keeping all other coefficients constant
 #' @param model  If TRUE the corresponding components of the fit are returned.
 #' @param tau  Degree of penalization (default = 0.5)
-#' @param fit  Fitted method used. One of "NewtonRaphson", "IRLS"
 #' @param ... Further arguments to be passed to \code{logistf}
 #' 
 #' @return The object returned is of the class \code{logistf} and has the following attributes:
@@ -127,7 +126,7 @@
 #' @seealso [add1.logistf()], [drop1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5, fit = "NewtonRaphson",  ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5,  ...){
    call <- match.call()
    extras <- list(...)
    call_out <- match.call()
@@ -205,17 +204,13 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       nterms <- k
     }
     
-    if(!firth & fit == "IRLS"){
+    if(!firth & control$fit == "IRLS"){
         warning("Fitting method IRLS with firth = FALSE currently not implemented. Using Newton-Raphson.")
-        fit <- "NewtonRaphson"
+        control$fit <- "NR"
     }
-    # if(!all.equal(colfit, (1:k)) & fit == "IRLS"){
-    #     warning("Fitting method IRLS with colfit != 1:k currently not implemented. Using Newton-Raphson.")
-    # }
-    # 
 
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau, fit = fit)
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control, tau=tau, fit = fit)
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control, tau=tau)
 
     
     if(fit.full$iter>=control$maxit){
@@ -282,7 +277,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
             betahist.up[[icount]]<-inter$betahist
             pl.conv.upper<-t(inter$conv)
             pl.conv[icount,]<-cbind(pl.conv.lower,pl.conv.upper)
-            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=(1:k)[-i], control=control, tau=tau)
+            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=setdiff(colfit,i), control=control, tau=tau)
             pl.iter[i,3]<-fit.i$iter
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
             fit$method.ci[i] <- "Profile Likelihood"
