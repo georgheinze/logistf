@@ -10,4 +10,4 @@
 * Fixed a bug in `backward()` when function is called with factors as covariates (#34).
 * `logistf()`, `flic()` and `flac()` are now compatible with `termplot()` because of the added prediction type `terms`
 in `predict.logistf()`, `predict.flic()` and `predict.flac()`.
-* Added a new fitting method: IRLS. 
+* Added a new fitting method: Iteratively reweighted least squares (IRLS). 

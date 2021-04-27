@@ -71,8 +71,6 @@ logistf.fit <- function(
   mode(col.fit) <- mode(ncolfit) <- mode(maxit) <- mode(maxhs) <- "integer"
   mode(evals) <- mode(iter) <- "integer"
   
-  print(col.fit)
-  
   res <- switch(fit, 
                 NR = .C(
     "logistffit", 

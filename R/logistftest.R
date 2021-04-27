@@ -96,9 +96,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         int <- 0
         coltotest <-1:k
     }
-
-###    fit.full<-logistf.fit(    ) # unrestricted, define init and col.fit from values, beta0 and test
-###    fit.null<-logistf.fit(    ) # restricted, define init and col.fit from values, beta0 and test
+    
     if(!is.null(col.fit.object)){
         fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=col.fit.object, control=control, ...)
     }
@@ -122,7 +120,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         cov.name2 <- labels(model.matrix(test, model.frame(object)))[[2]]
         #cov.name2 <- attr(terms(test), "term.labels")
     }
-    pos <- match(cov.name2, cov.name)   ## Position der Testfakt.
+    pos <- match(cov.name2, cov.name) 
     OK <- !is.na(pos)
     pos <- pos[OK]
     cov.name2 <- cov.name2[OK]
@@ -131,12 +129,12 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         offset1 <- beta0
     }
     else {
-        offset1 <- rep(0, k)    ## Vektor der fixierten Werte
+        offset1 <- rep(0, k) 
     }
     if(!missing(values)) {
         offset1[pos] <- values
     }
-    beta <- offset1  ########################################
+    beta <- offset1 
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=(1:k)[-pos], control=control, init=beta, ...)
 
     if(fit.null$iter>=control$maxit){
