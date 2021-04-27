@@ -397,8 +397,8 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	XtXasy(xw2t, fisher_cov, n, k); // calc XWX
 	if(firth == 1) {
 		linpack_det(fisher_cov, &k, &logdet);
-	  if (fabs(logdet) < 0.000000001) {	
-	    error("Determinant of Fisher information matrix was %lf, singularity detected\n", logdet);
+	  if (logdet < (-50)) {	
+	    error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
 	  }
 	  else {
 	    linpack_inv(fisher_cov, &k); //if not singular then compute inverse
