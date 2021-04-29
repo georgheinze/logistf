@@ -14,7 +14,7 @@
 #' @param gconv Specifies the convergence criterion for the first derivative of the log likelihood (the score vector).
 #' @param xconv Specifies the convergence criterion for the parameter estimates.
 #' @param collapse If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.
-#' @param fit  Fitted method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"
+#' @param fit  Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"
 #'
 #' @return
 #'    \item{maxit}{The maximum number of iterations}
@@ -26,7 +26,7 @@
 #'    \item{gconv}{Specifies the convergence criterion for the first derivative of the log likelihood (the score vector).}
 #'    \item{xconv}{Specifies the convergence criterion for the parameter estimates.}
 #'    \item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
-#'    \item{fit}{Fitted method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
+#'    \item{fit}{Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
 #' @export
 #' 
 #' @author Georg Heinze

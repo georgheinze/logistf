@@ -11,3 +11,4 @@
 * `logistf()`, `flic()` and `flac()` are now compatible with `termplot()` because of the added prediction type `terms`
 in `predict.logistf()`, `predict.flic()` and `predict.flac()`.
 * Added a new fitting method: Iteratively reweighted least squares (IRLS). 
+* Added `na.action` option to `logistf()` and `predict.logistf()`.
