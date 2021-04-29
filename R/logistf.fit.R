@@ -41,9 +41,6 @@ logistf.fit <- function(
   if (!is.numeric(tau) | length(tau)>1){
     stop("Invalid value for degree of penalization tau: Must be numeric.")
   }
-  if (tau<=0|tau>=1){
-    stop("Invalid value for degree of penalization tau: Must be a value in (0,1).")
-  }
   
   
   if (col.fit[1]==0) maxit<-0   #only evaluate likelihood and go back

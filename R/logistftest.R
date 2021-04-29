@@ -26,6 +26,7 @@
 #' @param beta0 Specifies the initial values of the coefficients for the fitting algorithm
 #' @param weights Case weights
 #' @param control Controls parameters for iterative fitting
+#' @param tau  Penalization parameter (if missing: taken from object)
 #' @param col.fit.object Numerical vector containing the positions of the variables to fit, if not
 #' specified: all variables are taken
 #' @param ... further arguments passed to logistf.fit
@@ -63,7 +64,7 @@
 #' 
 #' 
 logistftest <-
-function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.object = NULL, ...)
+function(object, test, values, firth = TRUE, beta0, weights, control, tau,  col.fit.object = NULL, ...)
 {
     call <- match.call()
     formula<-object$formula
@@ -78,7 +79,8 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     x <- model.matrix(object$formula, model.frame(object))
 
     if (missing(control)) control<-object$control
-
+    if (missing(tau)) tau<-object$tau
+    
     cov.name <- labels(x)[[2]]
     if(missing(weights) & !is.null(object$weights)) weight <- object$weights
     else weight<-NULL
@@ -98,10 +100,10 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     }
     
     if(!is.null(col.fit.object)){
-        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=col.fit.object, control=control, ...)
+        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=col.fit.object, control=control, tau=tau, ...)
     }
     else {
-        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=1:k, control=control, ...)
+        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=1:k, control=control, tau=tau, ...)
     }
     
     if(fit.full$iter>=control$maxit){
@@ -135,7 +137,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         offset1[pos] <- values
     }
     beta <- offset1 
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=(1:k)[-pos], control=control, init=beta, ...)
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=(1:k)[-pos], control=control, init=beta, tau=tau, ...)
 
     if(fit.null$iter>=control$maxit){
         warning(paste("logistftest: Maximum number of iterations for null model exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
@@ -146,7 +148,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     offset1[ - pos] <- NA
     names(offset1) <- cov.name
     fit <- list(testcov = offset1, loglik = loglik, df = k2, prob = 1 - pchisq(2 *
-        diff(loglik), k2), call = match.call(), beta = beta)
+        diff(loglik), k2), call = match.call(), beta = beta, tau = tau)
     if(firth) {
         fit$method <- "Penalized ML"
     }

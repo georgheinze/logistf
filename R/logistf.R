@@ -38,7 +38,7 @@
 #' @param flic If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant
 #' @param model  If TRUE the corresponding components of the fit are returned.
-#' @param tau  Degree of penalization (default = 0.5)
+#' @param tau  Penalization parameter (default = 0.5)
 #' @param ... Further arguments to be passed to \code{logistf}
 #' 
 #' @return The object returned is of the class \code{logistf} and has the following attributes:
