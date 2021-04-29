@@ -135,7 +135,6 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
    
     mf <- match.call(expand.dots =FALSE)
     m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
-
     mf <- mf[c(1, m)]
     mf$drop.unused.levels <- TRUE
     mf[[1L]] <- quote(stats::model.frame)
@@ -368,5 +367,10 @@ vcov.logistf<-function(object,...){
   colnames(var) <- rownames(var) <- object$terms
   return(var)
 }
-  
+
+#' @method family logistf
+#' @exportS3Method family logistf
+family.logistf<-function(object){
+  return(stats::binomial())
+}
   

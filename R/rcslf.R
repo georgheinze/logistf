@@ -32,14 +32,31 @@ rcslf <- function (x, df = NULL, knots = NULL, intercept = FALSE, Boundary.knots
       }
       if(is.null(knots)){
         p <- seq(outer, 1 - outer, length = nknots)
-        all <- quantile(xx, p)
+        all <- quantile(xx, p, na.rm = TRUE)
         Boundary.knots <- c(all[1], all[nknots])
         knots <- all[-c(1,nknots)]
       }
       else {
         p <- seq(outer, 1 - outer, length = 2)
-        Boundary.knots <- quantile(xx, p)
+        Boundary.knots <- quantile(xx, p, na.rm=TRUE)
       }
     }
-  splines::ns(x=x, df=df, knots=knots, intercept=intercept, Boundary.knots = Boundary.knots)
+  basis <- splines::ns(x=x, df=df, knots=knots, intercept=intercept, Boundary.knots = Boundary.knots)
+  class(basis) <- c("rcslf", "basis", "matrix")
+  basis
+  }
+
+#' @method makepredictcall rcslf
+#' @exportS3Method makepredictcall rcslf
+makepredictcall.rcslf <- function(var, call){
+  #copied from stats::makepredictcall.ns
+    if (as.character(call)[1L] == "rcslf" || (is.call(call) && 
+        identical(eval(call[[1L]]), rcslf))) {
+        at <- attributes(var)[c("knots", "Boundary.knots", 
+            "intercept")]
+        call <- call[1L:2L]
+        call[names(at)] <- at
+    }
+    call
 }
+
