@@ -32,6 +32,7 @@
 #' @param init Specifies the initial values of the coefficients for the fitting algorithm
 #' @param weights specifies case weights. Each line of the input data set is multiplied 
 #' by the corresponding element of weights
+#' @param na.action a function which indicates what should happen when the data contain NAs
 #' @param plconf specifies the variables (as vector of their indices) for which profile likelihood 
 #' confidence intervals should be computed. Default is to compute for all variables.
 #' @param flic If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
@@ -70,6 +71,7 @@
 #' keeping all other coefficients constant. According to input of logistf.}  
 #'    \item{model}{if requested (the default), the model frame used.}
 #'    \item{fit}{The fitting algorithm used.}
+#'    \item{na.action}{information returned by model.frame on the special handling of NAs}
 #'     
 #' @export
 #'
@@ -126,7 +128,7 @@
 #' @seealso [add1.logistf()], [drop1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5,  ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights,na.action, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5,  ...){
    call <- match.call()
    extras <- list(...)
    call_out <- match.call()
@@ -332,6 +334,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     
     fit$control <- control
     if (model) fit$model <- mf
+    fit$na.action <- attr(mf, "na.action")
     attr(fit, "class") <- c("logistf")
     fit
 }

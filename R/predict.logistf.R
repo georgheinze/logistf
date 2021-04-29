@@ -15,6 +15,7 @@
 #' @param flic If \code{TRUE}(default = \code{FALSE}), predictions are computed with intercept correction.
 #' @param se.fit  If \code{TRUE}(default = \code{FALSE}) standard errors are computed.
 #' @param reference  A named vector of reference values for each variable for \code{type="terms"}.
+#' @param na.action Function determining what should be done with missing values in newdata. The default is to predict NA.
 #' @param ... further arguments passed to or from other methods.
 #'
 #' @return A vector or matrix of predictions.
@@ -22,7 +23,7 @@
 #' @rdname predict.logistf
 #' @exportS3Method predict logistf
 
-predict.logistf <- function (object, newdata, type = c("link", "response", "terms"), flic=FALSE, se.fit = FALSE, reference,...) 
+predict.logistf <- function (object, newdata, type = c("link", "response", "terms"), flic=FALSE, se.fit = FALSE, reference, na.action = na.pass,...) 
 {
   predict_terms <- function(object, model_matrix = NULL){
     if(is.null(model_matrix)){
@@ -71,6 +72,9 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
       }
   }
   type <- match.arg(type)
+  na.act <- object$na.action
+  object$na.action <- NULL
+
   X <- model.matrix(object$formula, object$model)
   if(type == "terms" && missing(reference)){
       orig <- eval(object$call$data)[1,]
@@ -104,7 +108,7 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
   }
   else {
     Terms <- delete.response(terms(object))
-    m <- model.frame(Terms, newdata)
+    m <- model.frame(Terms, newdata, na.action = na.action)
     if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl,m)
     X <-  model.matrix(Terms, m)
     if (flic) {
@@ -113,8 +117,8 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
         object <- update(object, flic=TRUE, pl=FALSE)
       }
     }
-    pred <- switch(type, link = (object$coefficients %*% t(X)) , 
-                     response = (1/(1+exp(-(object$coefficients %*% t(X))))), 
+    pred <- switch(type, link = as.numeric(object$coefficients %*% t(X)) , 
+                     response = as.numeric(1/(1+exp(-(object$coefficients %*% t(X))))), 
                      terms = predict_terms(object))
     if(se.fit && type!="terms"){
       se <- apply(X, 1, function(x){
