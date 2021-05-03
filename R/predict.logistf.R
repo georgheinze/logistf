@@ -81,7 +81,6 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
       reference <- numeric(ncol(orig))
       orig[1,] <- reference
       reference <- orig
-    #stop("Please provide a named vector of reference values for each variable for type=terms.")
   } else if(!missing(reference)){
     reference <- data.frame(t(reference))
   }

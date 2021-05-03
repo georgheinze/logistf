@@ -11,6 +11,7 @@
   flic = FALSE,
   se.fit = FALSE,
   reference,
+  na.action = na.pass,
   ...
 )
 }
@@ -29,6 +30,8 @@ values of each term in the formula on the linear predictor scale.}
 \item{se.fit}{If \code{TRUE}(default = \code{FALSE}) standard errors are computed.}
 
 \item{reference}{A named vector of reference values for each variable for \code{type="terms"}.}
+
+\item{na.action}{Function determining what should be done with missing values in newdata. The default is to predict NA.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

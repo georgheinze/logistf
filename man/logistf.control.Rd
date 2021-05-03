@@ -33,7 +33,7 @@ in log likelihood.}
 
 \item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
 
-\item{fit}{Fitted method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
+\item{fit}{Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
 }
 \value{
 \item{maxit}{The maximum number of iterations}
@@ -45,7 +45,7 @@ in log likelihood.}
    \item{gconv}{Specifies the convergence criterion for the first derivative of the log likelihood (the score vector).}
    \item{xconv}{Specifies the convergence criterion for the parameter estimates.}
    \item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
-   \item{fit}{Fitted method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
+   \item{fit}{Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
 }
 \description{
 Sets parameters for Newton-Raphson iteration in Firth's penalized-likelihood logistic regression.

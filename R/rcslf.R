@@ -60,3 +60,12 @@ makepredictcall.rcslf <- function(var, call){
     call
 }
 
+#' @method predict rcslf
+#' @exportS3Method predict rcslf
+predict.rcslf <- function(object, newx, ...){
+  # copied from predict.ns:
+  if (missing(newx)) 
+    return(object)
+  a <- c(list(x = newx), attributes(object)[c("knots", "Boundary.knots", "intercept")])
+  do.call("ns", a)
+}

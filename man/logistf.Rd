@@ -15,6 +15,7 @@ logistf(
   firth = TRUE,
   init,
   weights,
+  na.action,
   plconf = NULL,
   flic = FALSE,
   model = TRUE,
@@ -55,6 +56,8 @@ logistic regression parameters.}
 \item{weights}{specifies case weights. Each line of the input data set is multiplied 
 by the corresponding element of weights}
 
+\item{na.action}{a function which indicates what should happen when the data contain NAs}
+
 \item{plconf}{specifies the variables (as vector of their indices) for which profile likelihood 
 confidence intervals should be computed. Default is to compute for all variables.}
 
@@ -63,7 +66,7 @@ keeping all other coefficients constant}
 
 \item{model}{If TRUE the corresponding components of the fit are returned.}
 
-\item{tau}{Degree of penalization (default = 0.5)}
+\item{tau}{Penalization parameter (default = 0.5)}
 
 \item{...}{Further arguments to be passed to \code{logistf}}
 }
@@ -98,6 +101,7 @@ The object returned is of the class \code{logistf} and has the following attribu
 keeping all other coefficients constant. According to input of logistf.}  
    \item{model}{if requested (the default), the model frame used.}
    \item{fit}{The fitting algorithm used.}
+   \item{na.action}{information returned by model.frame on the special handling of NAs}
 }
 \description{
 Implements Firth's bias-Reduced penalized-likelihood logistic regression.
