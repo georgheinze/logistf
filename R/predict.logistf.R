@@ -77,10 +77,19 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
 
   X <- model.matrix(object$formula, object$model)
   if(type == "terms" && missing(reference)){
-      orig <- eval(object$call$data)[1,]
-      reference <- numeric(ncol(orig))
-      orig[1,] <- reference
-      reference <- orig
+    orig <- eval(object$call$data)[1,]
+    names_orig <- names(orig)
+    ind <- sapply(as.list(names_orig), grepl, x=as.character(object$formula), fixed=TRUE)
+    orig <- orig[, ind]
+    factor_pos <- sapply(orig, is.factor)
+    factor_names <- names(orig)[factor_pos]
+    for(i in factor_names){
+      orig[1, i] <- levels(orig[,i])[1]
+    }
+    reference <- numeric(sum(ind)-sum(factor_pos))
+    orig[1,!factor_pos] <- reference
+    reference <- orig
+    
   } else if(!missing(reference)){
     reference <- data.frame(t(reference))
   }
