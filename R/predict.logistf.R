@@ -25,9 +25,10 @@
 
 predict.logistf <- function (object, newdata, type = c("link", "response", "terms"), flic=FALSE, se.fit = FALSE, reference, na.action = na.pass,...) 
 {
-  predict_terms <- function(object, model_matrix = NULL){
+  predict_terms <- function(object, model_matrix){
+    m <- model.matrix(object$formula, object$model)
     if(is.null(model_matrix)){
-      mm <- model.matrix(object$formula, object$model)
+      mm <- m
     } else {
       mm <- model_matrix
     }
@@ -37,7 +38,7 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
       aaa <- factor(aa, labels = ll)
       asgn <- split(order(aa), aaa)
       asgn$"(Intercept)" <- NULL
-      avx <- colMeans(mm)
+      avx <- colMeans(m)
       beta <- object$coefficients
       termsconst <- sum(avx * beta)
       nterms <- length(asgn)
@@ -76,7 +77,7 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
   object$na.action <- NULL
 
   X <- model.matrix(object$formula, object$model)
-  if(type == "terms" && missing(reference)){
+  if(type == "terms" && missing(reference) && se.fit){
     orig <- eval(object$call$data)[1,]
     names_orig <- names(orig)
     ind <- sapply(as.list(names_orig), grepl, x=as.character(object$formula), fixed=TRUE)
@@ -90,10 +91,10 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
     orig[1,!factor_pos] <- reference
     reference <- orig
     
-  } else if(!missing(reference)){
+  } else if(!missing(reference) && se.fit){
     reference <- data.frame(t(reference))
   }
-  if (missing(newdata)) {#no data - return linear.predictors or response according to type
+  if (missing(newdata)){#no data - return linear.predictors or response according to type
     if (flic) {
       #check if flic=TRUE was set in object
       if(!object$flic) {
@@ -117,7 +118,6 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
   else {
     Terms <- delete.response(terms(object))
     m <- model.frame(Terms, newdata, na.action = na.action)
-    if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl,m)
     X <-  model.matrix(Terms, m)
     if (flic) {
       if(!object$flic) {
@@ -127,7 +127,7 @@ predict.logistf <- function (object, newdata, type = c("link", "response", "term
     }
     pred <- switch(type, link = as.numeric(object$coefficients %*% t(X)) , 
                      response = as.numeric(1/(1+exp(-(object$coefficients %*% t(X))))), 
-                     terms = predict_terms(object))
+                     terms = predict_terms(object, X))
     if(se.fit && type!="terms"){
       se <- apply(X, 1, function(x){
               t(x) %*% object$var %*% x
