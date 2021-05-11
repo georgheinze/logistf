@@ -373,7 +373,7 @@ vcov.logistf<-function(object,...){
 
 #' @method family logistf
 #' @exportS3Method family logistf
-family.logistf<-function(object){
+family.logistf<-function(object, ...){
   return(stats::binomial())
 }
   

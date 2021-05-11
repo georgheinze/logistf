@@ -130,7 +130,7 @@
 #' 
 #' @keywords models regression
 #' 
-#' @importFrom stats add1 anova as.formula binomial coef density drop1 glm lm model.frame model.matrix model.offset model.response model.weights pchisq pnorm prcomp predict qchisq qnorm terms uniroot update vcov factor.scope delete.response .checkMFClasses quantile
+#' @importFrom stats add1 anova as.formula binomial coef density drop1 glm lm model.frame model.matrix model.offset model.response model.weights pchisq pnorm prcomp predict qchisq qnorm terms uniroot update vcov factor.scope delete.response .checkMFClasses quantile binomial family makepredictcall na.pass
 #' @importFrom graphics abline axis grid legend lines mtext par plot points segments title
 #' @importFrom utils capture.output head
 #' @importFrom stats nobs
