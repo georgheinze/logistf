@@ -19,9 +19,9 @@
 #' 
 #' data(sex2)
 #' sex2$agec <- runif(nrow(sex2), 18, 25)
-#' rcslf(sex2$agec, df = 3)
-#' summary(fit <- logistf(case ~ rcslf(sex2$agec, df = 3), data = sex2))
-rcslf <- function (x, df = NULL, knots = NULL, intercept = FALSE, Boundary.knots) {
+#' nas(sex2$agec, df = 3)
+#' summary(fit <- logistf(case ~ nas(sex2$agec, df = 3), data = sex2))
+nas <- function (x, df = NULL, knots = NULL, intercept = FALSE, Boundary.knots) {
     if(missing(Boundary.knots)){
       xx <- x[!is.na(x)]
       n <- length(xx)
@@ -42,16 +42,16 @@ rcslf <- function (x, df = NULL, knots = NULL, intercept = FALSE, Boundary.knots
       }
     }
   basis <- splines::ns(x=x, df=df, knots=knots, intercept=intercept, Boundary.knots = Boundary.knots)
-  class(basis) <- c("rcslf", "basis", "matrix")
+  class(basis) <- c("nas", "basis", "matrix")
   basis
   }
 
-#' @method makepredictcall rcslf
-#' @exportS3Method makepredictcall rcslf
-makepredictcall.rcslf <- function(var, call){
+#' @method makepredictcall nas
+#' @exportS3Method makepredictcall nas
+makepredictcall.nas <- function(var, call){
   #copied from stats::makepredictcall.ns
-    if (as.character(call)[1L] == "rcslf" || (is.call(call) && 
-        identical(eval(call[[1L]]), rcslf))) {
+    if (as.character(call)[1L] == "nas" || (is.call(call) && 
+        identical(eval(call[[1L]]), nas))) {
         at <- attributes(var)[c("knots", "Boundary.knots", 
             "intercept")]
         call <- call[1L:2L]
@@ -60,9 +60,9 @@ makepredictcall.rcslf <- function(var, call){
     call
 }
 
-#' @method predict rcslf
-#' @exportS3Method predict rcslf
-predict.rcslf <- function(object, newx, ...){
+#' @method predict nas
+#' @exportS3Method predict nas
+predict.nas <- function(object, newx, ...){
   # copied from predict.ns:
   if (missing(newx)) 
     return(object)
