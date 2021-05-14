@@ -180,7 +180,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	XtY(xt, beta_old, newresponse, k, n, 1);
     	for(i=0; i < n; i++){
     	    wi = weight[i] * pi[i] * (1.0 - pi[i]); //W^(-1)
-    	    newresponse[i] += 1/wi*((double)y[i]-pi[i]+ 2 * *tau * Hdiag[i] * (1/2 - pi[i]));
+    	    newresponse[i] += 1/wi*((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (1/2 - pi[i]);
     	}
 
     	
@@ -442,7 +442,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 		}
 		if(firth) 
 			for(i=0; i < n; i++){
-				w[i] = weight[i] * ((double)y[i]-pi[i]+ 2 * *tau * Hdiag[i] * (1/2 - pi[i]));
+				w[i] = weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (1/2 - pi[i]);
 		    //Rprintf(" y %5.2f: ", y[i]);
 		    //Rprintf(" pi %5.2f: ", pi[i]);
 		    //Rprintf(" H %5.2f: ", Hdiag[i]);
