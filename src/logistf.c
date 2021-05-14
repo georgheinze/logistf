@@ -140,7 +140,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	
     	*loglik = 0.0;
     	for(i = 0; i < n; i++){
-    		*loglik += y[i]*log(pi[i]) + (1.0-y[i])*log(1.0-pi[i]);
+    		*loglik += weight[i] * (y[i]*log(pi[i]) + (1.0-y[i])*log(1.0-pi[i]));
     	}
 
     	
