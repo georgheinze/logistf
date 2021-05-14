@@ -442,7 +442,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 		}
 		if(firth) 
 			for(i=0; i < n; i++){
-				w[i] = weight[i] * ((double)y[i] - pi[i]) + 2 * *tau * Hdiag[i] * (1/2 - pi[i]);
+				w[i] = weight[i] * ((double)y[i] - pi[i] + 2 * *tau * Hdiag[i] * (1/2 - pi[i]));
 		    //Rprintf(" y %5.2f: ", y[i]);
 		    //Rprintf(" pi %5.2f: ", pi[i]);
 		    //Rprintf(" H %5.2f: ", Hdiag[i]);
@@ -743,7 +743,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 		
 		if(firth) 
 			for(i=0; i < n; i++)
-				w[i] = weight[i] * ((double)y[i] - pi[i]) + Hdiag[i] * (*tau - pi[i]);
+				w[i] = weight[i] * ((double)y[i] - pi[i]) + 2 * *tau * Hdiag[i] * (1/2 - pi[i]);
 		else
 			for(i=0; i < n; i++)
 				w[i] = weight[i] * ((double)y[i] - pi[i]);
