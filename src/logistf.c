@@ -123,7 +123,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
   
   //Start IRLS: 
 	for(;;){
-	    Rprintf("iter %d \n", *iter);
+	    //Rprintf("iter %d \n", *iter);
     	loglik_old = *loglik;
     	copy(beta, beta_old, k);
         
