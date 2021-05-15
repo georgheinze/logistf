@@ -462,6 +462,8 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 			else {
 				for(i = 0; i < n; i++) {
 					wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
+				  if(firth)
+				    wi = wi * sqrt(1 + Hdiag[i] * 2 * *tau);   // adj covariance for penalty
 					for(j = 0; j < ncolfit; j++)
 						XX_XW2[i*ncolfit + j] = x[i + selcol[j]*n] * wi;	// multiply whole col with weight
 				}
