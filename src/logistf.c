@@ -559,10 +559,11 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 				if(*loglik >= loglik_old - *lconv)
 					break; // stop half steps 
 				
-				for(i=0; i < k; i++)
+				for(i=0; i < k; i++){
 //					beta[i] -= delta[i] * powf(2.0, (float)-halfs);  
-          delta[i] /= 2;
+          delta[i] /= 2.0;
 				  beta[i] -= delta[i];
+				}
 			}
 			//Rprintf("****** beta: "); 
 			//Rprintf(beta, 1, k);
