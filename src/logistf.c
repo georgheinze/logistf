@@ -457,13 +457,13 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 		//Rprintf(Ustar, 1, k);
 		
 		if(ncolfit > 0 && selcol[0] != -1) {
-			if(ncolfit == k)
-				copy(fisher_cov, XXcovs, k*k);
-			else {
+			//if(ncolfit == k)
+			//	copy(fisher_cov, XXcovs, k*k);
+			//else {
 				for(i = 0; i < n; i++) {
 					wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
-				  if(firth)
-				    wi = wi * sqrt(1 + Hdiag[i] * 2 * *tau);   // adj covariance for penalty
+					if(firth)
+						wi = wi * sqrt(1 + Hdiag[i] * 2 * *tau);   // adj covariance for penalty - must also be used above!!
 					for(j = 0; j < ncolfit; j++)
 						XX_XW2[i*ncolfit + j] = x[i + selcol[j]*n] * wi;	// multiply whole col with weight
 				}
@@ -484,7 +484,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 					}
 				//Rprintf("XXcovs : "); Rprintf(XXcovs, k, k);
 				//for(i=0; i < k*k; i++) Rprintf(" %f ", XXcovs[i]);
-			}
+			//}
 			
 			if(bStop)
 				break;
