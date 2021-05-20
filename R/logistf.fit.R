@@ -90,7 +90,17 @@ logistf.fit <- function(
     firth, maxit, maxstep, maxhs, lconv, gconv, xconv, tau,
     var=covar,  pi=pi, Hdiag=Hdiag, loglik=loglik, evals=evals, iter=iter, conv=conv,
     PACKAGE="logistf"
-  ))
+  ), 
+                NR_revised = .C(
+    "logistffit_revised", 
+    x, y, n, k, weight, offset, beta=beta, col.fit, ncolfit, 
+    firth, maxit, maxstep, maxhs, lconv, gconv, xconv, tau,
+    var=covar, Ustar=Ustar, pi=pi, Hdiag=Hdiag, 
+    loglik=loglik, evals=evals, iter=iter, conv=conv,
+    PACKAGE="logistf"
+  )
+  
+  )
   
   if(coll) {
     res$pi<-res$pi[attr(xc,"index")]
