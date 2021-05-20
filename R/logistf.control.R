@@ -27,6 +27,7 @@
 #'    \item{xconv}{Specifies the convergence criterion for the parameter estimates.}
 #'    \item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
 #'    \item{fit}{Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
+#'    \item{call}{The function call.}
 #' @export
 #' 
 #' @author Georg Heinze
@@ -39,6 +40,8 @@
 #' 
 logistf.control <-
 function(maxit=25, maxhs=5, maxstep=5, lconv=0.00001, gconv=0.00001, xconv=0.00001, collapse=TRUE, fit = "NR"){
-  list(maxit=maxit, maxhs=maxhs, maxstep=maxstep, lconv=lconv, gconv=gconv, xconv=xconv, collapse=collapse, fit = fit)
+  res<-list(maxit=maxit, maxhs=maxhs, maxstep=maxstep, lconv=lconv, gconv=gconv, xconv=xconv, collapse=collapse, fit = fit, call=match.call())
+  attr(res, "class")<-"logistf.control"
+  return(res)
 }
 

@@ -286,6 +286,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	long n = (long)*n_l, k = (long)*k_l, firth = (long)*firth_l, ncolfit = (long)*ncolfit_l;
 	double wi, logdet;
 	long i, j, halfs;
+	double HdiagSum;
 	
 	// memory allocations
 
@@ -439,6 +440,10 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 			XtY(xw2, fisher_cov, tmpNxK, k, n, k);
 			XYdiag(tmpNxK, xw2, Hdiag, n, k);
 			//Rprintf("Hdiag : "); Rprintf(Hdiag, 1, n);
+			HdiagSum = 0;
+			for(i=0; i<n; i++)
+			  HdiagSum += Hdiag[i];
+			//Rprintf("Hdiag sum: %f \n", HdiagSum);
 		}
 		if(firth) 
 			for(i=0; i < n; i++){
@@ -453,7 +458,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 			}
 		//Rprintf("weights : "); Rprintf(w, 1, n);
 		XtY(x, w, Ustar, n, k, 1);
-		//Rintf("Ustar : "); 
+		//Rprintf("Ustar : "); 
 		//Rprintf(Ustar, 1, k);
 		
 		if(ncolfit > 0 && selcol[0] != -1) {
@@ -463,7 +468,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 				for(i = 0; i < n; i++) {
 					wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
 					if(firth)
-						wi = wi * sqrt(1 + Hdiag[i] * 2 * *tau);   // adj covariance for penalty - must also be used above!!
+						wi = wi * sqrt(1 + Hdiag[i] * 2 * *tau);   // adj covariance for penalty 
 					for(j = 0; j < ncolfit; j++)
 						XX_XW2[i*ncolfit + j] = x[i + selcol[j]*n] * wi;	// multiply whole col with weight
 				}
@@ -472,7 +477,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 				trans(XX_XW2, XX_XW2t, ncolfit, n);
 				XtXasy(XX_XW2t, XX_Fisher , n, ncolfit);
 				//for(i=0; i < 2*k*n; i++) Rprintf(" %f ", XX_XW2t[i]);
-				linpack_inv(XX_Fisher, &ncolfit); // fisher is changed here to covs!!
+				linpack_inv(XX_Fisher, &ncolfit); // XX_fisher is changed here to inverse!!
 				//for(i=0; i < k*k; i++) Rprintf(" %f ", XX_Fisher[i]);
 				//bIsInverted = 1;
 				//Rprintf("inv(fisher) : "); Rprintf(XX_Fisher, ncolfit, ncolfit);
@@ -553,8 +558,11 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 				}
 				(*evals)++;
 				
-				//Rprintf("loglik %f  old: %f \n", *loglik, loglik_old);
-				//Rprintf("* beta half stepped): "); Rprintf(beta, 1, k);
+				Rprintf("Iter %d halfs %d \n", *iter, halfs);
+				Rprintf("loglik %f  old: %f \n", *loglik, loglik_old);
+				Rprintf("* beta[0] half stepped: %f \n", beta[0]);
+				Rprintf("* beta[2] half stepped: %f \n", beta[2]);
+				Rprintf("* max Ustar: %f \n", maxabsInds(Ustar, selcol, ncolfit));
 				
 				if(*loglik >= loglik_old - *lconv)
 					break; // stop half steps 
@@ -584,8 +592,10 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 		if((*iter >= *maxit) || (
 			 (maxabsInds(delta, selcol, ncolfit) <= *xconv) && 
 			 (maxabsInds(Ustar, selcol, ncolfit) < *gconv) &&
-			 (loglik_change < *lconv)) )
+			 (loglik_change < *lconv)))
 			bStop = 1;
+		if((*iter < *maxit) && (halfs >= *maxhs) && (*maxhs >= 5) && (*loglik < loglik_old))
+		  bStop = 1;   // stop if half-stepping with at least 5 steps was not successful;
 	}
 	
 	copy(XXcovs, fisher_cov, k*k);

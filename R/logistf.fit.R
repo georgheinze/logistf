@@ -8,6 +8,7 @@ logistf.fit <- function(
   init=NULL,
   tau = 0.5,
   control,
+  standardize = TRUE,
   ...
 ) {
   n <- nrow(x)
@@ -42,6 +43,12 @@ logistf.fit <- function(
     stop("Invalid value for degree of penalization tau: Must be numeric.")
   }
   
+  if(standardize){
+    sdx <- apply(x, 2, sd)
+    sdx[sdx==0] <- 1
+    x <- x %*% diag(1/sdx)
+    init <- init * sdx
+  }
   
   if (col.fit[1]==0) maxit<-0   #only evaluate likelihood and go back
   else maxit<-control$maxit
@@ -90,6 +97,10 @@ logistf.fit <- function(
     res$Hdiag<-as.numeric((res$Hdiag/weight)[attr(xc,"index")])
   }
   
+  if(standardize){
+    res$beta <- res$beta / sdx
+    res$var <- res$var %*% diag(1/sdx)
+  }
   
   res <- res[c("beta", "var", "Ustar", "pi", "Hdiag", "loglik", 
                "evals", "iter", "conv")]
