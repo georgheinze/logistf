@@ -17,7 +17,7 @@ static const R_CMethodDef CEntries[] = {
     {"linpack_choleski", (DL_FUNC) &linpack_choleski,  2},
     {"linpack_inv_det",  (DL_FUNC) &linpack_inv_det,   3},
     {"logistffit",       (DL_FUNC) &logistffit,       25},
-    {"logistffit_revised",       (DL_FUNC) &logistffit,       25},
+    {"logistffit_revised",(DL_FUNC) &logistffit_revised,       25},
     {"logistffit_IRLS",  (DL_FUNC) &logistffit_IRLS,  24},
     {"logistplfit",      (DL_FUNC) &logistplfit,      21},
     {NULL, NULL, 0}

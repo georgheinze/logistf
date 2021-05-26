@@ -8,7 +8,7 @@ logistf.fit <- function(
   init=NULL,
   tau = 0.5,
   control,
-  standardize = TRUE,
+  standardize = FALSE,
   ...
 ) {
   n <- nrow(x)
