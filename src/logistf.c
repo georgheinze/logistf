@@ -50,16 +50,21 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   if (NULL == (xw2_reduced_augmented = (double *) R_alloc(3*n*ncolfit, sizeof(double)))){ error("no memory available\n");}
   if (NULL == (xw2_reduced_augmented_t = (double *) R_alloc(3*n*ncolfit, sizeof(double)))){ error("no memory available\n");}
   if (NULL == (fisher_cov_reduced_augmented = (double *) R_alloc(ncolfit*ncolfit, sizeof(double)))){ error("no memory available\n");}
-  if (NULL == (cov_augmented = (double *) R_alloc(k*ncolfit, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (cov_augmented = (double *) R_alloc(k*k, sizeof(double)))){ error("no memory available\n");}
   if (NULL == (delta = (double *) R_alloc(k, sizeof(double)))){ error("no memory available\n");}
   if (NULL == (selcol = (int *) R_alloc(ncolfit, sizeof(double)))){ error("no memory available\n");}
   
+  //Initialise delta: 
+  for(i=0; i < k; i++) {
+    delta[i] = 0.0;
+  }
+  
+  // which columns to select based on the columns to fit:
   for(i=0; i < ncolfit; i++){
     selcol[i] = colfit[i] - 1;
   }
     
   // Calculate initial likelihood
-  
   trans(x, xt, n, k);
   XtY(xt, beta, pi, k, n, 1);	//init of pred prob
   for(i = 0; i < n; i++){
@@ -99,7 +104,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
     for(i=0; i<n; i++){
       // weight first replication of dataset with h_i * tau
       *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-      // weight first replication of dataset with h_i * tau with oppenent y
+      // weight first replication of dataset with h_i * tau with opponent y
       *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
     }
   }
@@ -117,7 +122,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
     //--Calculation of U*:
     if(firth){
       for(i=0; i < n; i++){
-        w[i] = weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (1/2 - pi[i]);
+        w[i] = weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]);
       }
     } else {
       for(i=0; i < n; i++){
@@ -126,7 +131,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
     }
     XtY(x, w, Ustar, n, k, 1);
     //--Calculation of (X^TWX)^(-1) using augmented dataset and only columns in selcol (columns to fit: colfit - 1)
-    if(ncolfit > 0 && ((colfit[0]-1) != -1)) { //TODO find out why maybe just intercept calculation?
+    if(ncolfit > 0 && (selcol[0] != -1)) { // selcol[0] == -1 in case of just evaluating likelihood
       //-- Calculation of X^T W^(1/2)
       //---- XW^(1/2)
       // TODO: find better calculation method than ifelse
@@ -144,40 +149,35 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
       //---- W^(1/2)^TX^T
       trans(xw2_reduced_augmented, xw2_reduced_augmented_t, ncolfit, (3*n)); 
       XtXasy(xw2_reduced_augmented_t, fisher_cov_reduced_augmented, (3*n), ncolfit);
-
-      //linpack_det(fisher_cov_reduced_augmented, &ncolfit, &logdet);
-      //Rprintf("logdet %f \n", logdet);
       linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
       
       //---- Remapping of fisher_cov_(reduced)_augmented
-      if(ncolfit !=k){
-        for(i = 0; i < k*k; i++) {
-          cov_augmented[i] = 0.0;
+      for(i = 0; i < k*k; i++) { //Initialisation:
+        cov_augmented[i] = 0.0;
+      }
+      for(i=0; i < ncolfit; i++){
+        for(j=0; j < ncolfit; j++) {
+          cov_augmented[selcol[i] + k*selcol[j]] = fisher_cov_reduced_augmented[i + ncolfit*j];
         }
-        for(i=0; i < ncolfit; i++){
-          for(j=0; j < ncolfit; j++) {
-            cov_augmented[selcol[i] + k*selcol[j]] = fisher_cov_reduced_augmented[i + ncolfit*j];
-          }
-        }
-      } else {
-        copy(fisher_cov_reduced_augmented, cov_augmented, k*k);
       }
       
-    }
-    // Actual computation of delta:
-    XtY(cov_augmented, Ustar, delta, k, k, 1);
-    
-    // Check for maxstep:
-    double mx = maxabs(delta, k) / *maxstep;
-    if(mx > 1.0){
-      for(i=0; i < k; i++) {
-        delta[i] /= mx;
+      // Actual computation of delta:
+      XtY(cov_augmented, Ustar, delta, k, k, 1);
+      
+      // Check for maxstep:
+      double mx = maxabs(delta, k) / *maxstep;
+      if(mx > 1.0){
+        for(i=0; i < k; i++) {
+          delta[i] /= mx;
+        }
       }
     }
     
     //Update coefficient vector beta:
-    for(i=0; i < k; i++){
-      beta[i] += delta[i];
+    if(*maxit > 0){
+      for(i=0; i < k; i++){
+        beta[i] += delta[i];
+      }
     }
     
     //Start step-halvings
@@ -225,6 +225,8 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
           *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
         }
       }
+      //Increase evaluation counter
+      (*evals)++;
       //Convergence check:
       if(*loglik >= (loglik_old - *lconv)){
          break;
@@ -234,8 +236,6 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         delta[i] /= 2.0;
         beta[i] -= delta[i];
       }
-      //Increase evaluation counter
-      (*evals)++;
     }
     
     if(*maxhs == 0){ //if no half stepping: Update pi and compute Hdiag for the next iteration + compute loglik to check for convergence
@@ -293,15 +293,23 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         (loglik_change < *lconv))){
       bStop = 1;
     }
-    if((*iter < *maxit) && (halfs >= *maxhs) && (*maxhs >= 5) && (*loglik < loglik_old)){
-      bStop = 1;   // stop if half-stepping with at least 5 steps was not successful;
-    }
+    //if((*iter < *maxit) && (halfs >= *maxhs) && (*maxhs >= 5) && (*loglik < loglik_old)){
+    //  bStop = 1;   // stop if half-stepping with at least 5 steps was not successful;
+    //}
     if(bStop){
       break;
     }
     //Increase iteration counter
     (*iter)++;
+  } //End of iteration
+  
+  if(ncolfit > 0 && (selcol[0] != -1)) {
+    copy(cov_augmented, fisher_cov, k*k);
   }
+  
+  convergence[0] = loglik_change;
+  convergence[1] = maxabsInds(Ustar, selcol, ncolfit);
+  convergence[2] = maxabsInds(delta, selcol, ncolfit);
   
 }
 
