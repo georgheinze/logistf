@@ -282,7 +282,9 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
             pl.conv.upper<-t(inter$conv)
             pl.conv[icount,]<-cbind(pl.conv.lower,pl.conv.upper)
             tofit <- setdiff(colfit,i)
-            tofit <- ifelse(length(tofit) == 0, 0, tofit)
+            if(length(tofit) == 0){
+              tofit <- 0
+            }
             fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=tofit, control=control, tau=tau)
             pl.iter[i,3]<-fit.i$iter
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
