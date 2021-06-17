@@ -47,8 +47,8 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   if (NULL == (tmp = (double *) R_alloc(n * k, sizeof(double)))){ error("no memory available\n");}
   if (NULL == (beta_old = (double *) R_alloc(k, sizeof(double)))){ error("no memory available\n");}
   if (NULL == (w = (double *) R_alloc(n, sizeof(double)))){ error("no memory available\n");}
-  if (NULL == (xw2_reduced_augmented = (double *) R_alloc(3*n*ncolfit, sizeof(double)))){ error("no memory available\n");}
-  if (NULL == (xw2_reduced_augmented_t = (double *) R_alloc(3*n*ncolfit, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (xw2_reduced_augmented = (double *) R_alloc(n*ncolfit, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (xw2_reduced_augmented_t = (double *) R_alloc(n*ncolfit, sizeof(double)))){ error("no memory available\n");}
   if (NULL == (fisher_cov_reduced_augmented = (double *) R_alloc(ncolfit*ncolfit, sizeof(double)))){ error("no memory available\n");}
   if (NULL == (cov_augmented = (double *) R_alloc(k*k, sizeof(double)))){ error("no memory available\n");}
   if (NULL == (delta = (double *) R_alloc(k, sizeof(double)))){ error("no memory available\n");}
@@ -98,17 +98,17 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   // Calculation of loglikelihood using augmented dataset if firth:
   *loglik = 0.0;
   for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
-    *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
+    *loglik += y[i] * weight[i] * log(pi[i]) + (1.0-y[i]) * weight[i] * log(1-pi[i]);
   }
   if(firth){
     for(i=0; i<n; i++){
       // weight first replication of dataset with h_i * tau 
-      *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * (Hdiag[i] * *tau) * log(1-pi[i]);
+      *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
       // weight second replication of dataset with 2 * h_i * tau with opponent y
       *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] *  Hdiag[i] * *tau * log(1-pi[i]);
     }
   }
-  
+
   //Calculation of initial U*:
   if(firth){
     for(i=0; i < n; i++){
@@ -127,7 +127,6 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   //Start of iteration: 
   if(*maxit > 0){ // in case of maxit == 0 only evaluate likelihood
     for(;;){
-      Rprintf("Iter: %d \n", *iter);
     //--Save iteration values:
       loglik_old = *loglik;
       copy(beta, beta_old, k);
@@ -137,22 +136,20 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         //-- Calculation of X^T W^(1/2)
         //---- XW^(1/2)
         // TODO: find better calculation method than ifelse
-        for(i = 0; i < (3*n); i++) {
-          if(i < n){
-            wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
-          } else if(i < 2*n){
-            wi = sqrt(weight[i] * *tau * Hdiag[(i % n)] * pi[(i % n)] * (1.0 - pi[(i % n)])); 
+        for(i = 0; i < n; i++) {
+          if(firth){
+            wi = sqrt(weight[i]* (1 + 2 * Hdiag[i] * *tau) * pi[i] * (1.0 - pi[i])); 
           } else {
-            wi = sqrt(weight[i] * *tau * Hdiag[(i % n)] * pi[(i % n)] * (1.0 - pi[(i % n)]));
+            wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
           }
           for(j = 0; j < ncolfit; j++){
-            xw2_reduced_augmented[i*ncolfit + j] = xt[(i % n)*ncolfit + selcol[j]] * wi;
+            xw2_reduced_augmented[i*ncolfit + j] = xt[i*ncolfit + selcol[j]] * wi;
           }
         }
         
         //---- W^(1/2)^TX^T
-        trans(xw2_reduced_augmented, xw2_reduced_augmented_t, ncolfit, (3*n)); 
-        XtXasy(xw2_reduced_augmented_t, fisher_cov_reduced_augmented, (3*n), ncolfit);
+        trans(xw2_reduced_augmented, xw2_reduced_augmented_t, ncolfit, n); 
+        XtXasy(xw2_reduced_augmented_t, fisher_cov_reduced_augmented, n, ncolfit);
         linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
         
         //---- Remapping of fisher_cov_(reduced)_augmented
@@ -216,9 +213,9 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         if(firth){
           for(i=0; i<n; i++){
             // weight first replication of dataset with 1+ h_i * tau
-            *loglik += weight[i] * y[i] * Hdiag[i] * *tau * log(pi[i]) + weight[i] * (1-y[i]) * (Hdiag[i] * *tau) * log(1-pi[i]);
+            *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
             // weight second replication of dataset with h_i * tau with oppenent y
-            *loglik += weight[i] * (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + weight[i] * y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
           }
         }
         //Increase evaluation counter
@@ -284,9 +281,9 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         if(firth){
           for(i=0; i<n; i++){
             // weight first replication of dataset with 1+ h_i * tau
-            *loglik += weight[i] * y[i] * Hdiag[i] * *tau * log(pi[i]) + weight[i] * (1-y[i]) * (Hdiag[i] * *tau) * log(1-pi[i]);
+            *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * (Hdiag[i] * *tau) * log(1-pi[i]);
             // weight second replication of dataset with h_i * tau with opponent y
-            *loglik += weight[i] * (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + weight[i] * y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
           }
         }
         //Increase evaluation counter
@@ -323,18 +320,6 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
       //Increase iteration counter
       (*iter)++;
       
-      Rprintf("loglik: %f \n", *loglik);
-      Rprintf("Ustar:");
-      for(i=0; i<k; i++){
-        Rprintf("%f ", Ustar[i]);
-      }
-      Rprintf("\n");
-      Rprintf("beta:");
-      for(i=0; i<k; i++){
-        Rprintf("%f ", beta[i]);
-      }
-      Rprintf("\n");
-      
     } //End of iterations
     
     if(ncolfit > 0 && (selcol[0] != -1)) {
@@ -365,7 +350,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 								double *convergence		// 3
 ){
 	long n = (long)*n_l, k = (long)*k_l, ncolfit = (long)*ncolfit_l;
-	double wi;
+	double wi, wi_augmented;
 	long i, j;
 	// memory allocations
 
@@ -393,8 +378,8 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	 if (NULL == (newresponse = (double *) R_alloc(n, sizeof(double)))){error("no memory available\n");}
 	 if (NULL == (delta = (double *) R_alloc( k, sizeof(double)))){error("no memory available\n");}
 	 if (NULL == (fisher_cov_reduced_augmented = (double *) R_alloc(ncolfit* ncolfit, sizeof(double)))){error("no memory available\n");}
-	 if (NULL == (xw2_reduced_augmented = (double *) R_alloc(ncolfit* n * 3, sizeof(double)))){error("no memory available\n");}
-	 if (NULL == (xw2t_reduced_augmented = (double *) R_alloc(ncolfit* n * 3, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2_reduced_augmented = (double *) R_alloc(ncolfit* n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2t_reduced_augmented = (double *) R_alloc(ncolfit* n, sizeof(double)))){error("no memory available\n");}
 	 if (NULL == (tmp1_reduced = (double *) R_alloc(ncolfit* n, sizeof(double)))){error("no memory available\n");}
 	 if (NULL == (covs_full = (double *) R_alloc(k* k, sizeof(double)))){error("no memory available\n");}
 	 if (NULL == (xw2_reduced = (double *) R_alloc(ncolfit* n, sizeof(double)))){error("no memory available\n");}
@@ -411,7 +396,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	//init delta: difference between beta values in iteration i-1 and i
 	//and beta
 	for(i=0; i < k; i++){
-			delta[i] = 5.0;
+			delta[i] = 0.0;
 	 }
 	
 	for(i=0; i < ncolfit; i++){
@@ -445,47 +430,38 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
 	  *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
 	  // weight first replication of dataset with 1+ h_i * tau 
-	  *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * (Hdiag[i] * *tau) * log(1-pi[i]);
+	  *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
 	  // weight second replication of dataset with h_i * tau with opponent y
-	  *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+	  *loglik += (1-y[i]) *Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
 	}
 	(*evals)++;
-	
+
   
   //Start IRLS: 
 	for(;;){
-	  Rprintf("iter: %d \n", *iter);
     loglik_old = *loglik;
     copy(beta, beta_old, k);
 
     XtY(xt, beta_old, newresponse, k, n, 1);
     for(i=0; i < n; i++){
-        wi = weight[i] * pi[i] * (1.0 - pi[i]); //W^(-1)
-        if(fabs(0.0-wi) < 0.00000000001){
-          error("weight");
-        }
-        newresponse[i] += 1/wi*(weight[i]*((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+        wi = weight[i]* pi[i] * (1.0 - pi[i]); //W^(-1)
+        newresponse[i] += 1/wi*(weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
     }
     
-    // Fisher cov based on augmented dataset: 
-    for(i = 0; i < (3*n); i++) {
-      if(i < n){
-        wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
-      } else {
-        wi = sqrt(2 * *tau * Hdiag[(i % n)] * pi[(i % n)] * (1.0 - pi[(i % n)]));
-      }
+    // Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
+    for(i = 0; i < n; i++) {
+      wi_augmented = sqrt(weight[i]* (1.0 + 2 * Hdiag[i] * *tau) * pi[i] * (1.0 - pi[i])); 
+      wi = weight[i] * pi[i] * (1.0 - pi[i]); 
       for(j = 0; j < ncolfit; j++){
-        xw2_reduced_augmented[i*ncolfit + j] = xt[(i % n)*ncolfit + selcol[j]] * wi;
-        if(i < n){
-          //needed for multiplication with newresponse in b_new = fisher_cov * X^TW * newresponse 
-          xw2_reduced[i*ncolfit + j] = xt[i*ncolfit + selcol[j]] * wi * wi;
-        }
+        xw2_reduced_augmented[i*ncolfit + j] = xt[i*ncolfit + selcol[j]] * wi_augmented;
+        //xw2_reduced[i*ncolfit + j] = xt[i*ncolfit + selcol[j]] * wi;
+        xw2_reduced[i*ncolfit + j] = x[i + selcol[j]*n] * wi;
       }
     }
     
     //---- W^(1/2)^TX^T
-    trans(xw2_reduced_augmented, xw2t_reduced_augmented, ncolfit, (3*n)); 
-    XtXasy(xw2t_reduced_augmented, fisher_cov_reduced_augmented, (3*n), ncolfit);
+    trans(xw2_reduced_augmented, xw2t_reduced_augmented, ncolfit, n); 
+    XtXasy(xw2t_reduced_augmented, fisher_cov_reduced_augmented, n, ncolfit);
     linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
     	
     //(X^TWX)^(-1)X^TW
@@ -500,11 +476,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
   	   beta[selcol[j]] = tmp;
   	}
   	
-  	for(i = 0; i<k; i++){
-  	  Rprintf("beta: %f \n", beta[i]);
-  	}
-  	
-  	//Calculate likelihood: 
+  	//Calculate likelihood nad hdiag for next iteration
   	// calculation of pi
   	XtY(xt, beta, pi, k, n, 1);
   	for(i = 0; i < n; i++){
@@ -518,7 +490,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
   	    xw2[i*k + j] = x[i + j*n] * wi;
   	  }
   	}
-  	
+
   	//Calculation of Hat diag:
   	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
   	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
@@ -532,7 +504,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
   	for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
   	  *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
   	  // weight first replication of dataset with h_i * tau 
-  	  *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * (Hdiag[i] * *tau) * log(1-pi[i]);
+  	  *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
   	  // weight first replication of dataset with h_i * tau with opponent y
   	  *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
   	}
@@ -542,7 +514,6 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
   	for(i=0; i < k; i++){
   		delta[i] = beta[i]-beta_old[i];
   	}
-        
   	(*iter)++;
     		
   	if((*iter >= *maxit) || ((maxabsInds(delta, selcol, ncolfit) <= *xconv) && (loglik_change < *lconv)) ) {
