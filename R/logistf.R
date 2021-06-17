@@ -205,10 +205,10 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       nterms <- k
     }
     
-    if(!firth & control$fit == "IRLS"){
-        warning("Fitting method IRLS with firth = FALSE currently not implemented. Using Newton-Raphson.")
-        control$fit <- "NR"
-    }
+    # if(!firth & control$fit == "IRLS"){
+    #     warning("Fitting method IRLS with firth = FALSE currently not implemented. Using Newton-Raphson.")
+    #     control$fit <- "NR"
+    # }
 
     fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
     control0 <- update(control)
