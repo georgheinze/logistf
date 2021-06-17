@@ -76,14 +76,6 @@ logistf.fit <- function(
   mode(evals) <- mode(iter) <- "integer"
   
   res <- switch(fit, 
-                NR = .C(
-    "logistffit", 
-    x, y, n, k, weight, offset, beta=beta, col.fit, ncolfit, 
-    firth, maxit, maxstep, maxhs, lconv, gconv, xconv, tau,
-    var=covar, Ustar=Ustar, pi=pi, Hdiag=Hdiag, 
-    loglik=loglik, evals=evals, iter=iter, conv=conv,
-    PACKAGE="logistf"
-  ), 
                 IRLS = .C(
     "logistffit_IRLS",
     x, y, n, k, weight, offset, beta=beta, col.fit, ncolfit,
@@ -91,7 +83,7 @@ logistf.fit <- function(
     var=covar,  pi=pi, Hdiag=Hdiag, loglik=loglik, evals=evals, iter=iter, conv=conv,
     PACKAGE="logistf"
   ), 
-                NR_revised = .C(
+                NR = .C(
     "logistffit_revised", 
     x, y, n, k, weight, offset, beta=beta, col.fit, ncolfit, 
     firth, maxit, maxstep, maxhs, lconv, gconv, xconv, tau,
