@@ -12,3 +12,5 @@
 in `predict.logistf()`, `predict.flic()` and `predict.flac()`.
 * Added a new fitting method: Iteratively reweighted least squares (IRLS). 
 * Added `na.action` option to `logistf()` and `predict.logistf()`.
+* Moved `terms.fit` and  `tau` parameters of `logistf()` to `logistf.fit.control()`.
+* Added simple tests for `logistf`, `flic` and `flac`.

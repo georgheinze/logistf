@@ -46,9 +46,10 @@ in log likelihood.}
    \item{xconv}{Specifies the convergence criterion for the parameter estimates.}
    \item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
    \item{fit}{Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
+   \item{call}{The function call.}
 }
 \description{
-Sets parameters for Newton-Raphson iteration in Firth's penalized-likelihood logistic regression.
+Sets parameters for iterations in Firth's penalized-likelihood logistic regression.
 }
 \details{
 \code{logistf.control()} is used by \code{logistf} and \code{logistftest} to set control parameters to default values. 
@@ -60,7 +61,4 @@ fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT,
     control=logistf.control(maxstep=1))
 summary(fit2)
 
-}
-\author{
-Georg Heinze
 }

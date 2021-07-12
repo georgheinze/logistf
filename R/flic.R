@@ -24,6 +24,8 @@
 #' @param data If using with formula, a data frame containing the variables in the model. 
 #' @param lfobject A fitted \code{\link{logistf}} object
 #' @param model If TRUE the corresponding components of the fit are returned.
+#' @param control Controls iteration parameter. Taken from \code{logistf}-object when specified. Otherwise default is \code{control= logistf.control()}
+#' @param fitcontrol  Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.fit.control = logistf.fit.control()}
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flic} object with components:
@@ -43,6 +45,7 @@
 #'   \item{n}{The number of observations.}
 #'   \item{formula}{The formula object.}
 #'   \item{control}{a copy of the control parameters.}  
+#'   \item{fitcontrol}{a copy of the fitcontrol parameters.}  
 #'   \item{terms}{the model terms (column names of design matrix).}
 #'   \item{model}{if requested (the default), the model frame used.}
 #'   
@@ -74,9 +77,15 @@ flic <- function(...){
 #' @exportS3Method flic formula
 #' @describeIn flic With formula and data
 #' @export flic.formula
-flic.formula <- function(formula,data,model = TRUE,...){
+flic.formula <- function(formula,data,model = TRUE, control, fitcontrol, ...){
   extras <- list(...)
-  call_out <- match.call()
+
+  if(missing(control)){
+    control <- logistf.control()
+  }
+  if(missing(fitcontrol)){
+    fitcontrol <- logistf.fit.control()
+  }
   
   mf <- match.call(expand.dots =FALSE)
   m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
@@ -91,7 +100,7 @@ flic.formula <- function(formula,data,model = TRUE,...){
   n <- length(y)
   x <- model.matrix(mt, mf)
   
-  FL <- logistf(formula, data=data, ...)
+  FL <- logistf(formula, data=data, control = control, fitcontrol = fitcontrol, ...)
 
   response <- lhs.vars(formula) 
   
@@ -111,10 +120,6 @@ flic.formula <- function(formula,data,model = TRUE,...){
   I <- 0.5*log(det(XWX))
   full_loglik <- loglik+I
   ic <- fit$coef
-  if (!is.null(extras$terms.fit)){
-    colfit <- eval(extras$terms.fit)
-    call_out$terms.fit <- extras$terms.fit
-  }
   
   #variance covariance matrix: (X^TWX)^-1
   pred.prob <- as.vector(1/(1+exp(-x%*%c(ic, FL$coef[-1]))))
@@ -130,7 +135,7 @@ flic.formula <- function(formula,data,model = TRUE,...){
               loglik=c(FL$loglik[1], full_loglik), 
               n=FL$n, 
               formula=formula(formula), 
-              call=call_out, 
+              call=match.call(), 
               linear.predictors=fit$linear, 
               predict = pred.prob,
               prob=c(summary(fit)$coef[, "Pr(>|z|)"], FL$prob[-1]),
@@ -138,7 +143,8 @@ flic.formula <- function(formula,data,model = TRUE,...){
               method.ci=c("Wald", FL$method.ci[-1]), 
               ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, FL$ci.upper[-1]),
-              control = FL$control 
+              control = control, 
+              fitcontrol = fitcontrol
               )
   if(model) {
     res$model <- mf
@@ -154,7 +160,8 @@ flic.formula <- function(formula,data,model = TRUE,...){
 #' @exportS3Method flic logistf
 flic.logistf <- function(lfobject,model=TRUE,...){
   extras <- list(...)
-  call_out <- match.call()
+
+  fitcontrol <- lfobject$fitcontrol
 
   mf <- match.call(expand.dots =FALSE)
   m <- match("lfobject", names(mf), 0L)
@@ -191,12 +198,6 @@ flic.logistf <- function(lfobject,model=TRUE,...){
   W <- diag(pred.prob, nrow=length(pred.prob))
   var <- solve(t(designmat)%*%W%*%designmat)
   
-  if (!is.null(extras$terms.fit)){
-    colfit <- eval(extras$terms.fit)
-    call_out$terms.fit <- extras$terms.fit
-  }
-  
-  
   res <- list(coefficients=c(ic, lfobject$coef[-1]), 
               alpha = lfobject$alpha, 
               terms=colnames(designmat),
@@ -205,7 +206,7 @@ flic.logistf <- function(lfobject,model=TRUE,...){
               loglik=c(lfobject$loglik[1], full_loglik), 
               n=lfobject$n, 
               formula=lfobject$formula, 
-              call=call_out, 
+              call=match.call(), 
               linear.predictors=fit$linear, 
               predict = pred.prob, 
               prob=c(summary(fit)$coef[, "Pr(>|z|)"], lfobject$prob[-1]),
@@ -213,7 +214,8 @@ flic.logistf <- function(lfobject,model=TRUE,...){
               method.ci=c("Wald", lfobject$method.ci[-1]), 
               ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, lfobject$ci.upper[-1]),
-              control = lfobject$control
+              control = lfobject$control,
+              fitcontrol = lfobject$fitcontrol
               )
   if(model) {
     res$model <- lfobject$model

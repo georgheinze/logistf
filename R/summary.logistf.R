@@ -7,8 +7,8 @@ summary.logistf <-function(object,...){
    
    #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
    call <- object$call
-   if(!is.null(call$terms.fit)){
-      loc <- match(call$terms.fit, object$terms)
+   if(!is.null(object$fitcontrol$terms.fit)){
+      loc <- match(object$fitcontrol$terms.fit, object$terms)
       var.red <- object$var[loc,loc]
       coefs <- coef(object)[loc]
       chi2 <- vector(length=length(object$terms))

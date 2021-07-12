@@ -19,11 +19,10 @@
 #' @param pl Specifies if confidence intervals and tests should be based on the profile 
 #' penalized log likelihood (\code{pl=TRUE}, the default) or on the Wald method (\code{pl=FALSE}).
 #' @param alpha The significance level (1-\eqn{\alpha} the confidence level, 0.05 as default).
-#' @param control Controls Newton-Raphson iteration. Default is \code{control= logistf.control(maxstep, 
-#' maxit, maxhs, lconv, gconv, xconv)}
+#' @param control Controls iteration parameter. Default is \code{control= logistf.control()}
 #' @param plcontrol Controls Newton-Raphson iteration for the estimation of the profile 
-#' likelihood confidence intervals. Default is \code{plcontrol= logistpl.control(maxstep, maxit, 
-#' maxhs, lconv, xconv, ortho, pr)}
+#' likelihood confidence intervals. Default is \code{plcontrol= logistpl.control()}
+#' @param fitcontrol Controls additional parameter for fitting. Default is \code{logistf.fit.control = logistf.fit.control()}
 #' @param firth Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) or the 
 #' standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression. 
 #' Note that by specifying \code{pl=TRUE} and \code{firth=FALSE} (and probably a lower number 
@@ -38,7 +37,6 @@
 #' @param flic If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant
 #' @param model  If TRUE the corresponding components of the fit are returned.
-#' @param tau  Penalization parameter (default = 0.5)
 #' @param ... Further arguments to be passed to \code{logistf}
 #' 
 #' @return The object returned is of the class \code{logistf} and has the following attributes:
@@ -67,6 +65,7 @@
 #'    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
 #'    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
 #'    \item{control}{a copy of the control parameters.}
+#'    \item{fitcontrol}{a copy of the fitcontrol parameters.}
 #'    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant. According to input of logistf.}  
 #'    \item{model}{if requested (the default), the model frame used.}
@@ -128,12 +127,11 @@
 #' @seealso [add1.logistf()], [drop1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights,na.action, plconf=NULL,flic=FALSE, model = TRUE,tau=0.5,  ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol, firth = TRUE, init, weights,na.action, plconf=NULL,flic=FALSE, model = TRUE, ...){
    call <- match.call()
-   extras <- list(...)
-   call_out <- match.call()
    if(missing(control)) control<-logistf.control()
    if(pl==TRUE & missing(plcontrol)) plcontrol<-logistpl.control()
+   if(missing(fitcontrol)) fitcontrol<-logistf.fit.control()
    
     mf <- match.call(expand.dots =FALSE)
     m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
@@ -189,32 +187,23 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
         coltotest <-1:k
     }
     
-    #for backward function to update logistf object
-    if (!is.null(extras$terms.fit)){
-      colfit <- eval(extras$terms.fit)
-      matched <- match(colfit, cov.name)
-      if(any(is.na(matched))) stop(paste0("term(s): ", paste(colfit[is.na(matched)],collapse=", ")," not found in formula.\n"))
-      nterms <- length(matched)
-      colfit <- (1:k)[matched]
-      call_out$terms.fit <- extras$terms.fit
-      rest_plconf <- (1:k)[-matched] #compute confidence intervals for variables not specified in terms.fit with Wald
-      plconf <- intersect(plconf, matched)
+   #Terms to be fitted: 
+    if (!is.null(fitcontrol$terms.fit)){
+      colfit <- fitcontrol$terms.fit
+      rest_plconf <- (1:k)[-colfit] #compute confidence intervals for variables not specified in terms.fit with Wald
+      plconf <- intersect(plconf, colfit)
+      nterms <- length(colfit)
     }
     else {
       colfit <- 1:k
       nterms <- k
     }
-    
-    # if(!firth & control$fit == "IRLS"){
-    #     warning("Fitting method IRLS with firth = FALSE currently not implemented. Using Newton-Raphson.")
-    #     control$fit <- "NR"
-    # }
 
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=tau)
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=fitcontrol$tau)
     control0 <- update(control)
     init0 <- init
     init0[colfit]<-0
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control0, tau=tau)
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control0, tau=fitcontrol$tau)
 
     
     if(fit.full$iter>=control$maxit){
@@ -225,7 +214,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     }
     
     fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = nterms-int, loglik =c(fit.null$loglik, fit.full$loglik),
-        iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv, tau = tau, fit = fit.full$fit)
+        iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call = call, conv=fit.full$conv, fit = fit.full$fit)
     
     names(fit$conv)<-c("LL change","max abs score","beta change")
     beta<-fit.full$beta
@@ -238,14 +227,13 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     if(firth) fit$method <- "Penalized ML"
     else fit$method <- "Standard ML"
     
-    if (!is.null(extras$terms.fit)){ #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
-      loc <- match(extras$terms.fit, fit$terms)
-      var.red <- fit$var[loc,loc]
+    if (!is.null(fitcontrol$terms.fit)){ #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
+      var.red <- fit$var[fitcontrol$terms.fit,fitcontrol$terms.fit]
       vars <- diag(as.matrix(var.red))
       waldprob <- wald_ci.lower <- wald_ci.upper <- vector(length = k)
-      waldprob[loc] <- 1 - pchisq((beta[loc]^2/vars), 1)
-      wald_ci.lower[loc] <- as.vector(beta[loc] + qnorm(alpha/2) * vars^0.5)
-      wald_ci.upper[loc] <- as.vector(beta[loc] + qnorm(1 - alpha/2) * vars^0.5)
+      waldprob[fitcontrol$terms.fit] <- 1 - pchisq((beta[fitcontrol$terms.fit]^2/vars), 1)
+      wald_ci.lower[fitcontrol$terms.fit] <- as.vector(beta[fitcontrol$terms.fit] + qnorm(alpha/2) * vars^0.5)
+      wald_ci.upper[fitcontrol$terms.fit] <- as.vector(beta[fitcontrol$terms.fit] + qnorm(1 - alpha/2) * vars^0.5)
     }
     else {
       vars <- diag(covs)
@@ -257,7 +245,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     fit$alpha<-alpha
     fit$conflev<-1-alpha
     
-    if(pl) {
+    if(pl){
         #initialisation
         betahist.lo<-vector(length(plconf),mode="list")
         betahist.up<-vector(length(plconf),mode="list")
@@ -285,7 +273,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
             if(length(tofit) == 0){
               tofit <- 0
             }
-            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=tofit, control=control, tau=tau)
+            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=tofit, control=control, tau=fitcontrol$tau)
             pl.iter[i,3]<-fit.i$iter
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
             fit$method.ci[i] <- "Profile Likelihood"
@@ -304,18 +292,18 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
           notconv <- cov.name[iters>=control$maxit]
           warning(paste("Maximum number of iterations for PLR test for variables:",paste0(notconv,collapse=", ")), " exceeded. P-value may be incorrect. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control")
         }
+        for (i in rest_plconf){
+          fit$ci.lower[i] <- 0
+          fit$ci.upper[i] <- 0
+          fit$prob[i] <- 0
+          fit$method.ci[i] <- "-"
+        }
     }
     else { 
       fit$prob <- waldprob
       fit$method.ci <- rep("Wald",k)
       fit$ci.lower <- wald_ci.lower
       fit$ci.upper <- wald_ci.upper
-    }
-    for (i in rest_plconf){
-      fit$ci.lower[i] <- 0
-      fit$ci.upper[i] <- 0
-      fit$prob[i] <- 0
-      fit$method.ci[i] <- "-"
     }
     names(fit$prob) <- names(fit$ci.upper) <- names(fit$ci.lower) <- names(fit$coefficients) <- dimnames(x)[[2]]
     #flic: 
@@ -341,6 +329,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     else fit$flic <- FALSE
     
     fit$control <- control
+    fit$fitcontrol <- fitcontrol
     if (model) fit$model <- mf
     fit$na.action <- attr(mf, "na.action")
     attr(fit, "class") <- c("logistf")
