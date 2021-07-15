@@ -33,12 +33,11 @@
 #' @encoding UTF-8
 #' @examples
 #' data(sexagg)
-#' fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, 
-#'     control=logistf.control(maxstep=1))
-#'summary(fit2)
+#' fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, control=logistf.control(maxstep=1))
+#' summary(fit2)
 #' 
 logistf.control <-
-function(maxit=25, maxhs=5, maxstep=5, lconv=0.00001, gconv=0.00001, xconv=0.00001, collapse=TRUE, fit = "NR"){
+function(maxit=25, maxhs=0, maxstep=5, lconv=0.00001, gconv=0.00001, xconv=0.00001, collapse=TRUE, fit = "NR"){
   res<-list(maxit=maxit, maxhs=maxhs, maxstep=maxstep, lconv=lconv, gconv=gconv, xconv=xconv, collapse=collapse, fit = fit, call=match.call())
   attr(res, "class")<-"logistf.control"
   return(res)

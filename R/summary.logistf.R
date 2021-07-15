@@ -8,12 +8,11 @@ summary.logistf <-function(object,...){
    #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
    call <- object$call
    if(!is.null(object$fitcontrol$terms.fit)){
-      loc <- match(object$fitcontrol$terms.fit, object$terms)
-      var.red <- object$var[loc,loc]
-      coefs <- coef(object)[loc]
+      var.red <- object$var[object$fitcontrol$terms.fit,object$fitcontrol$terms.fit]
+      coefs <- coef(object)[object$fitcontrol$terms.fit]
       chi2 <- vector(length=length(object$terms))
-      chi2[loc] <- qchisq(1 - object$prob[loc], 1)
-      chi2[-loc] <- 0
+      chi2[object$fitcontrol$terms.fit] <- qchisq(1 - object$prob[object$fitcontrol$terms.fit], 1)
+      chi2[-object$fitcontrol$terms.fit] <- 0
    }
    else {
       var.red <- object$var

@@ -13,9 +13,8 @@
 #' @encoding UTF-8
 #' @examples
 #' data(sexagg)
-#' fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, 
-#'     fitcontrol=logistf.fit.control(terms.fit=c(1,2)))
-#'summary(fit2)
+#' fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, fitcontrol=logistf.fit.control(terms.fit=c(1,2)))
+#' summary(fit2)
 #' 
 logistf.fit.control <-
   function(tau=0.5,

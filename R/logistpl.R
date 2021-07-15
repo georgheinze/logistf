@@ -11,9 +11,7 @@ logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, 
     if (!is.numeric(tau) | length(tau)>1){
       stop("Invalid value for degree of penalization tau: Must be numeric.")
     }
-    if (tau<=0|tau>=1){
-      stop("Invalid value for degree of penalization tau: Must be a value in (0,1).")
-    }     
+      
     maxit<-plcontrol$maxit
     maxstep<-plcontrol$maxstep
     maxhs<-plcontrol$maxhs

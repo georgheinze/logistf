@@ -93,6 +93,7 @@
 #' summary(fit2)
 #' 
 #' # simulated SNP example
+#' \dontrun{
 #' set.seed(72341)
 #' snpdata<-rbind(
 #'   matrix(rbinom(2000,2,runif(2000)*0.3),100,20),
@@ -106,6 +107,7 @@
 #' add1(fitsnp, scope=paste("SNP",1:20,"_",sep=""))
 #' fitf<-forward(fitsnp, scope = paste("SNP",1:20,"_",sep=""))
 #' fitf
+#' }
 #' 
 #' @author Georg Heinze and Meinhard Ploner
 #' @references Firth D (1993). Bias reduction of maximum likelihood estimates. Biometrika 80, 27-38. 

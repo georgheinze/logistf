@@ -7,7 +7,7 @@
 \usage{
 logistf.control(
   maxit = 25,
-  maxhs = 5,
+  maxhs = 0,
   maxstep = 5,
   lconv = 1e-05,
   gconv = 1e-05,
@@ -57,8 +57,7 @@ Different values can be specified, e. g., by \code{logistf(..., control= logistf
 }
 \examples{
 data(sexagg)
-fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, 
-    control=logistf.control(maxstep=1))
+fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, control=logistf.control(maxstep=1))
 summary(fit2)
 
 }
