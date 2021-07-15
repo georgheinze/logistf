@@ -9,7 +9,7 @@
 \usage{
 flic(...)
 
-\method{flic}{formula}(formula, data, model = TRUE, ...)
+\method{flic}{formula}(formula, data, model = TRUE, control, fitcontrol, ...)
 
 \method{flic}{logistf}(lfobject, model = TRUE, ...)
 }
@@ -23,6 +23,10 @@ and the model terms on the right. The response must be a vector with 0 and 1 or 
 \item{data}{If using with formula, a data frame containing the variables in the model.}
 
 \item{model}{If TRUE the corresponding components of the fit are returned.}
+
+\item{control}{Controls iteration parameter. Taken from \code{logistf}-object when specified. Otherwise default is \code{control= logistf.control()}}
+
+\item{fitcontrol}{Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.fit.control = logistf.fit.control()}}
 
 \item{lfobject}{A fitted \code{\link{logistf}} object}
 }
@@ -44,6 +48,7 @@ A \code{flic} object with components:
   \item{n}{The number of observations.}
   \item{formula}{The formula object.}
   \item{control}{a copy of the control parameters.}  
+  \item{fitcontrol}{a copy of the fitcontrol parameters.}  
   \item{terms}{the model terms (column names of design matrix).}
   \item{model}{if requested (the default), the model frame used.}
 }

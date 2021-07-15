@@ -12,7 +12,7 @@ logistftest(
   beta0,
   weights,
   control,
-  col.fit.object = NULL,
+  fitcontrol,
   ...
 )
 }
@@ -40,8 +40,7 @@ regression parameters.}
 
 \item{control}{Controls parameters for iterative fitting}
 
-\item{col.fit.object}{Numerical vector containing the positions of the variables to fit, if not
-specified: all variables are taken}
+\item{fitcontrol}{Controls additional parameter for fitting. Default is \code{logistf.fit.control = logistf.fit.control()}}
 
 \item{...}{further arguments passed to logistf.fit}
 }

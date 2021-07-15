@@ -12,9 +12,11 @@ logistf(
   alpha = 0.05,
   control,
   plcontrol,
+  fitcontrol,
   firth = TRUE,
   init,
   weights,
+  na.action,
   plconf = NULL,
   flic = FALSE,
   model = TRUE,
@@ -36,12 +38,12 @@ penalized log likelihood (\code{pl=TRUE}, the default) or on the Wald method (\c
 
 \item{alpha}{The significance level (1-\eqn{\alpha} the confidence level, 0.05 as default).}
 
-\item{control}{Controls Newton-Raphson iteration. Default is \code{control= logistf.control(maxstep, 
-maxit, maxhs, lconv, gconv, xconv)}}
+\item{control}{Controls iteration parameter. Default is \code{control= logistf.control()}}
 
 \item{plcontrol}{Controls Newton-Raphson iteration for the estimation of the profile 
-likelihood confidence intervals. Default is \code{plcontrol= logistpl.control(maxstep, maxit, 
-maxhs, lconv, xconv, ortho, pr)}}
+likelihood confidence intervals. Default is \code{plcontrol= logistpl.control()}}
+
+\item{fitcontrol}{Controls additional parameter for fitting. Default is \code{logistf.fit.control = logistf.fit.control()}}
 
 \item{firth}{Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) or the 
 standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression. 
@@ -54,8 +56,10 @@ logistic regression parameters.}
 \item{weights}{specifies case weights. Each line of the input data set is multiplied 
 by the corresponding element of weights}
 
+\item{na.action}{a function which indicates what should happen when the data contain NAs}
+
 \item{plconf}{specifies the variables (as vector of their indices) for which profile likelihood 
-confidence intervals should be computed. Default is to compute for all variables}
+confidence intervals should be computed. Default is to compute for all variables.}
 
 \item{flic}{If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
 keeping all other coefficients constant}
@@ -91,9 +95,12 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
    \item{control}{a copy of the control parameters.}
+   \item{fitcontrol}{a copy of the fitcontrol parameters.}
    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
 keeping all other coefficients constant. According to input of logistf.}  
    \item{model}{if requested (the default), the model frame used.}
+   \item{fit}{The fitting algorithm used.}
+   \item{na.action}{information returned by model.frame on the special handling of NAs}
 }
 \description{
 Implements Firth's bias-Reduced penalized-likelihood logistic regression.
@@ -124,6 +131,7 @@ fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT)
 summary(fit2)
 
 # simulated SNP example
+\dontrun{
 set.seed(72341)
 snpdata<-rbind(
   matrix(rbinom(2000,2,runif(2000)*0.3),100,20),
@@ -137,6 +145,7 @@ fitsnp<-logistf(data=snpdata, formula=case~1, pl=FALSE)
 add1(fitsnp, scope=paste("SNP",1:20,"_",sep=""))
 fitf<-forward(fitsnp, scope = paste("SNP",1:20,"_",sep=""))
 fitf
+}
 
 }
 \references{
@@ -158,7 +167,7 @@ Venzon DJ, Moolgavkar AH (1988). A method for computing profile-likelihood based
 intervals. Applied Statistics 37:87-94.
 }
 \seealso{
-[add1.logistf, drop1.logistf, anova.logistf]
+[add1.logistf()], [drop1.logistf()], [anova.logistf()]
 }
 \author{
 Georg Heinze and Meinhard Ploner

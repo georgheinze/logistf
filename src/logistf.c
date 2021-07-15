@@ -3,8 +3,556 @@
 #include <Rdefines.h>
 #include "memory.h"
 #include "Rmath.h"
-//#include <Rcpp>
 #include "veclib.h"
+
+void logistffit_revised(double *x, int *y, int *n_l, int *k_l, 
+                double *weight, double *offset, 
+                double *beta,
+                int *colfit, int *ncolfit_l, int *firth_l, 
+                int *maxit, double *maxstep, int *maxhs,
+                double *lconv, double *gconv, double *xconv, double* tau, 
+                // output: 
+                double *fisher_cov,		// k x k
+                double *Ustar,				// k
+                double *pi,						// n
+                double *Hdiag,				// n
+                double *loglik,				// 1
+                int *evals,
+                int *iter,
+                double *convergence		// 3
+)
+{
+  long n = (long)*n_l, k = (long)*k_l, firth = (long)*firth_l, ncolfit = (long)*ncolfit_l;
+  double wi, logdet;
+  long i, j, halfs;
+  double loglik_old, loglik_change = 5.0;
+  
+  double *xt;
+  double *xw2;
+  double *xw2t;
+  double *tmp;
+  double *beta_old;
+  double *w;
+  double *xw2_reduced_augmented;
+  double *xw2_reduced_augmented_t;
+  double *fisher_cov_reduced_augmented;
+  double *cov_augmented;
+  double *delta;
+  int *selcol;
+  
+  // memory allocations
+  if (NULL == (xt = (double *) R_alloc(n * k, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (xw2 = (double *) R_alloc(k * n, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (xw2t = (double *) R_alloc(n * k, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (tmp = (double *) R_alloc(n * k, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (beta_old = (double *) R_alloc(k, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (w = (double *) R_alloc(n, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (xw2_reduced_augmented = (double *) R_alloc(n*ncolfit, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (xw2_reduced_augmented_t = (double *) R_alloc(n*ncolfit, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (fisher_cov_reduced_augmented = (double *) R_alloc(ncolfit*ncolfit, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (cov_augmented = (double *) R_alloc(k*k, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (delta = (double *) R_alloc(k, sizeof(double)))){ error("no memory available\n");}
+  if (NULL == (selcol = (int *) R_alloc(ncolfit, sizeof(double)))){ error("no memory available\n");}
+  
+  //Initialise delta: 
+  for(i=0; i < k; i++) {
+    delta[i] = 0.0;
+  }
+  
+  // which columns to select based on the columns to fit:
+  for(i=0; i < ncolfit; i++){
+    selcol[i] = colfit[i] - 1;
+  }
+    
+  // Calculate initial likelihood
+  trans(x, xt, n, k);
+  XtY(xt, beta, pi, k, n, 1);	//init of pred prob
+  for(i = 0; i < n; i++){
+    pi[i] = 1.0 / (1.0 + exp( - pi[i] - offset[i]));	
+  }
+  
+  //Calculation of hat matrix diagonal; needed for loglik calculation on augmented dataset and in first iteration of main loop
+  //-- Calculation of X^T W^(1/2)
+  for(i = 0; i < n; i++) { 
+    wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i]));
+    for(j = 0; j < k; j++)
+      xw2[i*k + j] = x[i + j*n] * wi; 
+  }
+  //-- Transpose: W^(1/2)^T X
+  trans(xw2, xw2t, k, n);
+  //-- Calculation of XWX
+  XtXasy(xw2t, fisher_cov, n, k);
+  //-- Invert:
+  linpack_det(fisher_cov, &k, &logdet);
+  if (logdet < (-50)) {	
+    error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+  }
+  else {
+    linpack_inv(fisher_cov, &k); 
+  }
+  //-- Calculation of X^T W^(1/2) (X^TWX)^(-1)
+  XtY(xw2, fisher_cov, tmp, k, n, k);
+  XYdiag(tmp, xw2, Hdiag, n, k);
+
+  
+  // Calculation of loglikelihood using augmented dataset if firth:
+  *loglik = 0.0;
+  for(i = 0; i < n; i++){ 
+    *loglik += y[i] * weight[i] * log(pi[i]) + (1.0-y[i]) * weight[i] * log(1-pi[i]);
+  }
+  if(firth){
+    for(i=0; i<n; i++){
+      // weight first replication of dataset with h_i * tau 
+      *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+      // weight second replication of dataset with 2 * h_i * tau with opponent y
+      *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] *  Hdiag[i] * *tau * log(1-pi[i]);
+    }
+  }
+
+  //Calculation of initial U*:
+  if(firth){
+    for(i=0; i < n; i++){
+      w[i] = weight[i] * ((double)y[i]-pi[i] + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+    }
+  } else {
+    for(i=0; i < n; i++){
+      w[i] = weight[i] * ((double)y[i] - pi[i]);
+    }
+  }
+  XtY(x, w, Ustar, n, k, 1);
+
+  *evals = 1, *iter = 0;
+  int bStop = 0;
+  
+  //Start of iteration: 
+  if(*maxit > 0){ // in case of maxit == 0 only evaluate likelihood
+    for(;;){
+    //--Save iteration values:
+      loglik_old = *loglik;
+      copy(beta, beta_old, k);
+
+      //--Calculation of (X^TWX)^(-1) using augmented dataset and only columns in selcol (columns to fit: colfit - 1)
+      if(ncolfit > 0 && (selcol[0] != -1)) { // selcol[0] == -1 in case of just evaluating likelihood
+        //-- Calculation of X^T W^(1/2)
+        //---- XW^(1/2)
+
+        for(i = 0; i < n; i++) {
+          if(firth){
+            wi = sqrt(weight[i]* (1 + 2 * Hdiag[i] * *tau) * pi[i] * (1.0 - pi[i])); 
+          } else {
+            wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
+          }
+          for(j = 0; j < ncolfit; j++){
+            xw2_reduced_augmented[i*ncolfit + j] =  x[i + selcol[j]*n] * wi;
+          }
+        }
+
+        //---- W^(1/2)^TX^T
+        trans(xw2_reduced_augmented, xw2_reduced_augmented_t, ncolfit, n); 
+        XtXasy(xw2_reduced_augmented_t, fisher_cov_reduced_augmented, n, ncolfit);
+        linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
+        
+        //---- Remapping of fisher_cov_(reduced)_augmented
+        for(i = 0; i < k*k; i++) { //Initialisation:
+          cov_augmented[i] = 0.0;
+        }
+        for(i=0; i < ncolfit; i++){
+          for(j=0; j < ncolfit; j++) {
+            cov_augmented[selcol[i] + k*selcol[j]] = fisher_cov_reduced_augmented[i + ncolfit*j];
+          }
+        }
+        
+        // Actual computation of delta:
+        XtY(cov_augmented, Ustar, delta, k, k, 1);
+        
+        // Check for maxstep:
+        double mx = maxabs(delta, k) / *maxstep;
+        if(mx > 1.0){
+          for(i=0; i < k; i++) {
+            delta[i] /= mx;
+          }
+        }
+      }
+      
+      //Update coefficient vector beta:
+      for(i=0; i < k; i++){
+        beta[i] += delta[i];
+      }
+      
+      //Start step-halvings
+      for(halfs = 1; halfs <= *maxhs; halfs++) {
+        //Calculate loglik:
+        //--Update pi:
+        XtY(xt, beta, pi, k, n, 1);
+        for(i = 0; i < n; i++){
+          pi[i] = 1.0 / (1.0 + exp( - pi[i] - offset[i]));	
+        }
+        
+        //--Calculation of hat matrix diagonal;
+        //-- Calculation of X^T W^(1/2)
+        for(i = 0; i < n; i++) { 
+          wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i]));
+          for(j = 0; j < k; j++)
+            xw2[i*k + j] = x[i + j*n] * wi; 
+        }
+        //-- Transpose: W^(1/2)^T X
+        trans(xw2, xw2t, k, n);
+        //-- Calculation of XWX
+        XtXasy(xw2t, fisher_cov, n, k);
+        //-- Invert:
+        linpack_inv(fisher_cov, &k); 
+        //-- Calculation of X^T W^(1/2) (X^TWX)^(-1)
+        XtY(xw2, fisher_cov, tmp, k, n, k);
+        XYdiag(tmp, xw2, Hdiag, n, k);
+        
+        // Calculation of loglikelihood using augmented dataset if firth:
+        *loglik = 0.0;
+        for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
+          *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
+        }
+        if(firth){
+          for(i=0; i<n; i++){
+            // weight first replication of dataset with 1+ h_i * tau
+            *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+            // weight second replication of dataset with h_i * tau with oppenent y
+            *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+          }
+        }
+        //Increase evaluation counter
+        (*evals)++;
+        
+        //Convergence check:
+        if(*loglik >= (loglik_old - *lconv)){
+          break;
+        }
+        
+        //Calculation of U*: (needed just as a return value)
+        if(firth){
+          for(i=0; i < n; i++){
+            w[i] = weight[i] * ((double)y[i]-pi[i] + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+          }
+        } else {
+          for(i=0; i < n; i++){
+            w[i] = weight[i] * ((double)y[i] - pi[i]);
+          }
+        }
+        XtY(x, w, Ustar, n, k, 1);
+        
+        //Update beta:
+        for(i=0; i < k; i++){
+          delta[i] /= 2.0;
+          beta[i] -= delta[i];
+        }
+      }
+      
+      if(*maxhs == 0){ //if no half stepping: Update pi and compute Hdiag for the next iteration + compute loglik to check for convergence
+        //Update predicted prob: 
+        XtY(xt, beta, pi, k, n, 1);
+        for(i = 0; i < n; i++){
+          pi[i] = 1.0 / (1.0 + exp( - pi[i] - offset[i]));	
+        }
+        //Calculation of hat matrix diagonal for next iteration; needed for loglik calculation on augmented dataset
+        //If step halfing is activated - Hdiag is computed there
+        //-- Calculation of X^T W^(1/2)
+        for(i = 0; i < n; i++) { 
+          wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i]));
+          for(j = 0; j < k; j++)
+            xw2[i*k + j] = x[i + j*n] * wi; 
+        }
+        //-- Transpose: W^(1/2)^T X
+        trans(xw2, xw2t, k, n);
+        //-- Calculation of XWX
+        XtXasy(xw2t, fisher_cov, n, k);
+        //-- Invert:
+        linpack_det(fisher_cov, &k, &logdet);
+        if (logdet < (-50)) {	
+          error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+        }
+        else {
+          linpack_inv(fisher_cov, &k); 
+        }
+        //-- Calculation of X^T W^(1/2) (X^TWX)^(-1)
+        XtY(xw2, fisher_cov, tmp, k, n, k);
+        XYdiag(tmp, xw2, Hdiag, n, k);
+        // Calculation of loglikelihood using augmented dataset if firth:
+        *loglik = 0.0;
+        for(i = 0; i < n; i++){ 
+          *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
+        }
+        if(firth){
+          for(i=0; i<n; i++){ //weights weight[i] already included in Hdiag[i]: not needed again
+            // weight first replication of dataset with 1+ h_i * tau
+            *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * (Hdiag[i] * *tau) * log(1-pi[i]);
+            // weight second replication of dataset with h_i * tau with opponent y
+            *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+          }
+        }
+        //Increase evaluation counter
+        (*evals)++;
+        
+        //Calculation of U*:
+        if(firth){
+          for(i=0; i < n; i++){
+            w[i] = weight[i] * ((double)y[i]-pi[i] + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+          }
+        } else {
+          for(i=0; i < n; i++){
+            w[i] = weight[i] * ((double)y[i] - pi[i]);
+          }
+        }
+        XtY(x, w, Ustar, n, k, 1);
+      }
+      
+      loglik_change = *loglik - loglik_old;
+      
+      //Check convergence of main loop:
+      if((*iter >= *maxit) || (
+        (maxabsInds(delta, selcol, ncolfit) <= *xconv) && 
+          (maxabsInds(Ustar, selcol, ncolfit) < *gconv) &&
+          (loglik_change < *lconv))){
+        bStop = 1;
+      }
+      //if((*iter < *maxit) && (halfs >= *maxhs) && (*maxhs >= 5) && (*loglik < loglik_old)){
+      //  bStop = 1;   // stop if half-stepping with at least 5 steps was not successful;
+      //}
+      if(bStop){
+        break;
+      }
+      //Increase iteration counter
+      (*iter)++;
+      
+    } //End of iterations
+    
+    if(ncolfit > 0 && (selcol[0] != -1)) {
+      copy(cov_augmented, fisher_cov, k*k);
+    }
+    
+    convergence[0] = loglik_change;
+    convergence[1] = maxabsInds(Ustar, selcol, ncolfit);
+    convergence[2] = maxabsInds(delta, selcol, ncolfit);
+  }
+}
+
+
+
+void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l, 
+								double *weight, double *offset, 
+								double *beta, // beta is I/O
+								int *colfit, int *ncolfit_l, int *firth_l, 
+								int *maxit, double *maxstep, int *maxhs,
+								double *lconv, double *gconv, double *xconv, double* tau, 
+								// output: 
+								double *fisher_cov,		// k x k
+								double *pi,						// n
+								double *Hdiag,				// n
+								double *loglik,
+								int *evals,
+								int *iter,
+								double *convergence		// 3
+){
+	long n = (long)*n_l, k = (long)*k_l, ncolfit = (long)*ncolfit_l, firth = (long)*firth_l;
+	double wi, wi_augmented;
+	long i, j;
+	// memory allocations
+
+	double *xt;
+	double *beta_old;
+	double *xw2;
+	double *xw2t;
+	double *tmpNxK;
+	int *selcol;
+	double *newresponse; // newresponse of IRLS
+	double *delta;
+	double *fisher_cov_reduced_augmented;
+	double *xw2_reduced_augmented;
+	double *xw2t_reduced_augmented;
+	double *tmp1_reduced;
+	double *covs_full;
+	double *xw2_reduced;
+
+	 if (NULL == (xt = (double *) R_alloc(k * n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (beta_old = (double *) R_alloc(k ,sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2 = (double *) R_alloc(k * n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2t = (double *) R_alloc(n * k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (tmpNxK = (double *) R_alloc(n * k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (selcol = (int *) R_alloc(ncolfit, sizeof(int)))){error("no memory available\n");}
+	 if (NULL == (newresponse = (double *) R_alloc(n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (delta = (double *) R_alloc( k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (fisher_cov_reduced_augmented = (double *) R_alloc(ncolfit* ncolfit, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2_reduced_augmented = (double *) R_alloc(ncolfit* n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2t_reduced_augmented = (double *) R_alloc(ncolfit* n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (tmp1_reduced = (double *) R_alloc(ncolfit* n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (covs_full = (double *) R_alloc(k* k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2_reduced = (double *) R_alloc(ncolfit* n, sizeof(double)))){error("no memory available\n");}
+	
+	
+	trans(x, xt, n, k);
+	
+	// init loglik
+	double loglik_old, loglik_change = 5.0;
+	
+	*evals = 0, *iter = 0;
+	int bStop = 0;
+	
+	//init delta: difference between beta values in iteration i-1 and i
+	//and beta
+	for(i=0; i < k; i++){
+			delta[i] = 0.0;
+	 }
+	
+	for(i=0; i < ncolfit; i++){
+	    selcol[i] = colfit[i] - 1;
+	 }
+	
+	//Calculate initial likelihood and Hdiag for first iteration:
+	// calculation of pi
+	XtY(xt, beta, pi, k, n, 1);
+	for(i = 0; i < n; i++){
+	  pi[i] = 1.0 / (1.0 + exp( - pi[i] - offset[i]));
+	} 
+	
+	// XW^(1/2)
+	for(i = 0; i < n; i++) {
+	  wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
+	  for(j = 0; j < k; j++){
+	    xw2[i*k + j] = x[i + j*n] * wi;
+	  }
+	}
+	
+	//Calculation of Hat diag:
+	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
+	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
+	linpack_inv(fisher_cov, &k); 
+	XtY(xw2, fisher_cov, tmpNxK, k, n, k);
+	XYdiag(tmpNxK, xw2, Hdiag, n, k);
+	
+	// Calculation of loglikelihood using augmented dataset if firth:
+	*loglik = 0.0;
+	for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
+	  *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
+	  if(firth){
+	    // weight first replication of dataset with 1+ h_i * tau 
+	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+	    // weight second replication of dataset with h_i * tau with opponent y
+	    *loglik += (1-y[i]) *Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+	  }
+	}
+	(*evals)++;
+
+  
+  //Start IRLS: 
+	for(;;){
+    loglik_old = *loglik;
+    copy(beta, beta_old, k);
+
+    XtY(xt, beta_old, newresponse, k, n, 1);
+    for(i=0; i < n; i++){
+        wi = weight[i]* pi[i] * (1.0 - pi[i]); //W^(-1)
+      if(firth){
+        newresponse[i] += 1/wi*(weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+      } else {
+        newresponse[i] += 1/wi*(weight[i] * ((double)y[i]-pi[i]));
+      }
+    }
+    
+    // Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
+    for(i = 0; i < n; i++) {
+      if(firth){
+        wi_augmented = sqrt(weight[i]* (1.0 + 2 * Hdiag[i] * *tau) * pi[i] * (1.0 - pi[i])); 
+      } else {
+        wi_augmented = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
+      }
+      wi = weight[i] * pi[i] * (1.0 - pi[i]); 
+      for(j = 0; j < ncolfit; j++){
+        xw2_reduced_augmented[i*ncolfit + j] =  x[i + selcol[j]*n] * wi_augmented;
+        xw2_reduced[i*ncolfit + j] = x[i + selcol[j]*n] * wi;
+      }
+    }
+    
+    //---- W^(1/2)^TX^T
+    trans(xw2_reduced_augmented, xw2t_reduced_augmented, ncolfit, n); 
+    XtXasy(xw2t_reduced_augmented, fisher_cov_reduced_augmented, n, ncolfit);
+    linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
+
+    	
+    //(X^TWX)^(-1)X^TW
+  	XY(fisher_cov_reduced_augmented, xw2_reduced, tmp1_reduced, ncolfit, ncolfit, n);
+    	  
+  	double tmp;
+  	for(j = 0; j < ncolfit; j++) {
+  	   tmp = 0.0;
+  	   for(i = 0; i < n; i++){
+  	       tmp += tmp1_reduced[j + i*ncolfit]*newresponse[i];
+  	   }
+  	   beta[selcol[j]] = tmp;
+  	}
+  	
+  	//Calculate likelihood nad hdiag for next iteration
+  	// calculation of pi
+  	XtY(xt, beta, pi, k, n, 1);
+  	for(i = 0; i < n; i++){
+  	  pi[i] = 1.0 / (1.0 + exp( - pi[i] - offset[i]));
+  	} 
+  	
+  	// XW^(1/2)
+  	for(i = 0; i < n; i++) {
+  	  wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
+  	  for(j = 0; j < k; j++){
+  	    xw2[i*k + j] = x[i + j*n] * wi;
+  	  }
+  	}
+
+  	//Calculation of Hat diag:
+  	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
+  	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
+  	linpack_inv(fisher_cov, &k); 
+  	
+  	XtY(xw2, fisher_cov, tmpNxK, k, n, k);
+  	XYdiag(tmpNxK, xw2, Hdiag, n, k);
+  	
+  	// Calculation of loglikelihood using augmented dataset if firth:
+  	*loglik = 0.0;
+  	for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
+  	  *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
+  	  if(firth){
+  	    // weight first replication of dataset with h_i * tau 
+  	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+  	    // weight first replication of dataset with h_i * tau with opponent y
+  	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+  	  }
+  	}
+  	(*evals)++;
+  	
+  	loglik_change = *loglik - loglik_old;
+  	for(i=0; i < k; i++){
+  		delta[i] = beta[i]-beta_old[i];
+  	}
+  	(*iter)++;
+    		
+  	if((*iter >= *maxit) || ((maxabsInds(delta, selcol, ncolfit) <= *xconv) && (loglik_change < *lconv)) ) {
+  	    bStop = 1;
+  	}
+    		
+  	if(bStop){
+  		break;
+  	}
+  }
+
+	
+	// return adjusted vcov matrix if not all variables were fitted:
+	for(i = 0; i < k*k; i++) {
+	  covs_full[i] = 0.0; // init 0
+	}
+	for(i=0; i < ncolfit; i++){
+	  for(j=0; j < ncolfit; j++) {
+	    covs_full[selcol[i] + k*selcol[j]] = fisher_cov_reduced_augmented[i + ncolfit*j];
+	  }   
+	}
+	copy(covs_full, fisher_cov, k*k);
+	
+	convergence[0] = loglik_change;
+	convergence[2] = maxabsInds(delta, selcol, ncolfit);
+}
 
 
 // fit
@@ -13,7 +561,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 								double *beta, // beta is I/O
 								int *colfit, int *ncolfit_l, int *firth_l, 
 								int *maxit, double *maxstep, int *maxhs,
-								double *lconv, double *gconv, double *xconv,
+								double *lconv, double *gconv, double *xconv, double* tau, 
 								// output: 
 								double *fisher_cov,		// k x k
 								double *Ustar,				// k
@@ -24,12 +572,11 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 								int *iter,
 								double *convergence		// 3
 )
-
-
 {
 	long n = (long)*n_l, k = (long)*k_l, firth = (long)*firth_l, ncolfit = (long)*ncolfit_l;
 	double wi, logdet;
 	long i, j, halfs;
+	double HdiagSum;
 	
 	// memory allocations
 
@@ -118,7 +665,6 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	    error("predicted probabilities too small in %d . element, numerator: %e",i+1, tmp[i]);
 	  }
 		pi[i] = 1.0 / (1.0 + tmp[i]);	// final pi
-		//Rprintf(" offset %f ", pi[i]);
 	}
 	
 	// init loglik
@@ -141,17 +687,18 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	XtXasy(xw2t, fisher_cov, n, k); // calc XWX
 	if(firth == 1) {
 		linpack_det(fisher_cov, &k, &logdet);
-	  if (fabs(logdet) < 0.000000001) {	
-	    error("Determinant of Fisher information matrix was %lf, singularity detected\n", logdet);
+	  if (logdet < (-50)) {	
+	    error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
 	  }
 	  else {
 	    linpack_inv(fisher_cov, &k); //if not singular then compute inverse
-	    *loglik += 0.5 * logdet;
+	    *loglik += *tau * logdet;
 	  }
 	} 
 	else {
 	  linpack_inv(fisher_cov, &k);
 	}
+
 	
 	//Rprintf("*** loop start ***\n");
 	// ****** main loop ******
@@ -182,10 +729,14 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 			XtY(xw2, fisher_cov, tmpNxK, k, n, k);
 			XYdiag(tmpNxK, xw2, Hdiag, n, k);
 			//Rprintf("Hdiag : "); Rprintf(Hdiag, 1, n);
+			HdiagSum = 0;
+			for(i=0; i<n; i++)
+			  HdiagSum += Hdiag[i];
+			//Rprintf("Hdiag sum: %f \n", HdiagSum);
 		}
 		if(firth) 
 			for(i=0; i < n; i++){
-				w[i] = weight[i] * ((double)y[i] - pi[i]) + Hdiag[i] * (0.5 - pi[i]);
+				w[i] = weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (1/2 - pi[i]);
 		    //Rprintf(" y %5.2f: ", y[i]);
 		    //Rprintf(" pi %5.2f: ", pi[i]);
 		    //Rprintf(" H %5.2f: ", Hdiag[i]);
@@ -196,15 +747,17 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 			}
 		//Rprintf("weights : "); Rprintf(w, 1, n);
 		XtY(x, w, Ustar, n, k, 1);
-		//Rintf("Ustar : "); 
+		//Rprintf("Ustar : "); 
 		//Rprintf(Ustar, 1, k);
 		
 		if(ncolfit > 0 && selcol[0] != -1) {
-			if(ncolfit == k)
-				copy(fisher_cov, XXcovs, k*k);
-			else {
+			//if(ncolfit == k)
+			//	copy(fisher_cov, XXcovs, k*k);
+			//else {
 				for(i = 0; i < n; i++) {
 					wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
+					if(firth)
+						wi = wi * sqrt(1 + Hdiag[i] * 2 * *tau);   // adj covariance for penalty 
 					for(j = 0; j < ncolfit; j++)
 						XX_XW2[i*ncolfit + j] = x[i + selcol[j]*n] * wi;	// multiply whole col with weight
 				}
@@ -213,7 +766,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 				trans(XX_XW2, XX_XW2t, ncolfit, n);
 				XtXasy(XX_XW2t, XX_Fisher , n, ncolfit);
 				//for(i=0; i < 2*k*n; i++) Rprintf(" %f ", XX_XW2t[i]);
-				linpack_inv(XX_Fisher, &ncolfit); // fisher is changed here to covs!!
+				linpack_inv(XX_Fisher, &ncolfit); // XX_fisher is changed here to inverse!!
 				//for(i=0; i < k*k; i++) Rprintf(" %f ", XX_Fisher[i]);
 				//bIsInverted = 1;
 				//Rprintf("inv(fisher) : "); Rprintf(XX_Fisher, ncolfit, ncolfit);
@@ -225,7 +778,7 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 					}
 				//Rprintf("XXcovs : "); Rprintf(XXcovs, k, k);
 				//for(i=0; i < k*k; i++) Rprintf(" %f ", XXcovs[i]);
-			}
+			//}
 			
 			if(bStop)
 				break;
@@ -290,21 +843,28 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 					linpack_det(fisher_cov, &k, &logdet); // fisher_cov is unchanged here; only det computed
 					//bIsInverted = 0;
 					
-					*loglik += 0.5 * logdet;
+					*loglik += *tau * logdet;
 				}
 				(*evals)++;
 				
+				//Rprintf("Iter %d halfs %d \n", *iter, halfs);
 				//Rprintf("loglik %f  old: %f \n", *loglik, loglik_old);
-				//Rprintf("* beta half stepped): "); Rprintf(beta, 1, k);
+				//Rprintf("* beta[0] half stepped: %f \n", beta[0]);
+				//Rprintf("* beta[2] half stepped: %f \n", beta[2]);
+				//Rprintf("* max Ustar: %f \n", maxabsInds(Ustar, selcol, ncolfit));
 				
-				if(*loglik >= loglik_old)
+				if(*loglik >= loglik_old - *lconv)
 					break; // stop half steps 
 				
-				for(i=0; i < k; i++)
-					beta[i] -= delta[i] * powf(2.0, (float)-halfs);  
+				for(i=0; i < k; i++){
+//					beta[i] -= delta[i] * powf(2.0, (float)-halfs);  
+          delta[i] /= 2.0;
+				  beta[i] -= delta[i];
+				}
 			}
 			//Rprintf("****** beta: "); 
 			//Rprintf(beta, 1, k);
+			//
 		}
 		
 		loglik_change = *loglik - loglik_old;
@@ -321,8 +881,10 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 		if((*iter >= *maxit) || (
 			 (maxabsInds(delta, selcol, ncolfit) <= *xconv) && 
 			 (maxabsInds(Ustar, selcol, ncolfit) < *gconv) &&
-			 (loglik_change < *lconv)) )
+			 (loglik_change < *lconv)))
 			bStop = 1;
+		if((*iter < *maxit) && (halfs >= *maxhs) && (*maxhs >= 5) && (*loglik < loglik_old))
+		  bStop = 1;   // stop if half-stepping with at least 5 steps was not successful;
 	}
 	
 	copy(XXcovs, fisher_cov, k*k);
@@ -332,16 +894,14 @@ void logistffit(double *x, int *y, int *n_l, int *k_l,
 	convergence[2] = maxabsInds(delta, selcol, ncolfit);
 }
 
-
-
 // profile likelihood
-void logistpl(double *x, int *y, int *n_l, int *k_l, 
+void logistplfit(double *x, int *y, int *n_l, int *k_l, 
 							double *weight, double *offset, 
 							double *beta, // beta is I/O (init)
 							int *iSel, int *which, double *LL0, int *firth_l, 
 							// control parameter:
 							int *maxit, double *maxstep, int *maxhs,
-							double *lconv, double *xconv,
+							double *lconv, double *xconv, double *tau,
 							// output: 
 							double *betahist,			// k * maxit
 							double *loglik,				// 1
@@ -462,7 +1022,7 @@ void logistpl(double *x, int *y, int *n_l, int *k_l,
 	
 	if(firth == 1) {
 		linpack_det(fisher, &k, &logdet);
-		*loglik += 0.5 * logdet;
+		*loglik += *tau * logdet;
 	} 
 	
 //	Rprintf("*** loop start ***\n");
@@ -472,9 +1032,12 @@ void logistpl(double *x, int *y, int *n_l, int *k_l,
 	*iter = 0;
 	for(;;) {
 		(*iter)++;
-		
+
 		// compute covarince
 		copy(fisher, cov, k*k);
+		if (logdet < (-50)) {	
+		  error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+		}
 		linpack_inv(cov, &k);
 		
 		if(firth) {
@@ -485,12 +1048,15 @@ void logistpl(double *x, int *y, int *n_l, int *k_l,
 		}
 		//Rprintf("pi : "); Rprintf(pi, 1, n);
 		
-		if(firth) 
-			for(i=0; i < n; i++)
-				w[i] = weight[i] * ((double)y[i] - pi[i]) + Hdiag[i] * (0.5 - pi[i]);
-		else
-			for(i=0; i < n; i++)
-				w[i] = weight[i] * ((double)y[i] - pi[i]);
+		if(firth) {
+		  for(i=0; i < n; i++){
+		    w[i] = weight[i] * ((double)y[i] - pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]);
+		  }
+		}else{
+		  for(i=0; i < n; i++){
+		    w[i] = weight[i] * ((double)y[i] - pi[i]);
+		  }
+		}
 //		Rprintf("weight : "); Rprintf(weight, 1, n);
 //		Rprintf("w : "); Rprintf(w, 1, n);
 		
@@ -549,7 +1115,7 @@ void logistpl(double *x, int *y, int *n_l, int *k_l,
 //				Rprintf("fisher : "); Rprintf(fisher, k, k);
 				linpack_det(fisher, &k, &logdet); // fisher_cov is unchanged here; only det computed
 				
-				*loglik += 0.5 * logdet;
+				*loglik += *tau * logdet;
 			}
 			
 			//Rprintf("loglik %f  old: %f \n", *loglik, loglik_old);

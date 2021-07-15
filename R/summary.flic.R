@@ -1,4 +1,4 @@
-#' @exportS3Method summary flic
+ #' @exportS3Method summary flic
 summary.flic <- function(object, ...)
 { 
   cat("Firth's logistic regression with intercept correction\n\n")
@@ -17,8 +17,8 @@ summary.flic <- function(object, ...)
   
   #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
   call <- object$call
-  if(!is.null(call$terms.fit) | !is.null(terms.fit)){
-    terms.fit <- c(call$terms.fit,terms.fit)[!is.null(c(call$terms.fit,terms.fit))]
+  if(!is.null(object$fitcontrol$terms.fit)){
+    terms.fit <- object$fitcontrol$terms.fit[!is.null(object$fitcontrol$terms.fit)]
     terms.fit <- eval(terms.fit, parent.frame())
     loc <- match(terms.fit, object$terms)
     var.red <- object$var[loc,loc]

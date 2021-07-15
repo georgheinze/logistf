@@ -95,11 +95,11 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
    }
    if(method=="nested"){
       f1<-fit1$formula
-      a<-attr(terms(f1),"term.labels")
+      a<-attr(terms(fit1),"term.labels")
       #check if just intercept fitted: 
       if(missing(formula)){  
         f2<-fit2$formula
-        b<-attr(terms(f2),"term.labels")
+        b<-attr(terms(fit2),"term.labels")
         # find out about which model is nested in the other
         upper<-f1
         lower<-f2

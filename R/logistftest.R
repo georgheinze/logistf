@@ -26,8 +26,7 @@
 #' @param beta0 Specifies the initial values of the coefficients for the fitting algorithm
 #' @param weights Case weights
 #' @param control Controls parameters for iterative fitting
-#' @param col.fit.object Numerical vector containing the positions of the variables to fit, if not
-#' specified: all variables are taken
+#' @param fitcontrol Controls additional parameter for fitting. Default is \code{logistf.fit.control = logistf.fit.control()}
 #' @param ... further arguments passed to logistf.fit
 #'
 #' @return The object returned is of the class logistf and has the following attributes:
@@ -63,7 +62,7 @@
 #' 
 #' 
 logistftest <-
-function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.object = NULL, ...)
+function(object, test, values, firth = TRUE, beta0, weights, control, fitcontrol, ...)
 {
     call <- match.call()
     formula<-object$formula
@@ -78,7 +77,8 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
     x <- model.matrix(object$formula, model.frame(object))
 
     if (missing(control)) control<-object$control
-
+    if (missing(fitcontrol)) fitcontrol<-object$fitcontrol
+    
     cov.name <- labels(x)[[2]]
     if(missing(weights) & !is.null(object$weights)) weight <- object$weights
     else weight<-NULL
@@ -96,18 +96,16 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         int <- 0
         coltotest <-1:k
     }
-
-###    fit.full<-logistf.fit(    ) # unrestricted, define init and col.fit from values, beta0 and test
-###    fit.null<-logistf.fit(    ) # restricted, define init and col.fit from values, beta0 and test
-    if(!is.null(col.fit.object)){
-        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=col.fit.object, control=control)
+    
+    if(!is.null(fitcontrol$terms.fit)){
+        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=fitcontrol$terms.fit, control=control, tau=fitcontrol$tau, ...)
     }
     else {
-        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=1:k, control=control)
+        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=1:k, control=control, tau=fitcontrol$tau, ...)
     }
     
     if(fit.full$iter>=control$maxit){
-        warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
+        warning(paste("logistftest: Maximum number of iterations for full model exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
     }
 
     pos<-coltotest
@@ -122,7 +120,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         cov.name2 <- labels(model.matrix(test, model.frame(object)))[[2]]
         #cov.name2 <- attr(terms(test), "term.labels")
     }
-    pos <- match(cov.name2, cov.name)   ## Position der Testfakt.
+    pos <- match(cov.name2, cov.name) 
     OK <- !is.na(pos)
     pos <- pos[OK]
     cov.name2 <- cov.name2[OK]
@@ -131,14 +129,19 @@ function(object, test, values, firth = TRUE, beta0, weights, control, col.fit.ob
         offset1 <- beta0
     }
     else {
-        offset1 <- rep(0, k)    ## Vektor der fixierten Werte
+        offset1 <- rep(0, k) 
     }
     if(!missing(values)) {
         offset1[pos] <- values
     }
-    beta <- offset1  ########################################
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=(1:k)[-pos], control=control, init=beta)
-    loglik<-c(fit.null$loglik,fit.full$loglik)
+    beta <- offset1 
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=(1:k)[-pos], control=control, init=beta, tau=fitcontrol$tau, ...)
+
+    if(fit.null$iter>=control$maxit){
+        warning(paste("logistftest: Maximum number of iterations for null model exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
+    }
+
+    loglik<-c(fit.null$loglik, fit.full$loglik)
     
     offset1[ - pos] <- NA
     names(offset1) <- cov.name

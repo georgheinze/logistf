@@ -33,3 +33,7 @@ summary(lf)
 ## Acknowledgment
 
 This work was supported by the Austrian Science Fund (FWF) (award I 2276).
+
+<!-- badges: start -->
+[![R build status](https://github.com/georgheinze/logistf/workflows/R-CMD-check/badge.svg)](https://github.com/georgheinze/logistf/actions)
+<!-- badges: end -->

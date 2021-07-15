@@ -53,7 +53,7 @@
 #'  }
 #'  
 #' # logistf analyses of each imputed data set
-#' fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE, dataout=TRUE))
+#' fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE))
 #' 
 #' # CLIP profile 
 #' xprof<-CLIP.profile(obj=fit.list, variable="x", data=toymi, keep=TRUE)
