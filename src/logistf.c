@@ -1032,9 +1032,12 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 	*iter = 0;
 	for(;;) {
 		(*iter)++;
-		
+
 		// compute covarince
 		copy(fisher, cov, k*k);
+		if (logdet < (-50)) {	
+		  error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+		}
 		linpack_inv(cov, &k);
 		
 		if(firth) {
@@ -1045,12 +1048,15 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 		}
 		//Rprintf("pi : "); Rprintf(pi, 1, n);
 		
-		if(firth) 
-			for(i=0; i < n; i++)
-				w[i] = weight[i] * ((double)y[i] - pi[i]) + 2 * *tau * Hdiag[i] * (1/2 - pi[i]);
-		else
-			for(i=0; i < n; i++)
-				w[i] = weight[i] * ((double)y[i] - pi[i]);
+		if(firth) {
+		  for(i=0; i < n; i++){
+		    w[i] = weight[i] * ((double)y[i] - pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]);
+		  }
+		}else{
+		  for(i=0; i < n; i++){
+		    w[i] = weight[i] * ((double)y[i] - pi[i]);
+		  }
+		}
 //		Rprintf("weight : "); Rprintf(weight, 1, n);
 //		Rprintf("w : "); Rprintf(w, 1, n);
 		
