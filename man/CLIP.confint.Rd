@@ -78,7 +78,8 @@ found in Heinze, Ploner and Beyea (2013).
 #generate data set with NAs 
 freq=c(5,2,2,7,5,4)
 y<-c(rep(1,freq[1]+freq[2]), rep(0,freq[3]+freq[4]), rep(1,freq[5]), rep(0,freq[6]))
-x<-c(rep(1,freq[1]), rep(0,freq[2]), rep(1,freq[3]), rep(0,freq[4]), rep(NA,freq[5]),rep(NA,freq[6]))
+x<-c(rep(1,freq[1]), rep(0,freq[2]), rep(1,freq[3]), rep(0,freq[4]), 
+rep(NA,freq[5]),rep(NA,freq[6]))
 toy<-data.frame(x=x,y=y)
 
 # impute data set 5 times
