@@ -97,7 +97,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   
   // Calculation of loglikelihood using augmented dataset if firth:
   *loglik = 0.0;
-  for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
+  for(i = 0; i < n; i++){ 
     *loglik += y[i] * weight[i] * log(pi[i]) + (1.0-y[i]) * weight[i] * log(1-pi[i]);
   }
   if(firth){
@@ -135,7 +135,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
       if(ncolfit > 0 && (selcol[0] != -1)) { // selcol[0] == -1 in case of just evaluating likelihood
         //-- Calculation of X^T W^(1/2)
         //---- XW^(1/2)
-        // TODO: find better calculation method than ifelse
+
         for(i = 0; i < n; i++) {
           if(firth){
             wi = sqrt(weight[i]* (1 + 2 * Hdiag[i] * *tau) * pi[i] * (1.0 - pi[i])); 
@@ -143,10 +143,10 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
             wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
           }
           for(j = 0; j < ncolfit; j++){
-            xw2_reduced_augmented[i*ncolfit + j] = xt[i*ncolfit + selcol[j]] * wi;
+            xw2_reduced_augmented[i*ncolfit + j] =  x[i + selcol[j]*n] * wi;
           }
         }
-        
+
         //---- W^(1/2)^TX^T
         trans(xw2_reduced_augmented, xw2_reduced_augmented_t, ncolfit, n); 
         XtXasy(xw2_reduced_augmented_t, fisher_cov_reduced_augmented, n, ncolfit);
@@ -221,6 +221,11 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         //Increase evaluation counter
         (*evals)++;
         
+        //Convergence check:
+        if(*loglik >= (loglik_old - *lconv)){
+          break;
+        }
+        
         //Calculation of U*: (needed just as a return value)
         if(firth){
           for(i=0; i < n; i++){
@@ -233,10 +238,6 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         }
         XtY(x, w, Ustar, n, k, 1);
         
-        //Convergence check:
-        if(*loglik >= (loglik_old - *lconv)){
-           break;
-        }
         //Update beta:
         for(i=0; i < k; i++){
           delta[i] /= 2.0;
@@ -275,11 +276,11 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         XYdiag(tmp, xw2, Hdiag, n, k);
         // Calculation of loglikelihood using augmented dataset if firth:
         *loglik = 0.0;
-        for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
+        for(i = 0; i < n; i++){ 
           *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
         }
         if(firth){
-          for(i=0; i<n; i++){
+          for(i=0; i<n; i++){ //weights weight[i] already included in Hdiag[i]: not needed again
             // weight first replication of dataset with 1+ h_i * tau
             *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * (Hdiag[i] * *tau) * log(1-pi[i]);
             // weight second replication of dataset with h_i * tau with opponent y
@@ -362,7 +363,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	int *selcol;
 	double *newresponse; // newresponse of IRLS
 	double *delta;
-	double *fisher_cov_reduced_augmented; //reduced versions in case only a subset of variables should be fitted
+	double *fisher_cov_reduced_augmented;
 	double *xw2_reduced_augmented;
 	double *xw2t_reduced_augmented;
 	double *tmp1_reduced;
@@ -463,8 +464,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
       }
       wi = weight[i] * pi[i] * (1.0 - pi[i]); 
       for(j = 0; j < ncolfit; j++){
-        xw2_reduced_augmented[i*ncolfit + j] = xt[i*ncolfit + selcol[j]] * wi_augmented;
-        //xw2_reduced[i*ncolfit + j] = xt[i*ncolfit + selcol[j]] * wi;
+        xw2_reduced_augmented[i*ncolfit + j] =  x[i + selcol[j]*n] * wi_augmented;
         xw2_reduced[i*ncolfit + j] = x[i + selcol[j]*n] * wi;
       }
     }
