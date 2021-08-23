@@ -24,11 +24,11 @@ and the model terms on the right. The response must be a vector with 0 and 1 or 
 
 \item{model}{If TRUE the corresponding components of the fit are returned.}
 
-\item{control}{Controls iteration parameter. Taken from \code{logistf}-object when specified. Otherwise default is \code{control= logistf.control()}}
+\item{control}{Controls iteration parameter. Taken from \code{logistf}-object when specified. Otherwise default is \code{control= logistf.control()}.}
 
-\item{fitcontrol}{Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.fit.control = logistf.fit.control()}}
+\item{fitcontrol}{Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.fit.control = logistf.fit.control()}.}
 
-\item{lfobject}{A fitted \code{\link{logistf}} object}
+\item{lfobject}{A fitted \code{\link{logistf}} object.}
 }
 \value{
 A \code{flac} object with components:
@@ -57,20 +57,20 @@ A \code{flac} object with components:
 \code{flac} implements Firth's bias-reduced penalized-likelihood logistic regression with added covariate.
 }
 \details{
-Flac is a simple modification of Firth's logistic regression which provides average predicted
+FLAC is a simple modification of Firth's logistic regression which provides average predicted
 probabilities equal to the observed proportion of events, while preserving the ability to deal
-with seperation.
+with separation.
 
-The modified score equation to estimate coefficients for Firth's logistic regression can be 
+The modified score equations to estimate coefficients for Firth's logistic regression can be 
 interpreted as score equations for ML estimates for an augmented data set. This data set can be 
 created by complementing each original observation i with two pseudo-observations weighted by 
 \eqn{h_i/2} with unchanged covariate values and with response values set to \eqn{y=0} and \eqn{y=1}
-respectively. The basic idea of Flac is to discriminate between original and pseudo-observations
+respectively. The basic idea of FLAC is to discriminate between original and pseudo-observations
 in the alternative formulation of Firth's estimation as an iterative data augmentation procedure.
-The following generic methods are available for flac's output object: \code{print, summary, coef, confint, anova, extractAIC, add1, drop1, 
+The following generic methods are available for ' \code{flac}'s output object: \code{print, summary, coef, confint, anova, extractAIC, add1, drop1, 
 profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
 that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
-ratios.
+ratio tests.
 }
 \section{Methods (by class)}{
 \itemize{
