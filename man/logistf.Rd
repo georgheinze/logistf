@@ -131,8 +131,7 @@ fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT)
 summary(fit2)
 
 # simulated SNP example
-\dontrun{
-set.seed(72341)
+set.seed(3)
 snpdata<-rbind(
   matrix(rbinom(2000,2,runif(2000)*0.3),100,20),
   matrix(rbinom(2000,2,runif(2000)*0.5),100,20))
@@ -141,11 +140,10 @@ snpdata<-as.data.frame(snpdata)
 for(i in 1:20) snpdata[,i]<-as.factor(snpdata[,i])
 snpdata$case<-c(rep(0,100),rep(1,100))
 
-fitsnp<-logistf(data=snpdata, formula=case~1, pl=FALSE)
+fitsnp<-logistf(data=snpdata, formula=case~1, pl=TRUE)
 add1(fitsnp, scope=paste("SNP",1:20,"_",sep=""))
 fitf<-forward(fitsnp, scope = paste("SNP",1:20,"_",sep=""))
 fitf
-}
 
 }
 \references{
