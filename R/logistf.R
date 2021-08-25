@@ -211,8 +211,8 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
       warning(paste("logistf.fit: Maximum number of iterations for null model exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
     }
     
-    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = nterms-int, loglik =c(fit.full$loglik, fit.null$loglik),
-        iter = c(fit.full$iter, fit.null$iter), n = sum(weight), y = y, formula = formula(formula), call = call, conv=fit.full$conv)
+    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = nterms-int, loglik =c('full' = fit.full$loglik, 'null' = fit.null$loglik),
+        iter = c('full' = fit.full$iter, 'null' = fit.null$iter), n = sum(weight), y = y, formula = formula(formula), call = call, conv=fit.full$conv)
     
     names(fit$conv)<-c("LL change","max abs score","beta change")
     beta<-fit.full$beta
