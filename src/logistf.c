@@ -84,7 +84,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   XtXasy(xw2t, fisher_cov, n, k);
   //-- Invert:
   linpack_det(fisher_cov, &k, &logdet);
-  if (logdet < (-50)) {	
+  if (logdet < (-100)) {	
     error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
   }
   else {
@@ -265,7 +265,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         XtXasy(xw2t, fisher_cov, n, k);
         //-- Invert:
         linpack_det(fisher_cov, &k, &logdet);
-        if (logdet < (-50)) {	
+        if (logdet < (-100)) {	
           error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
         }
         else {
@@ -469,7 +469,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
       trans(xw2_reduced_augmented, xw2t_reduced_augmented, ncolfit, n); 
       XtXasy(xw2t_reduced_augmented, fisher_cov_reduced_augmented, n, ncolfit);
       linpack_det(fisher_cov_reduced_augmented, &ncolfit, &logdet);
-      if (logdet < (-50)) {	
+      if (logdet < (-100)) {	
         error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
       }
       linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
@@ -506,7 +506,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
     	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
     	linpack_det(fisher_cov, &k, &logdet);
-        if (logdet < (-50)) {	
+        if (logdet < (-100)) {	
             error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
         }
         linpack_inv(fisher_cov, &k);
@@ -562,344 +562,6 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 }
 
 
-// fit
-void logistffit(double *x, int *y, int *n_l, int *k_l, 
-								double *weight, double *offset, 
-								double *beta, // beta is I/O
-								int *colfit, int *ncolfit_l, int *firth_l, 
-								int *maxit, double *maxstep, int *maxhs,
-								double *lconv, double *gconv, double *xconv, double* tau, 
-								// output: 
-								double *fisher_cov,		// k x k
-								double *Ustar,				// k
-								double *pi,						// n
-								double *Hdiag,				// n
-								double *loglik,				// 1
-								int *evals,
-								int *iter,
-								double *convergence		// 3
-)
-{
-	long n = (long)*n_l, k = (long)*k_l, firth = (long)*firth_l, ncolfit = (long)*ncolfit_l;
-	double wi, logdet;
-	long i, j, halfs;
-	double HdiagSum;
-	
-	// memory allocations
-
-	double *xt;
-	double *beta_old;
-	double *xw2;
-	double *xw2t;
-	double *tmpNxK;
-	double *w;
-	double *XX_XW2;
-	double *XX_XW2t;
-	double *XXcovs;
-	double *XX_Fisher;
-	double *delta;
-	double *XBeta;
-	int *selcol;
-	double *tmp; //to check if pi could get too small
-
-	 if (NULL == (xt = (double *) R_alloc(k * n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (beta_old = (double *) R_alloc(k ,sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (xw2 = (double *) R_alloc(k * n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (xw2t = (double *) R_alloc(n * k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (tmpNxK = (double *) R_alloc(n * k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (w = (double *) R_alloc(n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (XX_XW2 = (double *) R_alloc( ncolfit * n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (XX_XW2t = (double *) R_alloc( n * ncolfit, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (XXcovs = (double *) R_alloc(k * k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (XX_Fisher = (double *) R_alloc(ncolfit * ncolfit, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (delta = (double *) R_alloc( k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (XBeta = (double *) R_alloc( n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (selcol = (int *) R_alloc(ncolfit, sizeof(int))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (tmp = (double *) R_alloc(n, sizeof(double))))
-	 {
-	   error("no memory available\n");
-	 }
-	
-	//int bIsInverted ;
-	int bStop = 0;
-	
-	//initialise predicted probabilities pi
-	trans(x, xt, n, k);
-	XtY(xt, beta, pi, k, n, 1);	// X'beta -> temporary pi
-	
-	for(i = 0; i < n; i++){
-	  tmp[i] = exp( - pi[i] - offset[i]);
-	  if(tmp[i]>1.0e+34){
-	    error("predicted probabilities too small in %d . element, numerator: %e",i+1, tmp[i]);
-	  }
-		pi[i] = 1.0 / (1.0 + tmp[i]);	// final pi
-	}
-	
-	// init loglik
-	double loglik_old, loglik_change = 5.0;
-	*loglik = 0.0;
-	for(i = 0; i < n; i++)
-		*loglik += (y[i] == 1) ? weight[i] * log(pi[i]) : weight[i] * log(1.0 - pi[i]);
-	
-	for(i=0; i < ncolfit; i++)
-		selcol[i] = colfit[i] - 1;
-	
-	//xw2[i,j]=x[i,j]*w_j with w_j=pi_j(1-pi_j)
-	for(i = 0; i < n; i++) { 
-		wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
-		for(j = 0; j < k; j++)
-			xw2[i*k + j] = x[i + j*n] * wi; // multiply whole col with weight
-	}
-	
-	trans(xw2, xw2t, k, n);
-	XtXasy(xw2t, fisher_cov, n, k); // calc XWX
-	if(firth == 1) {
-		linpack_det(fisher_cov, &k, &logdet);
-	  if (logdet < (-50)) {	
-	    error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
-	  }
-	  else {
-	    linpack_inv(fisher_cov, &k); //if not singular then compute inverse
-	    *loglik += *tau * logdet;
-	  }
-	} 
-	else {
-	  linpack_inv(fisher_cov, &k);
-	}
-
-	
-	//Rprintf("*** loop start ***\n");
-	// ****** main loop ******
-	*evals = 1, *iter = 0;
-	for(;;) {
-		loglik_old = *loglik;
-		copy(beta, beta_old, k);
-		
-		if(*iter > 0) {
-			for(i = 0; i < n; i++) {
-				wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
-				for(j = 0; j < k; j++)
-					xw2[i*k + j] = x[i + j*n] * wi;	// multiply whole col with weight
-			}
-			//Rprintf("xw2 : "); Rprintf(xw2, k, n);
-			
-			trans(xw2, xw2t, k, n);
-			XtXasy(xw2t, fisher_cov, n, k); // calc XWX
-			//Rprintf("fisher : "); Rprintf(fisher_cov, k, k);
-			linpack_inv(fisher_cov, &k); // fisher is changed here to covs!!!
-			//bIsInverted = 1;
-			
-			//Rprintf("inv(fisher) : "); Rprintf(fisher_cov, k, k);
-		}
-		
-		if(firth || bStop) {
-			// compute diagonal of H
-			XtY(xw2, fisher_cov, tmpNxK, k, n, k);
-			XYdiag(tmpNxK, xw2, Hdiag, n, k);
-			//Rprintf("Hdiag : "); Rprintf(Hdiag, 1, n);
-			HdiagSum = 0;
-			for(i=0; i<n; i++)
-			  HdiagSum += Hdiag[i];
-			//Rprintf("Hdiag sum: %f \n", HdiagSum);
-		}
-		if(firth) 
-			for(i=0; i < n; i++){
-				w[i] = weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (1/2 - pi[i]);
-		    //Rprintf(" y %5.2f: ", y[i]);
-		    //Rprintf(" pi %5.2f: ", pi[i]);
-		    //Rprintf(" H %5.2f: ", Hdiag[i]);
-			}
-		else
-			for(i=0; i < n; i++){
-				w[i] = weight[i] * ((double)y[i] - pi[i]);
-			}
-		//Rprintf("weights : "); Rprintf(w, 1, n);
-		XtY(x, w, Ustar, n, k, 1);
-		//Rprintf("Ustar : "); 
-		//Rprintf(Ustar, 1, k);
-		
-		if(ncolfit > 0 && selcol[0] != -1) {
-			//if(ncolfit == k)
-			//	copy(fisher_cov, XXcovs, k*k);
-			//else {
-				for(i = 0; i < n; i++) {
-					wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
-					if(firth)
-						wi = wi * sqrt(1 + Hdiag[i] * 2 * *tau);   // adj covariance for penalty 
-					for(j = 0; j < ncolfit; j++)
-						XX_XW2[i*ncolfit + j] = x[i + selcol[j]*n] * wi;	// multiply whole col with weight
-				}
-				//Rprintf("XXXW2 : "); Rprintf(XX_XW2, ncolfit, n);
-				
-				trans(XX_XW2, XX_XW2t, ncolfit, n);
-				XtXasy(XX_XW2t, XX_Fisher , n, ncolfit);
-				//for(i=0; i < 2*k*n; i++) Rprintf(" %f ", XX_XW2t[i]);
-				linpack_inv(XX_Fisher, &ncolfit); // XX_fisher is changed here to inverse!!
-				//for(i=0; i < k*k; i++) Rprintf(" %f ", XX_Fisher[i]);
-				//bIsInverted = 1;
-				//Rprintf("inv(fisher) : "); Rprintf(XX_Fisher, ncolfit, ncolfit);
-				
-				for(int i = 0; i < k*k; i++) XXcovs[i] = 0.0; // init 0
-				for(i=0; i < ncolfit; i++)
-					for(j=0; j < ncolfit; j++) {
-						XXcovs[selcol[i] + k*selcol[j]] = XX_Fisher[i + ncolfit*j]; // re-map
-					}
-				//Rprintf("XXcovs : "); Rprintf(XXcovs, k, k);
-				//for(i=0; i < k*k; i++) Rprintf(" %f ", XXcovs[i]);
-			//}
-			
-			if(bStop)
-				break;
-			//for(i=0; i < k; i++) Rprintf(" %f ", Ustar[i]);
-			XtY(XXcovs, Ustar, delta, k, k, 1);
-			double mx = maxabs(delta, k) / *maxstep;
-			if(mx > 1.0)
-				for(i=0; i < k; i++) {
-					delta[i] /= mx;
-				  //Rprintf("delta %f: ", delta[i]);
-				}
-		}
-		else
-		{
-			if(bStop)
-				break;
-			for(i=0; i < k; i++) delta[i] = 0.0; // init 0
-		}
-		//Rprintf("delta : "); Rprintf(delta, 1, k);
-		
-		(*evals)++;
-		
-		if(*maxit > 0) {
-			(*iter)++;
-			//Rprintf("**** iteration %d\n", *iter);
-			for(i=0; i < k; i++){
-				beta[i] += delta[i];
-			  //Rprintf("delta %f: ", delta[i]);
-			  //Rprintf("iter %d", i);
-			//Rprintf("beta 1): "); Rprintf(beta, 1, k);
-			}
-			for(halfs = 1; halfs <= *maxhs; halfs++) {
-				//Rprintf("**** iter: %d halfstep %ld\n", *iter, halfs);
-				XtY(xt, beta, XBeta, k, n, 1);
-				for(i=0; i < n; i++)
-				  //Rprintf("offset %f ", offset[i]);
-					pi[i] = 1.0 / (1.0 + exp(-XBeta[i] - offset[i]));
-					//Rprintf("pi %f ", pi[i]);
-				//Rprintf("pi : "); 
-				//Rprintf(pi, 1, n);
-				
-				*loglik = 0.0;
-				for(i = 0; i < n; i++)
-					*loglik += (y[i] == 1) ? weight[i] * log(pi[i]) : weight[i] * log(1.0 - pi[i]);
-				
-				if(firth) {
-					for(i = 0; i < n; i++) {
-						wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
-					  //Rprintf("%f ", pi[i]);
-						for(j = 0; j < k; j++)
-							xw2[i*k + j] = x[i + j*n] * wi;	// multiply whole col with weight
-						  //Rprintf("%f ", xw2[i*k + j]);
-						  //Rprintf("%f ", wi);
-					}
-					//Rprintf("xw2 : "); 
-				  //Rprintf(xw2, k, n);
-					
-					trans(xw2, xw2t, k, n);
-					XtXasy(xw2t, fisher_cov, n, k); // calc XWX
-					//Rprintf("fisher : "); 
-					//Rprintf(fisher_cov, k, k);
-					linpack_det(fisher_cov, &k, &logdet); // fisher_cov is unchanged here; only det computed
-					//bIsInverted = 0;
-					
-					*loglik += *tau * logdet;
-				}
-				(*evals)++;
-				
-				//Rprintf("Iter %d halfs %d \n", *iter, halfs);
-				//Rprintf("loglik %f  old: %f \n", *loglik, loglik_old);
-				//Rprintf("* beta[0] half stepped: %f \n", beta[0]);
-				//Rprintf("* beta[2] half stepped: %f \n", beta[2]);
-				//Rprintf("* max Ustar: %f \n", maxabsInds(Ustar, selcol, ncolfit));
-				
-				if(*loglik >= loglik_old - *lconv)
-					break; // stop half steps 
-				
-				for(i=0; i < k; i++){
-//					beta[i] -= delta[i] * powf(2.0, (float)-halfs);  
-          delta[i] /= 2.0;
-				  beta[i] -= delta[i];
-				}
-			}
-			//Rprintf("****** beta: "); 
-			//Rprintf(beta, 1, k);
-			//
-		}
-		
-		loglik_change = *loglik - loglik_old;
-
-		/*Rprintf("maxDelta:%f maxUs:%f LLdelta:%f \n",
-					 maxabsInds(delta, selcol, ncolfit),
-					 maxabsInds(Ustar, selcol, ncolfit),
-					 loglik_change);*/
-		/*if(*iter >= *maxit)
-		  Rprintf("algorithm might not have converged");
-		  error("alg not conv");*/
-		  
-		
-		if((*iter >= *maxit) || (
-			 (maxabsInds(delta, selcol, ncolfit) <= *xconv) && 
-			 (maxabsInds(Ustar, selcol, ncolfit) < *gconv) &&
-			 (loglik_change < *lconv)))
-			bStop = 1;
-		if((*iter < *maxit) && (halfs >= *maxhs) && (*maxhs >= 5) && (*loglik < loglik_old))
-		  bStop = 1;   // stop if half-stepping with at least 5 steps was not successful;
-	}
-	
-	copy(XXcovs, fisher_cov, k*k);
-	
-	convergence[0] = loglik_change;
-	convergence[1] = maxabsInds(Ustar, selcol, ncolfit);
-	convergence[2] = maxabsInds(delta, selcol, ncolfit);
-}
 
 // profile likelihood
 void logistplfit(double *x, int *y, int *n_l, int *k_l, 
@@ -1042,7 +704,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 
 		// compute covarince
 		copy(fisher, cov, k*k);
-		if (logdet < (-50)) {	
+		if (logdet < (-100)) {	
 		  error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
 		}
 		linpack_inv(cov, &k);
