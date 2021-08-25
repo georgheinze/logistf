@@ -76,7 +76,7 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{var}{the variance-covariance-matrix of the parameters.}
    \item{df}{the number of degrees of freedom in the model.}
    \item{loglik}{a vector of the (penalized) log-likelihood of the restricted and the full models.}
-   \item{iter}{the number of iterations needed in the fitting process.}
+   \item{iter}{A vector of the number of iterations needed in the fitting process for the null and full model.}
    \item{n}{the number of observations.}
    \item{y}{the response-vector, i. e. 1 for successes (events) and 0 for failures.}
    \item{formula}{the formula object.}
@@ -99,7 +99,6 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
 keeping all other coefficients constant. According to input of logistf.}  
    \item{model}{if requested (the default), the model frame used.}
-   \item{fit}{The fitting algorithm used.}
    \item{na.action}{information returned by model.frame on the special handling of NAs}
 }
 \description{
@@ -131,7 +130,8 @@ fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT)
 summary(fit2)
 
 # simulated SNP example
-set.seed(3)
+\dontrun{
+set.seed(72341)
 snpdata<-rbind(
   matrix(rbinom(2000,2,runif(2000)*0.3),100,20),
   matrix(rbinom(2000,2,runif(2000)*0.5),100,20))
@@ -140,10 +140,11 @@ snpdata<-as.data.frame(snpdata)
 for(i in 1:20) snpdata[,i]<-as.factor(snpdata[,i])
 snpdata$case<-c(rep(0,100),rep(1,100))
 
-fitsnp<-logistf(data=snpdata, formula=case~1, pl=TRUE)
+fitsnp<-logistf(data=snpdata, formula=case~1, pl=FALSE)
 add1(fitsnp, scope=paste("SNP",1:20,"_",sep=""))
 fitf<-forward(fitsnp, scope = paste("SNP",1:20,"_",sep=""))
 fitf
+}
 
 }
 \references{
