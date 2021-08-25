@@ -112,7 +112,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   //Calculation of initial U*:
   if(firth){
     for(i=0; i < n; i++){
-      w[i] = weight[i] * ((double)y[i]-pi[i] + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+      w[i] = ((weight[i] *(double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
     }
   } else {
     for(i=0; i < n; i++){
@@ -138,7 +138,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
 
         for(i = 0; i < n; i++) {
           if(firth){
-            wi = sqrt(weight[i]* (1 + 2 * Hdiag[i] * *tau) * pi[i] * (1.0 - pi[i])); 
+            wi = sqrt((weight[i] + 2 * Hdiag[i] * *tau) * pi[i] * (1.0 - pi[i])); 
           } else {
             wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
           }
@@ -207,7 +207,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         
         // Calculation of loglikelihood using augmented dataset if firth:
         *loglik = 0.0;
-        for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
+        for(i = 0; i < n; i++){ 
           *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
         }
         if(firth){
@@ -229,7 +229,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         //Calculation of U*: (needed just as a return value)
         if(firth){
           for(i=0; i < n; i++){
-            w[i] = weight[i] * ((double)y[i]-pi[i] + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+            w[i] = weight[i] * (weight[i] *((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
           }
         } else {
           for(i=0; i < n; i++){
@@ -293,7 +293,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         //Calculation of U*:
         if(firth){
           for(i=0; i < n; i++){
-            w[i] = weight[i] * ((double)y[i]-pi[i] + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+            w[i] = (weight[i] *((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
           }
         } else {
           for(i=0; i < n; i++){
