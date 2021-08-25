@@ -351,7 +351,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 								double *convergence		// 3
 ){
 	long n = (long)*n_l, k = (long)*k_l, ncolfit = (long)*ncolfit_l, firth = (long)*firth_l;
-	double wi, wi_augmented;
+	double wi, wi_augmented, logdet;
 	long i, j;
 	// memory allocations
 
@@ -428,7 +428,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	
 	// Calculation of loglikelihood using augmented dataset if firth:
 	*loglik = 0.0;
-	for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
+	for(i = 0; i < n; i++){ 
 	  *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
 	  if(firth){
 	    // weight first replication of dataset with 1+ h_i * tau 
@@ -448,31 +448,30 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
   
       XtY(xt, beta_old, newresponse, k, n, 1);
       for(i=0; i < n; i++){
-          wi = weight[i]* pi[i] * (1.0 - pi[i]); //W^(-1)
+          wi = weight[i]* pi[i] * (1.0 - pi[i]) * (1.0 + 2* *tau * Hdiag[i]); //W
         if(firth){
-          newresponse[i] += 1/wi*(weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+          newresponse[i] += 1/wi*( weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
         } else {
-          newresponse[i] += 1/wi*(weight[i] * ((double)y[i]-pi[i]));
+          newresponse[i] += 1/wi*( weight[i] * ((double)y[i]-pi[i]));
         }
       }
       
       // Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
       for(i = 0; i < n; i++) {
-        if(firth){
-          wi_augmented = sqrt(weight[i]* (1.0 + 2 * Hdiag[i] * *tau) * pi[i] * (1.0 - pi[i])); 
-        } else {
-          wi_augmented = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
-        }
-        wi = weight[i] * pi[i] * (1.0 - pi[i]); 
+            wi_augmented = weight[i] * pi[i] * (1.0 - pi[i])* (1.0 + 2* *tau * Hdiag[i]); 
         for(j = 0; j < ncolfit; j++){
-          xw2_reduced_augmented[i*ncolfit + j] =  x[i + selcol[j]*n] * wi_augmented;
-          xw2_reduced[i*ncolfit + j] = x[i + selcol[j]*n] * wi;
+          xw2_reduced_augmented[i*ncolfit + j] =  x[i + selcol[j]*n] * sqrt(wi_augmented);
+          xw2_reduced[i*ncolfit + j] = x[i + selcol[j]*n] * wi_augmented;
         }
       }
       
-      //---- W^(1/2)^TX^T
+      //---- W^(1/2)^T X^T
       trans(xw2_reduced_augmented, xw2t_reduced_augmented, ncolfit, n); 
       XtXasy(xw2t_reduced_augmented, fisher_cov_reduced_augmented, n, ncolfit);
+      linpack_det(fisher_cov_reduced_augmented, &ncolfit, &logdet);
+      if (logdet < (-50)) {	
+        error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+      }
       linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
   
       	
@@ -506,14 +505,18 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	//Calculation of Hat diag:
     	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
     	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
-    	linpack_inv(fisher_cov, &k); 
+    	linpack_det(fisher_cov, &k, &logdet);
+        if (logdet < (-50)) {	
+            error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+        }
+        linpack_inv(fisher_cov, &k);
     	
     	XtY(xw2, fisher_cov, tmpNxK, k, n, k);
     	XYdiag(tmpNxK, xw2, Hdiag, n, k);
     	
     	// Calculation of loglikelihood using augmented dataset if firth:
     	*loglik = 0.0;
-    	for(i = 0; i < n; i++){ //TODO: better solution? maybe augment w and y but then more memory occupation
+    	for(i = 0; i < n; i++){ 
     	  *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
     	  if(firth){
     	    // weight first replication of dataset with h_i * tau 
