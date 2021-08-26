@@ -84,7 +84,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   XtXasy(xw2t, fisher_cov, n, k);
   //-- Invert:
   linpack_det(fisher_cov, &k, &logdet);
-  if (logdet < (-100)) {	
+  if (logdet < (-50)) {	
     error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
   }
   else {
@@ -94,20 +94,28 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   XtY(xw2, fisher_cov, tmp, k, n, k);
   XYdiag(tmp, xw2, Hdiag, n, k);
 
+    *evals = 1, *iter = 0;
+  int bStop = 0;
+  
   
   // Calculation of loglikelihood using augmented dataset if firth:
   *loglik = 0.0;
   for(i = 0; i < n; i++){ 
-    *loglik += y[i] * weight[i] * log(pi[i]) + (1.0-y[i]) * weight[i] * log(1-pi[i]);
-  }
-  if(firth){
-    for(i=0; i<n; i++){
-      // weight first replication of dataset with h_i * tau 
-      *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-      // weight second replication of dataset with 2 * h_i * tau with opponent y
-      *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] *  Hdiag[i] * *tau * log(1-pi[i]);
+	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
+    	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
+        	  if(firth){
+        	    // weight first replication of dataset with h_i * tau 
+        	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+        	    // weight first replication of dataset with h_i * tau with opponent y
+        	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+        	  }
+      } else {
+          warning("fitted probabilities numerically 0 or 1 occurred");
+          *loglik = loglik_old;
+          bStop = 1;
+          break;
+      }
     }
-  }
 
   //Calculation of initial U*:
   if(firth){
@@ -120,9 +128,6 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
     }
   }
   XtY(x, w, Ustar, n, k, 1);
-
-  *evals = 1, *iter = 0;
-  int bStop = 0;
   
   //Start of iteration: 
   if(*maxit > 0){ // in case of maxit == 0 only evaluate likelihood
@@ -208,14 +213,19 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         // Calculation of loglikelihood using augmented dataset if firth:
         *loglik = 0.0;
         for(i = 0; i < n; i++){ 
-          *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
-        }
-        if(firth){
-          for(i=0; i<n; i++){
-            // weight first replication of dataset with 1+ h_i * tau
-            *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-            // weight second replication of dataset with h_i * tau with oppenent y
-            *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+    	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
+        	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
+            	  if(firth){
+            	    // weight first replication of dataset with h_i * tau 
+            	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+            	    // weight first replication of dataset with h_i * tau with opponent y
+            	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            	  }
+          } else {
+              warning("fitted probabilities numerically 0 or 1 occurred");
+              *loglik = loglik_old;
+              bStop = 1;
+              break;
           }
         }
         //Increase evaluation counter
@@ -265,7 +275,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         XtXasy(xw2t, fisher_cov, n, k);
         //-- Invert:
         linpack_det(fisher_cov, &k, &logdet);
-        if (logdet < (-100)) {	
+        if (logdet < (-50)) {	
           error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
         }
         else {
@@ -277,14 +287,19 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         // Calculation of loglikelihood using augmented dataset if firth:
         *loglik = 0.0;
         for(i = 0; i < n; i++){ 
-          *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
-        }
-        if(firth){
-          for(i=0; i<n; i++){ //weights weight[i] already included in Hdiag[i]: not needed again
-            // weight first replication of dataset with 1+ h_i * tau
-            *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * (Hdiag[i] * *tau) * log(1-pi[i]);
-            // weight second replication of dataset with h_i * tau with opponent y
-            *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+    	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
+        	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
+            	  if(firth){
+            	    // weight first replication of dataset with h_i * tau 
+            	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+            	    // weight first replication of dataset with h_i * tau with opponent y
+            	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            	  }
+          } else {
+              warning("fitted probabilities numerically 0 or 1 occurred");
+              *loglik = loglik_old;
+              bStop = 1;
+              break;
           }
         }
         //Increase evaluation counter
@@ -422,43 +437,55 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	//Calculation of Hat diag:
 	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
 	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
-	linpack_inv(fisher_cov, &k); 
+	linpack_det(fisher_cov, &k, &logdet);
+    if (logdet < (-50)) {	
+        error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+    }
+    else {
+        linpack_inv(fisher_cov, &k); 
+    }
 	XtY(xw2, fisher_cov, tmpNxK, k, n, k);
 	XYdiag(tmpNxK, xw2, Hdiag, n, k);
 	
 	// Calculation of loglikelihood using augmented dataset if firth:
 	*loglik = 0.0;
 	for(i = 0; i < n; i++){ 
-	  *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
-	  if(firth){
-	    // weight first replication of dataset with 1+ h_i * tau 
-	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-	    // weight second replication of dataset with h_i * tau with opponent y
-	    *loglik += (1-y[i]) *Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
-	  }
+	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
+    	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
+        	  if(firth){
+        	    // weight first replication of dataset with h_i * tau 
+        	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+        	    // weight first replication of dataset with h_i * tau with opponent y
+        	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+        	  }
+      } else {
+          warning("fitted probabilities numerically 0 or 1 occurred");
+          *loglik = loglik_old;
+          bStop = 1;
+          break;
+      }
 	}
 	(*evals)++;
-
-  
+	
   //Start IRLS: 
-  if(*maxit > 0){
+  if(*maxit > 0 && !bStop){
   	for(;;){
       loglik_old = *loglik;
       copy(beta, beta_old, k);
   
       XtY(xt, beta_old, newresponse, k, n, 1);
       for(i=0; i < n; i++){
-          wi = weight[i]* pi[i] * (1.0 - pi[i]) * (1.0 + 2* *tau * Hdiag[i]); //W
+          wi = pi[i] * (1.0 - pi[i]) * (weight[i] + 2* *tau * Hdiag[i]); //W
         if(firth){
-          newresponse[i] += 1/wi*( weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+          newresponse[i] += 1/wi*(weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
         } else {
-          newresponse[i] += 1/wi*( weight[i] * ((double)y[i]-pi[i]));
+          newresponse[i] += 1/wi*weight[i]*(((double)y[i]-pi[i]));
         }
       }
       
       // Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
       for(i = 0; i < n; i++) {
-            wi_augmented = weight[i] * pi[i] * (1.0 - pi[i])* (1.0 + 2* *tau * Hdiag[i]); 
+            wi_augmented =  pi[i] * (1.0 - pi[i])* (weight[i] + 2* *tau * Hdiag[i]); 
         for(j = 0; j < ncolfit; j++){
           xw2_reduced_augmented[i*ncolfit + j] =  x[i + selcol[j]*n] * sqrt(wi_augmented);
           xw2_reduced[i*ncolfit + j] = x[i + selcol[j]*n] * wi_augmented;
@@ -469,7 +496,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
       trans(xw2_reduced_augmented, xw2t_reduced_augmented, ncolfit, n); 
       XtXasy(xw2t_reduced_augmented, fisher_cov_reduced_augmented, n, ncolfit);
       linpack_det(fisher_cov_reduced_augmented, &ncolfit, &logdet);
-      if (logdet < (-100)) {	
+      if (logdet < (-50)) {	
         error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
       }
       linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
@@ -486,8 +513,8 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	   }
     	   beta[selcol[j]] = tmp;
     	}
-    	
-    	//Calculate likelihood nad hdiag for next iteration
+
+    	//Calculate likelihood and hdiag for next iteration
     	// calculation of pi
     	XtY(xt, beta, pi, k, n, 1);
     	for(i = 0; i < n; i++){
@@ -506,7 +533,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
     	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
     	linpack_det(fisher_cov, &k, &logdet);
-        if (logdet < (-100)) {	
+        if (logdet < (-50)) {	
             error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
         }
         linpack_inv(fisher_cov, &k);
@@ -517,13 +544,20 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	// Calculation of loglikelihood using augmented dataset if firth:
     	*loglik = 0.0;
     	for(i = 0; i < n; i++){ 
-    	  *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1-pi[i]);
-    	  if(firth){
-    	    // weight first replication of dataset with h_i * tau 
-    	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-    	    // weight first replication of dataset with h_i * tau with opponent y
-    	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
-    	  }
+    	   if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
+    	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
+        	  if(firth){
+        	    // weight first replication of dataset with h_i * tau 
+        	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+        	    // weight first replication of dataset with h_i * tau with opponent y
+        	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+        	  }
+    	   } else {
+    	       warning("fitted probabilities numerically 0 or 1 occurred");
+    	       *loglik = loglik_old;
+    	       bStop = 1;
+    	       break;
+    	   }
     	}
     	(*evals)++;
     	
@@ -704,7 +738,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 
 		// compute covarince
 		copy(fisher, cov, k*k);
-		if (logdet < (-100)) {	
+		if (logdet < (-50)) {	
 		  error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
 		}
 		linpack_inv(cov, &k);
