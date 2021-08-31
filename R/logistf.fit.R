@@ -4,10 +4,9 @@ logistf.fit <- function(
   weight=NULL, 
   offset=NULL, 
   firth=TRUE, 
-  col.fit=NULL, 
   init=NULL,
-  tau = 0.5,
   control,
+  fitcontrol,
   standardize = FALSE,
   ...
 ) {
@@ -17,7 +16,22 @@ logistf.fit <- function(
   collapse <- control$collapse
   coll <- FALSE
   
-  if(collapse && isTRUE(all.equal(weight, rep(1, length(weight)))) && isspecnum(col.fit, 1) & control$fit != "IRLS") {
+  if (is.null(init)) init=rep(0,k)
+  if (is.null(offset)) offset=rep(0,n)
+  if (is.null(weight)) weight=rep(1,n)
+  if (missing(control)) control<-logistf.control()
+  if (missing(fitcontrol)) fitcontrol<-logistf.fit.control()
+  tau <- fitcontrol$tau
+  if (!is.numeric(tau) | length(tau)>1){
+    stop("Invalid value for degree of penalization tau: Must be numeric.")
+  }
+  
+  col.fit <- fitcontrol$terms.fit
+  if(is.null(col.fit)){
+    col.fit <- 1:k
+  }
+  
+  if(collapse && isTRUE(all.equal(weight, rep(1, length(weight)))) & control$fit != "IRLS") {
     xy <- cbind(x,y)
     temp <- unique(unlist(sapply(1:ncol(xy), function(X) unique(xy[, X]))))
     if(length(temp) <= 10) {
@@ -32,15 +46,6 @@ logistf.fit <- function(
       n <- nrow(xc)
       coll <- TRUE
     }
-  }
-  
-  if (is.null(init)) init=rep(0,k)
-  if (is.null(col.fit)) col.fit=1:k
-  if (is.null(offset)) offset=rep(0,n)
-  if (is.null(weight)) weight=rep(1,n)
-  if (missing(control)) control<-logistf.control()
-  if (!is.numeric(tau) | length(tau)>1){
-    stop("Invalid value for degree of penalization tau: Must be numeric.")
   }
   
   if(standardize){

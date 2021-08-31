@@ -200,8 +200,9 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
       nterms <- k
     }
 
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=fitcontrol$tau)
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, rep(0,k), control=control, tau=fitcontrol$tau)
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, init, control=control, fitcontrol = fitcontrol)
+    fitcontrolnull <-update(fitcontrol, terms.fit = 1)
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, rep(0,k), control=control, fitcontrol = fitcontrolnull)
 
     
     if(fit.full$iter>=control$maxit){
@@ -271,7 +272,8 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
             if(length(tofit) == 0){
               tofit <- 0
             }
-            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=tofit, control=control, tau=fitcontrol$tau)
+            fitcontrolpl <- update(fitcontrol,terms.fit = tofit)
+            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, control=control, fitcontrol = fitcontrolpl)
             pl.iter[i,3]<-fit.i$iter
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
             fit$method.ci[i] <- "Profile Likelihood"
