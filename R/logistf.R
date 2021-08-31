@@ -201,7 +201,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
     }
 
     fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control, tau=fitcontrol$tau)
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control, tau=fitcontrol$tau)
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, rep(0,k), control=control, tau=fitcontrol$tau)
 
     
     if(fit.full$iter>=control$maxit){
