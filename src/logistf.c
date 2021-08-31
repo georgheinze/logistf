@@ -100,6 +100,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   
   // Calculation of loglikelihood using augmented dataset if firth:
   *loglik = 0.0;
+  loglik_old = 0.0;
   for(i = 0; i < n; i++){ 
 	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
     	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
@@ -449,6 +450,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	
 	// Calculation of loglikelihood using augmented dataset if firth:
 	*loglik = 0.0;
+	loglik_old = 0.0;
 	for(i = 0; i < n; i++){ 
 	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
     	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
@@ -717,7 +719,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
     trans(xw2_augmented, xw2t_augmented, k, n);
 	XtXasy(xw2t_augmented, fisher_augmented, n, k);
     linpack_det(fisher_augmented, &k, &logdet);
-    if (logdet < (-100)) {	
+    if (logdet < (-50)) {	
         error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
     }
     linpack_inv(fisher_augmented, &k);
