@@ -611,19 +611,19 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 							int *iter,						// 1 
 							double *convergence		// 2
 							)
-// NB
-// princ.comp. not implemented
-// ortho not implemented
 {
 	long n = (long)*n_l, k = (long)*k_l, firth = (long)*firth_l;
 	double wi, logdet;
 	long i, j, halfs;
+	double loglik_old, lambda, mx, wi_augmented;
 	
 	// memory allocations
 	double *xt;
 	double *beta_old;
 	double *xw2;
 	double *xw2t;
+	double *xw2_augmented;
+	double *xw2t_augmented;
 	double *tmpNxK;
 	double *w;
 	double *tmpKx1;
@@ -633,216 +633,214 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 	double *delta;
 	double *XBeta;	
 	double *fisher;
+	double *fisher_augmented;
 	double *Ustar;
 	double *pi;
 	double *Hdiag;
 
-	 if (NULL == (xt = (double *) R_alloc(k * n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (beta_old = (double *) R_alloc(k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (xw2 = (double *) R_alloc(k * n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (xw2t = (double *) R_alloc(k * n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (tmpNxK = (double *) R_alloc(k * n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (w = (double *) R_alloc(n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (tmpKx1 = (double *) R_alloc(k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (Vinv = (double *) R_alloc(k * k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (cov = (double *) R_alloc(k * k,sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (tmp1x1 = (double *) R_alloc(1, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (delta = (double *) R_alloc(k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (XBeta = (double *) R_alloc(n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }	
-	 if (NULL == (fisher = (double *) R_alloc(k * k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (Ustar = (double *) R_alloc(k, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (pi = (double *) R_alloc(n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
-	 if (NULL == (Hdiag = (double *) R_alloc(n, sizeof(double))))
-	 {
-	 error("no memory available\n");
-	 }
+	 if (NULL == (xt = (double *) R_alloc(k * n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (beta_old = (double *) R_alloc(k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2 = (double *) R_alloc(k * n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2t = (double *) R_alloc(k * n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2_augmented = (double *) R_alloc(k * n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (xw2t_augmented = (double *) R_alloc(k * n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (tmpNxK = (double *) R_alloc(k * n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (w = (double *) R_alloc(n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (tmpKx1 = (double *) R_alloc(k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (Vinv = (double *) R_alloc(k * k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (cov = (double *) R_alloc(k * k,sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (tmp1x1 = (double *) R_alloc(1, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (delta = (double *) R_alloc(k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (XBeta = (double *) R_alloc(n, sizeof(double)))){error("no memory available\n");}	
+	 if (NULL == (fisher = (double *) R_alloc(k * k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (fisher_augmented = (double *) R_alloc(k * k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (Ustar = (double *) R_alloc(k, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (pi = (double *) R_alloc(n, sizeof(double)))){error("no memory available\n");}
+	 if (NULL == (Hdiag = (double *) R_alloc(n, sizeof(double)))){error("no memory available\n");}
 	
 	// init pi
 	trans(x, xt, n, k);
-	XtY(xt, beta, pi, k, n, 1);	// X'beta -> temporary pi
-	for(i = 0; i < n; i++)
-		pi[i] = 1.0 / (1.0 + exp( - pi[i] - offset[i]));	// final pi
-	
-	// init XW2
-	for(i = 0; i < n; i++) {
-		wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
-		for(j = 0; j < k; j++)
-			xw2[i*k + j] = x[i + j*n] * wi; // multiply whole col with weight
-	}
-	
-	trans(xw2, xw2t, k, n);
-	XtXasy(xw2t, fisher, n, k); // calc XWX
-	
-	// init loglik
-	*loglik = 0.0;
-	for(i = 0; i < n; i++)
-		*loglik += (y[i] == 1) ? weight[i] * log(pi[i]) : weight[i] * log(1.0 - pi[i]);
-	
-	if(firth == 1) {
-		linpack_det(fisher, &k, &logdet);
-		*loglik += *tau * logdet;
+	//Calculate initial likelihood and Hdiag for first iteration:
+	// calculation of pi
+	XtY(xt, beta, pi, k, n, 1);
+	for(i = 0; i < n; i++){
+	  pi[i] = 1.0 / (1.0 + exp( - pi[i] - offset[i]));
 	} 
 	
-//	Rprintf("*** loop start ***\n");
-	// ****** main loop ******
-	double loglik_old, lambda, mx;
-	//double maxabsdelta;
+	// XW^(1/2)
+	for(i = 0; i < n; i++) {
+	  wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
+	  for(j = 0; j < k; j++){
+	    xw2[i*k + j] = x[i + j*n] * wi;
+	  }
+	}
+	
+	//Calculation of Hat diag:
+	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
+	XtXasy(xw2t, fisher, n, k); //X^TWX
+	linpack_det(fisher, &k, &logdet);
+    if (logdet < (-50)) {	
+        error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+    }
+    else {
+        linpack_inv(fisher, &k); 
+    }
+	XtY(xw2, fisher, tmpNxK, k, n, k);
+	XYdiag(tmpNxK, xw2, Hdiag, n, k);
+	
+	// Calculation of loglikelihood using augmented dataset if firth:
+	*loglik = 0.0;
+	for(i = 0; i < n; i++){ 
+	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
+    	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
+        	  if(firth){
+        	    // weight first replication of dataset with h_i * tau 
+        	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+        	    // weight first replication of dataset with h_i * tau with opponent y
+        	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+        	  }
+      } else {
+          warning("fitted probabilities numerically 0 or 1 occurred");
+          break;
+      }
+	}
+	
+	// Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
+    for(i = 0; i < n; i++) {
+        wi_augmented =  pi[i] * (1.0 - pi[i])* (weight[i] + 2* *tau * Hdiag[i]); 
+        for(j = 0; j < k; j++){
+            xw2_augmented[i*k + j] =  x[i + j*n] * sqrt(wi_augmented);
+        }
+    }
+      
+    //---- W^(1/2)^T X^T
+    trans(xw2_augmented, xw2t_augmented, k, n);
+	XtXasy(xw2t_augmented, fisher_augmented, n, k);
+    linpack_det(fisher_augmented, &k, &logdet);
+    if (logdet < (-100)) {	
+        error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+    }
+    linpack_inv(fisher_augmented, &k);
+
 	*iter = 0;
 	for(;;) {
-		(*iter)++;
-
-		// compute covarince
-		copy(fisher, cov, k*k);
-		if (logdet < (-50)) {	
-		  error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+		copy(fisher_augmented, cov, k*k);
+		
+		for(i=0; i < k*k; i++) {
+		    Vinv[i] = -cov[i];
 		}
-		linpack_inv(cov, &k);
 		
-		if(firth) {
-			// compute diagonal of H
-			XtY(xw2, cov, tmpNxK, k, n, k);
-			XYdiag(tmpNxK, xw2, Hdiag, n, k);
-//			Rprintf("Hdiag : "); Rprintf(Hdiag, 1, n);
-		}
-		//Rprintf("pi : "); Rprintf(pi, 1, n);
-		
-		if(firth) {
-		  for(i=0; i < n; i++){
-		    w[i] = weight[i] * ((double)y[i] - pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]);
-		  }
-		}else{
-		  for(i=0; i < n; i++){
-		    w[i] = weight[i] * ((double)y[i] - pi[i]);
-		  }
-		}
-//		Rprintf("weight : "); Rprintf(weight, 1, n);
-//		Rprintf("w : "); Rprintf(w, 1, n);
-		
-		XtY(x, w, Ustar, n, k, 1);
-//		Rprintf("Ustar : "); Rprintf(Ustar, 1, k);
-		
-		for(i=0; i < k*k; i++) Vinv[i] = -cov[i];
-//		Rprintf("Vinv : "); Rprintf(Vinv, k, k);
+		//Calculation of U*:
+        if(firth){
+          for(i=0; i < n; i++){
+            w[i] = weight[i] * (weight[i] *((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+          }
+        } else {
+          for(i=0; i < n; i++){
+            w[i] = weight[i] * ((double)y[i] - pi[i]);
+          }
+        }
+        XtY(x, w, Ustar, n, k, 1);
 		
 		XtY(Ustar, Vinv, tmpKx1, k, 1, k); 
-//		Rprintf("tmpkx1 : "); Rprintf(tmpKx1, k, 1);
 		XtY(tmpKx1, Ustar, tmp1x1, k, 1, 1);
-//		Rprintf("val = %f LL0=%f loglik=%f which=%f isel=%f Vinv(i,i)=%f \n", 
-//					 tmp1x1[0], *LL0, *loglik, (double)*which, (double)*iSel,
-//					 Vinv[k*((*iSel)-1) + (*iSel)-1]);
-		double underRoot = 2.0 * ((*LL0 - *loglik) + 0.5 * tmp1x1[0]) /  Vinv[k*((*iSel)-1) + (*iSel)-1]; // Vinv[i,i]
-		lambda = (underRoot < 0.0) ? 0.0 : (double)(*which) * sqrt(underRoot); // sqrt(neg) -> set lambda 0
-//		Rprintf("lambda = %f \n", lambda);
+		double underRoot = 2.0 * ((*LL0 - *loglik) + 0.5 * tmp1x1[0]) /  Vinv[k*((*iSel)-1) + (*iSel)-1]; 
+		lambda = (underRoot < 0.0) ? 0.0 : (double)(*which) * sqrt(underRoot); 
 		
 		Ustar[(*iSel)-1] += lambda;
 		XtY(cov, Ustar, delta, k, k, 1);
 		mx = maxabs(delta, k) / *maxstep;
-		if(mx > 1.0)
-			for(i=0; i < k; i++)
-				delta[i] /= mx;
-//		Rprintf("delta : "); Rprintf(delta, 1, k);
+		if(mx > 1.0) {
+		    for(i=0; i < k; i++){
+		        delta[i] /= mx;
+		    }
+		}
 		
-		for(i=0; i < k; i++)
-			beta[i] += delta[i];
+		for(i=0; i < k; i++){
+		    beta[i] += delta[i];
+		}
+		
 		loglik_old = *loglik;
-//		Rprintf("beta : "); Rprintf(delta, 1, k);	
-		
 		
 		for(halfs = 0;;) {
-//			Rprintf("**** iter: %d halfstep %ld\n", *iter, halfs);
-			XtY(xt, beta, XBeta, k, n, 1);
-			for(i=0; i < n; i++)
-				pi[i] = 1.0 / (1.0 + exp(-XBeta[i] - offset[i]));
-			//Rprintf("pi : "); Rprintf(pi, 1, n);
-			
-			*loglik = 0.0;
-			for(i = 0; i < n; i++)
-				*loglik += (y[i] == 1) ? weight[i] * log(pi[i]) : weight[i] * log(1.0 - pi[i]);
-			
-			if(firth) {
-				for(i = 0; i < n; i++) {
-					wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); // weight
-					for(j = 0; j < k; j++)
-						xw2[i*k + j] = x[i + j*n] * wi;	// multiply whole col with weight
-					//Rprintf("%f ", wi);
-				}
-				//Rprintf("xw2 : "); Rprintf(xw2, k, n);
-				
-				trans(xw2, xw2t, k, n);
-				XtXasy(xw2t, fisher, n, k); // calc XWX
-//				Rprintf("fisher : "); Rprintf(fisher, k, k);
-				linpack_det(fisher, &k, &logdet); // fisher_cov is unchanged here; only det computed
-				
-				*loglik += *tau * logdet;
-			}
-			
-			//Rprintf("loglik %f  old: %f \n", *loglik, loglik_old);
-			//Rprintf("* beta half stepped): "); Rprintf(beta, 1, k);
+			// calculation of pi
+        	XtY(xt, beta, pi, k, n, 1);
+        	for(i = 0; i < n; i++){
+        	  pi[i] = 1.0 / (1.0 + exp( - pi[i] - offset[i]));
+        	} 
+        	
+        	// XW^(1/2)
+        	for(i = 0; i < n; i++) {
+        	  wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i])); 
+        	  for(j = 0; j < k; j++){
+        	    xw2[i*k + j] = x[i + j*n] * wi;
+        	  }
+        	}
+        	
+        	//Calculation of Hat diag:
+        	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
+        	XtXasy(xw2t, fisher, n, k); //X^TWX
+        	linpack_det(fisher, &k, &logdet);
+            if (logdet < (-50)) {	
+                error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+            }
+            else {
+                linpack_inv(fisher, &k); 
+            }
+        	XtY(xw2, fisher, tmpNxK, k, n, k);
+        	XYdiag(tmpNxK, xw2, Hdiag, n, k);
+        	
+			// Calculation of loglikelihood using augmented dataset if firth:
+        	*loglik = 0.0;
+        	for(i = 0; i < n; i++){ 
+        	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
+            	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
+                	  if(firth){
+                	    // weight first replication of dataset with h_i * tau 
+                	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+                	    // weight first replication of dataset with h_i * tau with opponent y
+                	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+                	  }
+              } else {
+                  warning("fitted probabilities numerically 0 or 1 occurred");
+                  break;
+              }
+        	}
+        	
+        	// Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
+            for(i = 0; i < n; i++) {
+                wi_augmented =  pi[i] * (1.0 - pi[i])* (weight[i] + 2* *tau * Hdiag[i]); 
+                for(j = 0; j < k; j++){
+                    xw2_augmented[i*k + j] =  x[i + j*n] * sqrt(wi_augmented);
+                }
+            }
+              
+            //---- W^(1/2)^T X^T
+            trans(xw2_augmented, xw2t_augmented, k, n);
+        	XtXasy(xw2t_augmented, fisher_augmented, n, k);
+            linpack_det(fisher_augmented, &k, &logdet);
+            if (logdet < (-50)) {	
+                error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
+            }
+            linpack_inv(fisher_augmented, &k);
+        	
+        	halfs++;
 			
 			if((halfs > *maxhs) || ((fabs(*loglik - *LL0) < fabs(loglik_old - *LL0)) && (*loglik > *LL0)))
-				break; // stop half steps 
+				break; 
 			
 			for(i=0; i < k; i++) {
-				delta[i] /= 2.0;		// half the delta
+				delta[i] /= 2.0;
 				beta[i] -= delta[i];
 			}
-			halfs++;
-		} // end half steps
+			
+		}
 		
-//		Rprintf("****** beta after half steps: "); Rprintf(beta, 1, k);
+		(*iter)++;
 		
-		for(i=0; i < k; i++)
-			betahist[i * (*maxit) + (*iter) - 1] = beta[i];
-		
-		/*Rprintf("maxDelta:%f maxUs:%f LLdelta:%f \n",
-		 maxabsInds(delta, selcol, ncolfit),
-		 maxabsInds(Ustar, selcol, ncolfit),
-		 loglik_change);*/
+		for(i=0; i < k; i++){
+		    betahist[i * (*maxit) + (*iter) - 1] = beta[i];
+		}
 		
 		if((*iter >= *maxit) || ((fabs(*loglik - *LL0) <= *lconv) && (maxabs(delta, k) < *xconv)))
 			break;
