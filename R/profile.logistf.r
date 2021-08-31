@@ -101,7 +101,7 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
           int <- 0
           coltotest <-1:k
       }
-    if(!missing(which)) cov.name2 <- labels(model.matrix(which, model.frame(fitted)))[[2]] ## Label des Test-Fakt.
+    if(!missing(which)) cov.name2 <- colnames(get_all_vars(which, data = model.frame(fitted))) ## Label des Test-Fakt.
     else cov.name2 <- variable
     pos <- match(cov.name2, cov.name) ## Position des Testfakors
     if(is.na(pos)) {
@@ -137,14 +137,14 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
     if(i == 1){
        init<-lower.fit$betahist[nrow(lower.fit$betahist),]
        init[pos]<-res[i,2]
-       xx <- logistf.fit(x, y, weight=weight, offset=offset, firth=firth, col.fit<-(1:k)[-pos], init=init,
-                     control=control) 
+       xx <- logistf.fit(x, y, weight=weight, offset=offset, firth=firth, init=init,
+                     control=control, fitcontrol = update(fitted$fitcontrol, terms.fit = (1:k)[-pos])) 
     }     
     else {
        init<-xx$beta
        init[pos]<-res[i,2]
-       xx <- logistf.fit(x, y, weight=weight, offset=offset, firth=firth, col.fit<-(1:k)[-pos], init=init,
-                     control=control) # use solution from last step
+       xx <- logistf.fit(x, y, weight=weight, offset=offset, firth=firth, init=init,
+                     control=control, fitcontrol = update(fitted$fitcontrol, terms.fit = (1:k)[-pos])) # use solution from last step
     }
     res[i, 3] <- xx$loglik
    }
