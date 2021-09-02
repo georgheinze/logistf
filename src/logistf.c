@@ -84,7 +84,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   XtXasy(xw2t, fisher_cov, n, k);
   //-- Invert:
   linpack_det(fisher_cov, &k, &logdet);
-  if (logdet < (-50)) {	
+  if (logdet < (-200)) {	
     error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
   }
   else {
@@ -237,10 +237,10 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
           break;
         }
         
-        //Calculation of U*: (needed just as a return value)
+        //Calculation of U*: (needed as a return value)
         if(firth){
           for(i=0; i < n; i++){
-            w[i] = weight[i] * (weight[i] *((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+            w[i] = (weight[i] *((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
           }
         } else {
           for(i=0; i < n; i++){
@@ -276,7 +276,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         XtXasy(xw2t, fisher_cov, n, k);
         //-- Invert:
         linpack_det(fisher_cov, &k, &logdet);
-        if (logdet < (-50)) {	
+        if (logdet < (-200)) {	
           error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
         }
         else {
@@ -439,7 +439,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
 	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
 	linpack_det(fisher_cov, &k, &logdet);
-    if (logdet < (-50)) {	
+    if (logdet < (-200)) {	
         error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
     }
     else {
@@ -498,7 +498,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
       trans(xw2_reduced_augmented, xw2t_reduced_augmented, ncolfit, n); 
       XtXasy(xw2t_reduced_augmented, fisher_cov_reduced_augmented, n, ncolfit);
       linpack_det(fisher_cov_reduced_augmented, &ncolfit, &logdet);
-      if (logdet < (-50)) {	
+      if (logdet < (-200)) {	
         error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
       }
       linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
@@ -535,7 +535,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
     	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
     	linpack_det(fisher_cov, &k, &logdet);
-        if (logdet < (-50)) {	
+        if (logdet < (-200)) {	
             error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
         }
         linpack_inv(fisher_cov, &k);
@@ -619,6 +619,8 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 	long i, j, halfs;
 	double loglik_old, lambda, mx, wi_augmented;
 	
+	int bStop = 0;
+	
 	// memory allocations
 	double *xt;
 	double *beta_old;
@@ -681,7 +683,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
 	XtXasy(xw2t, fisher, n, k); //X^TWX
 	linpack_det(fisher, &k, &logdet);
-    if (logdet < (-50)) {	
+    if (logdet < (-200)) {	
         error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
     }
     else {
@@ -709,7 +711,11 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 	
 	// Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
     for(i = 0; i < n; i++) {
-        wi_augmented =  pi[i] * (1.0 - pi[i])* (weight[i] + 2* *tau * Hdiag[i]); 
+        if(firth){
+            wi_augmented =  pi[i] * (1.0 - pi[i])* (weight[i] + 2 * *tau * Hdiag[i]); 
+        } else {
+            wi_augmented = weight[i] * pi[i] * (1.0-pi[i]);
+        }
         for(j = 0; j < k; j++){
             xw2_augmented[i*k + j] =  x[i + j*n] * sqrt(wi_augmented);
         }
@@ -719,23 +725,17 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
     trans(xw2_augmented, xw2t_augmented, k, n);
 	XtXasy(xw2t_augmented, fisher_augmented, n, k);
     linpack_det(fisher_augmented, &k, &logdet);
-    if (logdet < (-50)) {	
+    if (logdet < (-200)) {	
         error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
     }
     linpack_inv(fisher_augmented, &k);
 
 	*iter = 0;
 	for(;;) {
-		copy(fisher_augmented, cov, k*k);
-		
-		for(i=0; i < k*k; i++) {
-		    Vinv[i] = -cov[i];
-		}
-		
 		//Calculation of U*:
         if(firth){
           for(i=0; i < n; i++){
-            w[i] = weight[i] * (weight[i] *((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]));
+            w[i] = weight[i] * ((double)y[i]-pi[i]) + 2 * *tau * Hdiag[i] * (0.5 - pi[i]);
           }
         } else {
           for(i=0; i < n; i++){
@@ -744,13 +744,16 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
         }
         XtY(x, w, Ustar, n, k, 1);
 		
-		XtY(Ustar, Vinv, tmpKx1, k, 1, k); 
-		XtY(tmpKx1, Ustar, tmp1x1, k, 1, 1);
-		double underRoot = 2.0 * ((*LL0 - *loglik) + 0.5 * tmp1x1[0]) /  Vinv[k*((*iSel)-1) + (*iSel)-1]; 
+		XtY(Ustar, fisher_augmented, tmpKx1, k, 1, k); 
+		XtY(tmpKx1, Ustar, tmp1x1, k, 1, 1); //U*^T (X^TWX)^(-1) u*
+		
+		double underRoot = (-1.0) * (2.0* (*LL0 - *loglik) - tmp1x1[0]) / fisher_augmented[k*((*iSel)-1) + (*iSel)-1]; 
 		lambda = (underRoot < 0.0) ? 0.0 : (double)(*which) * sqrt(underRoot); 
 		
+		//add lambda to r-th entry in U*: 
 		Ustar[(*iSel)-1] += lambda;
-		XtY(cov, Ustar, delta, k, k, 1);
+		XtY(fisher_augmented, Ustar, delta, k, k, 1);
+        
 		mx = maxabs(delta, k) / *maxstep;
 		if(mx > 1.0) {
 		    for(i=0; i < k; i++){
@@ -783,7 +786,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
         	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
         	XtXasy(xw2t, fisher, n, k); //X^TWX
         	linpack_det(fisher, &k, &logdet);
-            if (logdet < (-50)) {	
+            if (logdet < (-200)) {
                 error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
             }
             else {
@@ -796,22 +799,32 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
         	*loglik = 0.0;
         	for(i = 0; i < n; i++){ 
         	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
-            	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
+            	      *loglik += y[i] * weight[i] * log(pi[i]) + (1.0-y[i]) * weight[i] * log(1.0-pi[i]);
                 	  if(firth){
                 	    // weight first replication of dataset with h_i * tau 
-                	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-                	    // weight first replication of dataset with h_i * tau with opponent y
-                	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+                	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1.0-y[i]) * Hdiag[i] * *tau * log(1.0-pi[i]);
+                	    // weight second replication of dataset with h_i * tau with opponent y
+                	    *loglik += (1.0-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1.0-pi[i]);
                 	  }
               } else {
                   warning("fitted probabilities numerically 0 or 1 occurred");
+                  bStop = 1;
+                  *loglik = loglik_old;
                   break;
               }
         	}
         	
-        	// Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
+        	if(bStop){
+        	    break;
+        	 }
+        	
+        	// Fisher cov based on augmented dataset if firth
             for(i = 0; i < n; i++) {
-                wi_augmented =  pi[i] * (1.0 - pi[i])* (weight[i] + 2* *tau * Hdiag[i]); 
+                if(firth){
+                    wi_augmented =  pi[i] * (1.0 - pi[i])* (weight[i] + 2 * *tau * Hdiag[i]); 
+                } else {
+                    wi_augmented = weight[i] * pi[i] * (1.0-pi[i]);
+                    }
                 for(j = 0; j < k; j++){
                     xw2_augmented[i*k + j] =  x[i + j*n] * sqrt(wi_augmented);
                 }
@@ -821,7 +834,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
             trans(xw2_augmented, xw2t_augmented, k, n);
         	XtXasy(xw2t_augmented, fisher_augmented, n, k);
             linpack_det(fisher_augmented, &k, &logdet);
-            if (logdet < (-50)) {	
+            if (logdet < (-200)) {	
                 error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
             }
             linpack_inv(fisher_augmented, &k);
@@ -838,14 +851,16 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 			
 		}
 		
+
 		(*iter)++;
 		
 		for(i=0; i < k; i++){
 		    betahist[i * (*maxit) + (*iter) - 1] = beta[i];
 		}
 		
-		if((*iter >= *maxit) || ((fabs(*loglik - *LL0) <= *lconv) && (maxabs(delta, k) < *xconv)))
-			break;
+		if((*iter >= *maxit) || ((fabs(*loglik - *LL0) <= *lconv) && (maxabs(delta, k) < *xconv))){
+		    break;
+		}
 	}
 	
 	convergence[0] = fabs(*loglik - *LL0);

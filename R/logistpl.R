@@ -1,13 +1,17 @@
-logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, length(y)), weight=rep(1,length(y)), plcontrol, tau = 0.5) {
+logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, length(y)), weight=rep(1,length(y)), plcontrol, fitcontrol) {
     n<-nrow(x)
     k<-ncol(x)
     if (is.null(init)) init<-rep(0,k)
-         beta<-init
+    beta<-init
     if (is.null(offset)) offset=rep(0,n)
     if (is.null(weight)) weight=rep(1,n)
     if (missing(plcontrol)) {
         plcontrol<-logistpl.control()
     }    
+    if (missing(fitcontrol)) {
+      fitcontrol <- logistf.fit.control()
+    }
+    tau <- fitcontrol$tau
     if (!is.numeric(tau) | length(tau)>1){
       stop("Invalid value for degree of penalization tau: Must be numeric.")
     }

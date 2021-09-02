@@ -1,23 +1,19 @@
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
 
-/* FIXME: 
-   Check these declarations against the C/Fortran source code.
-*/
-
 /* .C calls */
 extern void linpack_choleski(void *, void *);
 extern void linpack_inv_det(void *, void *, void *);
-extern void logistffit_revised(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void logistffit_IRLS(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+extern void logistffit_revised(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 extern void logistplfit(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
 
 static const R_CMethodDef CEntries[] = {
-    {"linpack_choleski", (DL_FUNC) &linpack_choleski,  2},
-    {"linpack_inv_det",  (DL_FUNC) &linpack_inv_det,   3},
-    {"logistffit_revised",(DL_FUNC) &logistffit_revised,       25},
-    {"logistffit_IRLS",  (DL_FUNC) &logistffit_IRLS,  24},
-    {"logistplfit",      (DL_FUNC) &logistplfit,      21},
+    {"linpack_choleski",   (DL_FUNC) &linpack_choleski,    2},
+    {"linpack_inv_det",    (DL_FUNC) &linpack_inv_det,     3},
+    {"logistffit_IRLS",    (DL_FUNC) &logistffit_IRLS,    24},
+    {"logistffit_revised", (DL_FUNC) &logistffit_revised, 25},
+    {"logistplfit",        (DL_FUNC) &logistplfit,        21},
     {NULL, NULL, 0}
 };
 

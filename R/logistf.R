@@ -257,12 +257,12 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
         iters <- vector() #number of iterations of fit.i per variable 
         for(i in plconf) {
             icount<-icount+1
-            inter<-logistpl(x, y, beta, i, LL.0, firth, -1, offset, weight, plcontrol)
+            inter<-logistpl(x, y, beta, i, LL.0, firth, -1, offset, weight, plcontrol, fitcontrol = fitcontrol)
             fit$ci.lower[i] <- inter$beta
             pl.iter[i,1]<-inter$iter
             betahist.lo[[icount]]<-inter$betahist
             pl.conv.lower<-t(inter$conv)
-            inter<-logistpl(x, y, beta, i, LL.0, firth, 1, offset, weight, plcontrol)
+            inter<-logistpl(x, y, beta, i, LL.0, firth, 1, offset, weight, plcontrol, fitcontrol = fitcontrol)
             fit$ci.upper[i] <- inter$beta
             pl.iter[i,2]<-inter$iter
             betahist.up[[icount]]<-inter$betahist
