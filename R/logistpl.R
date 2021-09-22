@@ -1,4 +1,4 @@
-logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, length(y)), weight=rep(1,length(y)), plcontrol, fitcontrol) {
+logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, length(y)), weight=rep(1,length(y)), plcontrol, modcontrol) {
     n<-nrow(x)
     k<-ncol(x)
     if (is.null(init)) init<-rep(0,k)
@@ -8,12 +8,15 @@ logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, 
     if (missing(plcontrol)) {
         plcontrol<-logistpl.control()
     }    
-    if (missing(fitcontrol)) {
-      fitcontrol <- logistf.fit.control()
+    if (missing(modcontrol)) {
+      modcontrol <- logistf.mod.control()
     }
-    tau <- fitcontrol$tau
+    tau <- modcontrol$tau
     if (!is.numeric(tau) | length(tau)>1){
       stop("Invalid value for degree of penalization tau: Must be numeric.")
+    }
+    if(!is.null(modcontrol$terms.fit)) {
+      stop("Please call logistpl with all terms in modcontrol$terms.fit.")
     }
       
     maxit<-plcontrol$maxit
@@ -31,7 +34,7 @@ logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, 
     mode(maxit) <- mode(maxhs) <- mode(i) <- mode(which) <- mode(iter) <- "integer"
     
     res <- .C("logistplfit", x, y, n, k, weight, offset, beta=beta, i, which, LL.0, firth, maxit, 
-    maxstep, maxhs, lconv, xconv,tau, betahist=betahist, loglik=loglik, iter=iter, conv=conv,
+    maxstep, maxhs, lconv, xconv, tau, betahist=betahist, loglik=loglik, iter=iter, conv=conv,
     PACKAGE="logistf")
     
     #if(res$iter>=maxit){

@@ -183,7 +183,7 @@ CLIP.profile <- function(obj=NULL, variable, data, which, firth=TRUE, weightvar,
   
   iter<-numeric(0)
   
-  loglik<-unlist(lapply(1:imputations, function(x) fits[[x]]$loglik[2]))
+  loglik<-unlist(lapply(1:imputations, function(x) fits[[x]]$loglik['full']))
   beta<-t(matrix(unlist(lapply(1:imputations,function(x) fits[[x]]$coefficients)),k,imputations))
   
   

@@ -6,7 +6,7 @@ logistf.fit <- function(
   firth=TRUE, 
   init=NULL,
   control,
-  fitcontrol,
+  modcontrol,
   standardize = FALSE,
   ...
 ) {
@@ -20,13 +20,13 @@ logistf.fit <- function(
   if (is.null(offset)) offset=rep(0,n)
   if (is.null(weight)) weight=rep(1,n)
   if (missing(control)) control<-logistf.control()
-  if (missing(fitcontrol)) fitcontrol<-logistf.fit.control()
-  tau <- fitcontrol$tau
+  if (missing(modcontrol)) modcontrol<-logistf.mod.control()
+  tau <- modcontrol$tau
   if (!is.numeric(tau) | length(tau)>1){
     stop("Invalid value for degree of penalization tau: Must be numeric.")
   }
   
-  col.fit <- fitcontrol$terms.fit
+  col.fit <- modcontrol$terms.fit
   if(is.null(col.fit)){
     col.fit <- 1:k
   }

@@ -208,7 +208,7 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
     
     iter<-numeric(0)
     
-    loglik<-unlist(lapply(1:imputations, function(x) fits[[x]]$loglik[2]))
+    loglik<-unlist(lapply(1:imputations, function(x) fits[[x]]$loglik['full']))
     beta<-t(matrix(unlist(lapply(1:imputations,function(x) fits[[x]]$coefficients)),k,imputations))
     
 

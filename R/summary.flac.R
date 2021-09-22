@@ -42,7 +42,7 @@ summary.flac <- function(object, ...)
   
   cat("\nMethod: 1-Wald, 2-Profile penalized log-likelihood, 3-None\n")
   
-  LL <- 2 * diff(object$loglik)
+  LL <- -2 * (object$loglik['null']-object$loglik['full'])
   cat("\nLikelihood ratio test=", LL, " on ", object$df, " df, p=", 1 -pchisq(LL, object$df), ", n=",object$n, sep = "")
   if(object$terms[1]!="(Intercept)"){
     wald.z <- tryCatch({

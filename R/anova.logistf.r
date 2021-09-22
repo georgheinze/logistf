@@ -72,86 +72,34 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
   object <- eval(mf$object, parent.frame())
   fit2 <- eval(mf$fit2, parent.frame())
   
-   fit1<-object
-   if(missing(formula)){
-     out2 <- fit2$formula
-     if(fit1$df<fit2$df) {
-      ff0<-fit1 #swap
-      fit1<-fit2
-      fit2<-ff0
-      }
-   }
-   else out2 <- formula
-   
-   if(method=="PLR"){
-     if(fit1$df==fit2$df) stop("Models not comparable (equal df).\n")
-     df<-abs(fit1$df-fit2$df)
-     PLR1<-2*diff(fit1$loglik)
-     PLR2<-2*diff(fit2$loglik)
-     chisq<-PLR1-PLR2
-     if (chisq<0) chisq<-0
-     pval<-1-pchisq(chisq,df)
-     model2<-as.character(fit2$formula)
-   }
-   if(method=="nested"){
-      f1<-fit1$formula
-      a<-attr(terms(fit1),"term.labels")
-      #check if just intercept fitted: 
-      if(missing(formula)){  
-        f2<-fit2$formula
-        b<-attr(terms(fit2),"term.labels")
-        # find out about which model is nested in the other
-        upper<-f1
-        lower<-f2
-        if(!any(is.na(match(a,b)))) {
-          lower<-f1
-          upper<-f2
-          ab<-a
-          a<-b
-          b<-ab
-          } else if(any(is.na(match(b,a)))) stop("Models are not nested. Try method=PLR on non-nested models.\n")
-        aug<-a[is.na(match(a,b))]
-        f3<-paste("~",aug[1])
-        if(length(aug)>1) for(j in 2:length(aug)) f3<-paste(f3, aug[j], sep="+")
-        f3<-paste(f3, "-1")
-        f3<-as.formula(f3, env = environment(object$formula))
-      } 
-      else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""), env = environment(object$formula))
-      
-      test<-logistftest(object=fit1, test = f3, firth=fit1$firth, weights=fit1$weights,...)
-      chisq<-2*diff(test$loglik)
-      PLR1<-2*diff(fit1$loglik)
-      PLR2<-PLR1-chisq
-      df<-test$df
-      pval<-test$prob
-      model2<-as.character(f3)
-   }
-   res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method=method, model1=as.character(fit1$formula), model2=out2, PLR1=PLR1, PLR2=PLR2)
-   attr(res,"class")<-"anova.logistf"
-   return(res)
-}
-
-#' @method anova flic
-#' @exportS3Method anova flic
-anova.flic<-function(object,  fit2, formula, method="nested", ...){
-  # methods: "PLR": take difference in PLR, "nested": proper method for nested models
-  # needed in logistf class: $firth, $data
   fit1<-object
   if(missing(formula)){
     out2 <- fit2$formula
     if(fit1$df<fit2$df) {
-      ff0<-fit1
-      fit1<-fit2
-      fit2<-ff0
+    ff0<-fit1 #swap
+    fit1<-fit2
+    fit2<-ff0
     }
+  } else {
+    out2 <- formula
   }
-  else out2 <- formula
-  if(method=="nested"){
+   
+  if(method=="PLR"){
+    if(fit1$df==fit2$df) stop("Models not comparable (equal df).\n")
+    df<-abs(fit1$df-fit2$df)
+    PLR1<- -2 * (fit1$loglik['null']-fit1$loglik['full'])
+    PLR2<- -2 * (fit2$loglik['null']-fit2$loglik['full'])
+    chisq<-PLR1-PLR2
+    if (chisq<0) chisq<-0
+    pval<-1-pchisq(chisq,df)
+    model2<-as.character(fit2$formula)
+  } else if(method=="nested"){
     f1<-fit1$formula
-    a<-attr(terms(f1),"term.labels")
-    if(missing(formula)){  
+    a<-attr(terms(fit1),"term.labels")
+    #check if just intercept fitted: 
+    if(missing(formula)){
       f2<-fit2$formula
-      b<-attr(terms(f2),"term.labels")
+      b<-attr(terms(fit2),"term.labels")
       # find out about which model is nested in the other
       upper<-f1
       lower<-f2
@@ -161,95 +109,40 @@ anova.flic<-function(object,  fit2, formula, method="nested", ...){
         ab<-a
         a<-b
         b<-ab
-      } else if(any(is.na(match(b,a)))) stop("Models are not nested. Try method=PLR on non-nested models.\n")
+      } else if(any(is.na(match(b,a)))) {
+        stop("Models are not nested. Try method=PLR on non-nested models.\n")
+      }
       aug<-a[is.na(match(a,b))]
       f3<-paste("~",aug[1])
-      if(length(aug)>1) for(j in 2:length(aug)) f3<-paste(f3, aug[j], sep="+")
+      if(length(aug)>1) {
+        for(j in 2:length(aug)) {
+          f3<-paste(f3, aug[j], sep="+")
+        }
+      }
       f3<-paste(f3, "-1")
       f3<-as.formula(f3, env = environment(object$formula))
-    } else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""), env = environment(object$formula))
-    
-    test<-logistftest(object=fit1, test=f3, TRUE, weights=fit1$weights,...)
-    chisq<-2*diff(test$loglik)
-    PLR1<-2*diff(fit1$loglik)
+    } else {
+      f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""), env = environment(object$formula))
+    }
+      
+    test<-logistftest(object=fit1, test = f3, firth=fit1$firth, weights=fit1$weights,...)
+      
+    chisq<- -2 * (test$loglik['null']-test$loglik['full'])
+    PLR1<- -2 * (fit1$loglik['null']-fit1$loglik['full'])
     PLR2<-PLR1-chisq
     df<-test$df
     pval<-test$prob
     model2<-as.character(f3)
   }
   res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method=method, model1=as.character(fit1$formula), model2=out2, PLR1=PLR1, PLR2=PLR2)
-  attr(res,"class")<-"anova.flic"
+  attr(res,"class")<-"anova.logistf"
   return(res)
 }
 
-#' @method anova flac
-#' @exportS3Method anova flac
-anova.flac<-function(object,  fit2, formula, augmented_data=FALSE, ...){
-  stop("Currently not implemented.")
-  mf <- match.call(expand.dots =FALSE)
-  m <- match(c("object","fit2","formula","method"), names(mf), 0L)
-  mf <- mf[c(1, m)]
-  object <- eval(mf$object, parent.frame())
-  fit2 <- eval(mf$fit2, parent.frame())
-  
-  fit1<-object
-  if(missing(formula)){
-    out2 <- fit2$formula
-    if(fit1$df<fit2$df) {
-      ff0<-fit1
-      fit1<-fit2
-      fit2<-ff0
-    }
-  }
-  else out2 <- formula
-  
-  f1<-fit1$formula
-  if (augmented_data){
-    a<-attr(terms(f1, data = object$augmented_data),"term.labels")
-  }
-  else{
-    a<-attr(terms(f1),"term.labels")
-  }
-  if(missing(formula)){  
-    f2<-fit2$formula
-    b<-attr(terms(f2),"term.labels")
-    # find out about which model is nested in the other
-    upper<-f1
-    lower<-f2
-    if(!any(is.na(match(a,b)))) {
-      lower<-f1
-      upper<-f2
-      ab<-a
-      a<-b
-      b<-ab
-    } else if(any(is.na(match(b,a)))) stop("Models are not nested.\n")
-    aug<-a[is.na(match(a,b))]
-    f3<-paste("~",aug[1])
-    if(length(aug)>1) for(j in 2:length(aug)) f3<-paste(f3, aug[j], sep="+")
-      f3<-paste(f3, "-1")
-      f3<-as.formula(f3, env = environment(object$formula))
-  } 
-  else f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""), env = environment(object$formula))
-    
-  if (augmented_data) {
-    f4 <- as.formula(paste("newresp ~ ", paste(attr(terms(f3),"term.labels"), collapse="+"), "-1 + temp.pseudo"))
-    new <- fit1
-    new$formula <- as.formula(paste("newresp ~ ", paste(attr(terms(fit1$formula),"term.labels"), collapse="+"), "+ temp.pseudo"))
-    new$model <- model.frame(new$formula, data=fit1$augmented.data)
-    test<-logistftest(object=new, test=f4, FALSE, weights=new$augmented.data[, "temp.neww"], data=new$augmented.data,...)
-  }
-  else {
-    test<-logistftest(object=fit1, test=f3, TRUE, weights=fit1$weights,...)
-  }
-  chisq<-2*diff(test$loglik)
-  PLR1<-2*diff(fit1$loglik)
-  PLR2<-PLR1-chisq
-  df<-test$df
-  pval<-test$prob
-  model2<-as.character(f3)
-  res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method="nested", model1=as.character(fit1$formula), model2=out2, PLR1=PLR1, PLR2=PLR2)
-  attr(res,"class")<-"anova.flac"
-  return(res)
+#' @method anova flic
+#' @exportS3Method anova flic
+anova.flic<-function(object,  fit2, formula, method="nested", ...){
+  anova.logistf(object,  fit2, formula, ...)
 }
 
 #' @exportS3Method print anova.logistf
@@ -261,5 +154,5 @@ print.anova.logistf <-function(x,...){
     for(i in 1:3) cat(pdatrows[i],"\n")
     cat("\nMethod: ", obj$method, "\n")
     cat("Chi-Squared: ", obj$chisq, "  df=",obj$df,"  P=", obj$pval,"\n")
-  }
+}
 

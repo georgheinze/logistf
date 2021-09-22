@@ -585,15 +585,15 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	  covs_full[i] = 0.0; // init 0
 	}
 	if(*maxit > 0){
-  	for(i=0; i < ncolfit; i++){
-  	  for(j=0; j < ncolfit; j++) {
-  	    covs_full[selcol[i] + k*selcol[j]] = fisher_cov_reduced_augmented[i + ncolfit*j];
-  	  }   
-  	}
-  	copy(covs_full, fisher_cov, k*k);
-  	
-  	convergence[0] = loglik_change;
-  	convergence[2] = maxabsInds(delta, selcol, ncolfit);
+      	for(i=0; i < ncolfit; i++){
+      	  for(j=0; j < ncolfit; j++) {
+      	    covs_full[selcol[i] + k*selcol[j]] = fisher_cov_reduced_augmented[i + ncolfit*j];
+      	  }   
+      	}
+      	copy(covs_full, fisher_cov, k*k);
+      	
+      	convergence[0] = loglik_change;
+      	convergence[2] = maxabsInds(delta, selcol, ncolfit);
 	}
 }
 

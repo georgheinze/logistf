@@ -12,7 +12,7 @@ logistf(
   alpha = 0.05,
   control,
   plcontrol,
-  fitcontrol,
+  modcontrol,
   firth = TRUE,
   init,
   weights,
@@ -43,7 +43,7 @@ penalized log likelihood (\code{pl=TRUE}, the default) or on the Wald method (\c
 \item{plcontrol}{Controls Newton-Raphson iteration for the estimation of the profile 
 likelihood confidence intervals. Default is \code{plcontrol= logistpl.control()}}
 
-\item{fitcontrol}{Controls additional parameter for fitting. Default is \code{logistf.fit.control = logistf.fit.control()}}
+\item{modcontrol}{Controls additional parameter for fitting. Default is \code{logistf.mod.control()}}
 
 \item{firth}{Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) or the 
 standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression. 
@@ -95,7 +95,7 @@ The object returned is of the class \code{logistf} and has the following attribu
    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
    \item{control}{a copy of the control parameters.}
-   \item{fitcontrol}{a copy of the fitcontrol parameters.}
+   \item{modcontrol}{a copy of the modcontrol parameters.}
    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
 keeping all other coefficients constant. According to input of logistf.}  
    \item{model}{if requested (the default), the model frame used.}

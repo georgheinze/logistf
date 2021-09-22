@@ -24,7 +24,7 @@
 #' @param lfobject A fitted \code{\link{logistf}} object.
 #' @param model If TRUE the corresponding components of the fit are returned.
 #' @param control Controls iteration parameter. Taken from \code{logistf}-object when specified. Otherwise default is \code{control= logistf.control()}.
-#' @param fitcontrol  Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.fit.control = logistf.fit.control()}.
+#' @param modcontrol  Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.mod.control()}.
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flic} object with components:
@@ -44,7 +44,7 @@
 #'   \item{n}{The number of observations.}
 #'   \item{formula}{The formula object.}
 #'   \item{control}{a copy of the control parameters.}  
-#'   \item{fitcontrol}{a copy of the fitcontrol parameters.}  
+#'   \item{modcontrol}{a copy of the modcontrol parameters.}  
 #'   \item{terms}{the model terms (column names of design matrix).}
 #'   \item{model}{if requested (the default), the model frame used.}
 #'   
@@ -76,14 +76,14 @@ flic <- function(...){
 #' @exportS3Method flic formula
 #' @describeIn flic With formula and data
 #' @export flic.formula
-flic.formula <- function(formula,data,model = TRUE, control, fitcontrol, ...){
+flic.formula <- function(formula,data,model = TRUE, control, modcontrol, ...){
   extras <- list(...)
 
   if(missing(control)){
     control <- logistf.control()
   }
-  if(missing(fitcontrol)){
-    fitcontrol <- logistf.fit.control()
+  if(missing(modcontrol)){
+    modcontrol <- logistf.mod.control()
   }
   
   mf <- match.call(expand.dots =FALSE)
@@ -99,7 +99,7 @@ flic.formula <- function(formula,data,model = TRUE, control, fitcontrol, ...){
   n <- length(y)
   x <- model.matrix(mt, mf)
   
-  FL <- logistf(formula, data=data, control = control, fitcontrol = fitcontrol, ...)
+  FL <- logistf(formula, data=data, control = control, modcontrol = modcontrol, ...)
 
   response <- lhs.vars(formula) 
   
@@ -131,7 +131,7 @@ flic.formula <- function(formula,data,model = TRUE, control, fitcontrol, ...){
               terms=colnames(x),
               var = tmp.var,
               df=FL$df,
-              loglik=c(FL$loglik[1], full_loglik), 
+              loglik=c('full' = full_loglik, 'null' = FL$loglik['null']), 
               n=FL$n, 
               formula=formula(formula), 
               call=match.call(), 
@@ -143,7 +143,7 @@ flic.formula <- function(formula,data,model = TRUE, control, fitcontrol, ...){
               ci.lower=c(ic-beta0.se*1.96, FL$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, FL$ci.upper[-1]),
               control = control, 
-              fitcontrol = fitcontrol
+              modcontrol = modcontrol
               )
   if(model) {
     res$model <- mf
@@ -160,7 +160,7 @@ flic.formula <- function(formula,data,model = TRUE, control, fitcontrol, ...){
 flic.logistf <- function(lfobject,model=TRUE,...){
   extras <- list(...)
 
-  fitcontrol <- lfobject$fitcontrol
+  modcontrol <- lfobject$modcontrol
 
   mf <- match.call(expand.dots =FALSE)
   m <- match("lfobject", names(mf), 0L)
@@ -202,7 +202,7 @@ flic.logistf <- function(lfobject,model=TRUE,...){
               terms=colnames(designmat),
               var = var,
               df=lfobject$df,
-              loglik=c(lfobject$loglik[1], full_loglik), 
+              loglik=c('full' = full_loglik, 'null' = lfobject$loglik['null']), 
               n=lfobject$n, 
               formula=lfobject$formula, 
               call=match.call(), 
@@ -214,7 +214,7 @@ flic.logistf <- function(lfobject,model=TRUE,...){
               ci.lower=c(ic-beta0.se*1.96, lfobject$ci.lower[-1]),
               ci.upper=c(ic+beta0.se*1.96, lfobject$ci.upper[-1]),
               control = lfobject$control,
-              fitcontrol = lfobject$fitcontrol
+              modcontrol = lfobject$modcontrol
               )
   if(model) {
     res$model <- lfobject$model

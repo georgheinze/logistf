@@ -22,7 +22,7 @@
 #' @param control Controls iteration parameter. Default is \code{control= logistf.control()}
 #' @param plcontrol Controls Newton-Raphson iteration for the estimation of the profile 
 #' likelihood confidence intervals. Default is \code{plcontrol= logistpl.control()}
-#' @param fitcontrol Controls additional parameter for fitting. Default is \code{logistf.fit.control = logistf.fit.control()}
+#' @param modcontrol Controls additional parameter for fitting. Default is \code{logistf.mod.control()}
 #' @param firth Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) or the 
 #' standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression. 
 #' Note that by specifying \code{pl=TRUE} and \code{firth=FALSE} (and probably a lower number 
@@ -65,7 +65,7 @@
 #'    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
 #'    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
 #'    \item{control}{a copy of the control parameters.}
-#'    \item{fitcontrol}{a copy of the fitcontrol parameters.}
+#'    \item{modcontrol}{a copy of the modcontrol parameters.}
 #'    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant. According to input of logistf.}  
 #'    \item{model}{if requested (the default), the model frame used.}
@@ -128,11 +128,11 @@
 #' @seealso [add1.logistf()], [drop1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol, firth = TRUE, init, weights,na.action, plconf=NULL,flic=FALSE, model = TRUE, ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, modcontrol, firth = TRUE, init, weights,na.action, plconf=NULL,flic=FALSE, model = TRUE, ...){
    call <- match.call()
    if(missing(control)) control<-logistf.control()
    if(pl==TRUE & missing(plcontrol)) plcontrol<-logistpl.control()
-   if(missing(fitcontrol)) fitcontrol<-logistf.fit.control()
+   if(missing(modcontrol)) modcontrol<-logistf.mod.control()
    
     mf <- match.call(expand.dots =FALSE)
     m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
@@ -167,9 +167,9 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
 
     if (missing(init)) init<-rep(0,k)
     if (is.null(plconf)) {  #if only intercept has to be fitted: calculate Wald CI for intercept
-      if(isspecnum(cov.name,"(Intercept)")){
-        plconf <- NULL
-        rest_plconf <- 1
+      if(identical(cov.name,"(Intercept)")){
+          plconf <- NULL
+          rest_plconf <- 1
       }
       else{
       plconf<-1:k
@@ -189,8 +189,8 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
     }
     
    #Terms to be fitted: 
-    if (!is.null(fitcontrol$terms.fit)){
-      colfit <- fitcontrol$terms.fit
+    if (!is.null(modcontrol$terms.fit)){
+      colfit <- modcontrol$terms.fit
       rest_plconf <- (1:k)[-colfit] #compute confidence intervals for variables not specified in terms.fit with Wald
       plconf <- intersect(plconf, colfit)
       nterms <- length(colfit)
@@ -200,9 +200,10 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
       nterms <- k
     }
 
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, init, control=control, fitcontrol = fitcontrol)
-    fitcontrolnull <-update(fitcontrol, terms.fit = 1)
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, rep(0,k), control=control, fitcontrol = fitcontrolnull)
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, init, control=control, modcontrol = modcontrol)
+    modcontrolnull <-modcontrol
+    modcontrolnull$terms.fit <- 1
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, rep(0,k), control=control, modcontrol = modcontrolnull)
 
     
     if(fit.full$iter>=control$maxit){
@@ -226,13 +227,13 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
     if(firth) fit$method <- "Penalized ML"
     else fit$method <- "Standard ML"
     
-    if (!is.null(fitcontrol$terms.fit)){ #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
-      var.red <- fit$var[fitcontrol$terms.fit,fitcontrol$terms.fit]
+    if (!is.null(modcontrol$terms.fit)){ #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
+      var.red <- fit$var[modcontrol$terms.fit,modcontrol$terms.fit]
       vars <- diag(as.matrix(var.red))
       waldprob <- wald_ci.lower <- wald_ci.upper <- vector(length = k)
-      waldprob[fitcontrol$terms.fit] <- 1 - pchisq((beta[fitcontrol$terms.fit]^2/vars), 1)
-      wald_ci.lower[fitcontrol$terms.fit] <- as.vector(beta[fitcontrol$terms.fit] + qnorm(alpha/2) * vars^0.5)
-      wald_ci.upper[fitcontrol$terms.fit] <- as.vector(beta[fitcontrol$terms.fit] + qnorm(1 - alpha/2) * vars^0.5)
+      waldprob[modcontrol$terms.fit] <- 1 - pchisq((beta[modcontrol$terms.fit]^2/vars), 1)
+      wald_ci.lower[modcontrol$terms.fit] <- as.vector(beta[modcontrol$terms.fit] + qnorm(alpha/2) * vars^0.5)
+      wald_ci.upper[modcontrol$terms.fit] <- as.vector(beta[modcontrol$terms.fit] + qnorm(1 - alpha/2) * vars^0.5)
     }
     else {
       vars <- diag(covs)
@@ -257,12 +258,12 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
         iters <- vector() #number of iterations of fit.i per variable 
         for(i in plconf) {
             icount<-icount+1
-            inter<-logistpl(x, y, beta, i, LL.0, firth, -1, offset, weight, plcontrol, fitcontrol = fitcontrol)
+            inter<-logistpl(x, y, beta, i, LL.0, firth, -1, offset, weight, plcontrol, modcontrol = modcontrol)
             fit$ci.lower[i] <- inter$beta
             pl.iter[i,1]<-inter$iter
             betahist.lo[[icount]]<-inter$betahist
             pl.conv.lower<-t(inter$conv)
-            inter<-logistpl(x, y, beta, i, LL.0, firth, 1, offset, weight, plcontrol, fitcontrol = fitcontrol)
+            inter<-logistpl(x, y, beta, i, LL.0, firth, 1, offset, weight, plcontrol, modcontrol = modcontrol)
             fit$ci.upper[i] <- inter$beta
             pl.iter[i,2]<-inter$iter
             betahist.up[[icount]]<-inter$betahist
@@ -272,8 +273,9 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
             if(length(tofit) == 0){
               tofit <- 0
             }
-            fitcontrolpl <- update(fitcontrol,terms.fit = tofit)
-            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, control=control, fitcontrol = fitcontrolpl)
+            modcontrolpl <-modcontrol
+            modcontrolpl$terms.fit <- tofit
+            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, control=control, modcontrol = modcontrolpl)
             pl.iter[i,3]<-fit.i$iter
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
             fit$method.ci[i] <- "Profile Likelihood"
@@ -329,7 +331,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, fitcontrol,
     else fit$flic <- FALSE
     
     fit$control <- control
-    fit$fitcontrol <- fitcontrol
+    fit$modcontrol <- modcontrol
     if (model) fit$model <- mf
     fit$na.action <- attr(mf, "na.action")
     attr(fit, "class") <- c("logistf")

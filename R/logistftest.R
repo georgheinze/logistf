@@ -26,7 +26,7 @@
 #' @param beta0 Specifies the initial values of the coefficients for the fitting algorithm
 #' @param weights Case weights
 #' @param control Controls parameters for iterative fitting
-#' @param fitcontrol Controls additional parameter for fitting. Default is \code{logistf.fit.control = logistf.fit.control()}
+#' @param modcontrol Controls additional parameter for fitting. Default is \code{modcontrol} of \code{object}.
 #' @param ... further arguments passed to logistf.fit
 #'
 #' @return The object returned is of the class logistf and has the following attributes:
@@ -62,7 +62,7 @@
 #' 
 #' 
 logistftest <-
-function(object, test, values, firth = TRUE, beta0, weights, control, fitcontrol, ...)
+function(object, test, values, firth = TRUE, beta0, weights, control, modcontrol, ...)
 {
     call <- match.call()
     formula<-object$formula
@@ -77,7 +77,11 @@ function(object, test, values, firth = TRUE, beta0, weights, control, fitcontrol
     x <- model.matrix(object$formula, model.frame(object))
 
     if (missing(control)) control<-object$control
-    if (missing(fitcontrol)) fitcontrol<-object$fitcontrol
+    if (missing(modcontrol)) modcontrol<-object$modcontrol
+    
+    if(!is.null(modcontrol$terms.fit)) {
+        stop("Please call logistftest on a logistf-object with all terms fitted.")
+    }
     
     cov.name <- labels(x)[[2]]
     if(missing(weights) & !is.null(object$weights)) weight <- object$weights
@@ -90,19 +94,12 @@ function(object, test, values, firth = TRUE, beta0, weights, control, fitcontrol
     if (dimnames(x)[[2]][1] == "(Intercept)")  {
         int <- 1
         coltotest <- 2:k
-    }
-
-    else {
+    } else {
         int <- 0
         coltotest <-1:k
     }
-    
-    if(!is.null(fitcontrol$terms.fit)){
-        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=fitcontrol$terms.fit, control=control, tau=fitcontrol$tau, ...)
-    }
-    else {
-        fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=1:k, control=control, tau=fitcontrol$tau, ...)
-    }
+
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, control=control, modcontrol = modcontrol, ... )
     
     if(fit.full$iter>=control$maxit){
         warning(paste("logistftest: Maximum number of iterations for full model exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
@@ -112,11 +109,14 @@ function(object, test, values, firth = TRUE, beta0, weights, control, fitcontrol
     if(missing(test)) {
         test <- coltotest
     }
-    if(is.vector(test)) {
+    if(is.numeric(test)) {
         cov.name2 <- cov.name[test]
     }
     else {
         test <- eval(test, parent.frame())
+        if(!inherits(x,"formula")){
+            test <- as.formula(test)
+        }
         cov.name2 <- labels(model.matrix(test, model.frame(object)))[[2]]
         #cov.name2 <- attr(terms(test), "term.labels")
     }
@@ -135,18 +135,25 @@ function(object, test, values, firth = TRUE, beta0, weights, control, fitcontrol
         offset1[pos] <- values
     }
     beta <- offset1 
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=(1:k)[-pos], control=control, init=beta, tau=fitcontrol$tau, ...)
+    
+    modcontrol$terms.fit <- ifelse(identical((1:k), pos),0, (1:k)[-pos])
+
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, control=control, init=beta, modcontrol = modcontrol, ...)
 
     if(fit.null$iter>=control$maxit){
         warning(paste("logistftest: Maximum number of iterations for null model exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
     }
 
-    loglik<-c(fit.null$loglik, fit.full$loglik)
+    loglik <- c('full' = fit.full$loglik, 'null' = fit.null$loglik)
     
     offset1[ - pos] <- NA
     names(offset1) <- cov.name
-    fit <- list(testcov = offset1, loglik = loglik, df = k2, prob = 1 - pchisq(2 *
-        diff(loglik), k2), call = match.call(), beta = beta)
+    fit <- list(testcov = offset1, 
+                loglik = loglik, 
+                df = k2, 
+                prob = 1 - pchisq(-2 * (loglik['null']-loglik['full']), k2), 
+                call = match.call(), 
+                beta = beta)
     if(firth) {
         fit$method <- "Penalized ML"
     }

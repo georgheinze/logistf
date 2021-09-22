@@ -73,10 +73,12 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
   
   # Next line added by Harry Southworth, 22/10/02.
    if (missing(which) & missing(variable)) stop("You must specify a variable: either by which (a one-sided formula) or by variable.")
-   if (missing(control)) control<-logistf.control()
+   if (missing(control)) control<-fitted$control
    if (missing(plcontrol)) plcontrol<-logistpl.control()
+
+   modcontrol <- fitted$modcontrol 
    
-     call <- match.call()
+   call <- match.call()
 
   y <- fitted$y
   n <- length(y)
@@ -92,6 +94,9 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
       
   cov.name <- labels(x)[[2]]
   k <- ncol(x)
+  if(!(identical(modcontrol$terms.fit, 1:k) | is.null(modcontrol$terms.fit))){
+    stop("Please call profile on a logistf-object with all terms fitted.")
+  }
       if (dimnames(x)[[2]][1] == "(Intercept)")  {
           int <- 1
           coltotest <- 2:k
@@ -107,7 +112,7 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
     if(is.na(pos)) {
       stop(paste(variable,"is not a model term."))
     }
-    fit<-logistf.fit(x, y, weight=weight, offset=offset, firth=firth, control=control) 
+    fit<-logistf.fit(x, y, weight=weight, offset=offset, firth=firth, control=control, modcontrol = modcontrol) 
     std.pos <- diag(fit$var)[pos]^0.5
    
    coefs <- fit$beta ## "normale" Koeffizienten
@@ -118,9 +123,9 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
    if(missing(limits)) {
     lim.pl<-numeric(0)
     LL.0 <- fit$loglik - qchisq(1 - alpha, 1)/2
-    lower.fit<-logistpl(x, y, init=fit$beta, weight=weight, offset=offset, firth=firth, LL.0=LL.0, which=-1, i=pos, plcontrol=plcontrol)
+    lower.fit<-logistpl(x, y, init=fit$beta, weight=weight, offset=offset, firth=firth, LL.0=LL.0, which=-1, i=pos, plcontrol=plcontrol, modcontrol = modcontrol)
     lim.pl[1]<-lower.fit$beta
-    upper.fit<-logistpl(x, y, init=fit$beta, weight=weight, offset=offset, firth=firth, LL.0=LL.0, which=1, i=pos, plcontrol=plcontrol)
+    upper.fit<-logistpl(x, y, init=fit$beta, weight=weight, offset=offset, firth=firth, LL.0=LL.0, which=1, i=pos, plcontrol=plcontrol, modcontrol = modcontrol)
     lim.pl[2]<-upper.fit$beta
     lim.pl <- (lim.pl - coefs[pos])/std.pos
     limits <- c(min(qnorm(alpha/2), lim.pl[1]) - 0.5, max(qnorm(1 - alpha/2), lim.pl[2]) + 0.5)
@@ -138,13 +143,13 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
        init<-lower.fit$betahist[nrow(lower.fit$betahist),]
        init[pos]<-res[i,2]
        xx <- logistf.fit(x, y, weight=weight, offset=offset, firth=firth, init=init,
-                     control=control, fitcontrol = update(fitted$fitcontrol, terms.fit = (1:k)[-pos])) 
+                     control=control, modcontrol = update(fitted$modcontrol, terms.fit = (1:k)[-pos])) 
     }     
     else {
        init<-xx$beta
        init[pos]<-res[i,2]
        xx <- logistf.fit(x, y, weight=weight, offset=offset, firth=firth, init=init,
-                     control=control, fitcontrol = update(fitted$fitcontrol, terms.fit = (1:k)[-pos])) # use solution from last step
+                     control=control, modcontrol = update(fitted$modcontrol, terms.fit = (1:k)[-pos])) # use solution from last step
     }
     res[i, 3] <- xx$loglik
    }
@@ -199,7 +204,7 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
    signed.root<-sqrt(2*(-res[,3]+max(res[,3])))*sign(res[,1])
    cdf<-pnorm(signed.root)
    
-   results<-list(beta=res[,2], stdbeta=res[,1], profile=2*(res[,3]-max(res[,3])), loglike=res[,3], signed.root=signed.root, cdf=cdf)
+   results<-list(beta=res[,2], stdbeta=res[,1], profile=2*(res[,3]-max(res[,3])), loglik=res[,3], signed.root=signed.root, cdf=cdf)
    attr(results,"class")<-"logistf.profile"
    results
 }
