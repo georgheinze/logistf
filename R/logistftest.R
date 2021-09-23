@@ -136,7 +136,11 @@ function(object, test, values, firth = TRUE, beta0, weights, control, modcontrol
     }
     beta <- offset1 
     
-    modcontrol$terms.fit <- ifelse(identical((1:k), pos),0, (1:k)[-pos])
+    if(identical((1:k), pos)){
+        modcontrol$terms.fit <- 0
+    } else {
+        modcontrol$terms.fit <- (1:k)[-pos]
+    }
 
     fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, control=control, init=beta, modcontrol = modcontrol, ...)
 
