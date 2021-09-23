@@ -25,21 +25,24 @@ logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, 
     xconv<-plcontrol$xconv
     lconv<-plcontrol$lconv
     firth <- if(firth) 1 else 0
-    loglik <- iter <- 0
+    loglik <- iter <- warning_prob <- 0
     conv <- double(2)
     betahist <- matrix(double(k * maxit), maxit) 
     mode(x) <- mode(weight) <- mode(beta) <- mode(offset) <- mode(LL.0) <- "double"
     mode(y) <- mode(firth) <- mode(n) <- mode(k) <- "integer"
     mode(maxstep) <- mode(lconv) <- mode(xconv) <- mode(loglik) <- mode(tau) <- "double"
-    mode(maxit) <- mode(maxhs) <- mode(i) <- mode(which) <- mode(iter) <- "integer"
+    mode(maxit) <- mode(maxhs) <- mode(i) <- mode(which) <- mode(iter) <- mode(warning_prob) <- "integer"
     
     res <- .C("logistplfit", x, y, n, k, weight, offset, beta=beta, i, which, LL.0, firth, maxit, 
-    maxstep, maxhs, lconv, xconv, tau, betahist=betahist, loglik=loglik, iter=iter, conv=conv,
+    maxstep, maxhs, lconv, xconv, tau, betahist=betahist, loglik=loglik, iter=iter, conv=conv, warning_prob = warning_prob,
     PACKAGE="logistf")
     
     #if(res$iter>=maxit){
     #warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations or alter step size by passing 'pl.control(maxit=..., maxstep=...)' to parameter plcontrol"))
     #}
+    if(res$warning_prob){
+      warning("fitted probabilities numerically 0 or 1 occurred")
+    }
     
     res <- res[c("beta", "betahist", "loglik", "iter", "conv")]
     res$betahist <- head(res$betahist, res$iter)

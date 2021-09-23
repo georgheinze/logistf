@@ -31,7 +31,7 @@ logistf.fit <- function(
     col.fit <- 1:k
   }
   
-  if(collapse && isTRUE(all.equal(weight, rep(1, length(weight)))) & control$fit != "IRLS") {
+  if(collapse && isTRUE(all.equal(weight, rep(1, length(weight))))) {
     xy <- cbind(x,y)
     temp <- unique(unlist(sapply(1:ncol(xy), function(X) unique(xy[, X]))))
     if(length(temp) <= 10) {
@@ -71,21 +71,21 @@ logistf.fit <- function(
   Ustar <- double(k)
   pi <- double(n)
   Hdiag <- double(n)
-  loglik <- evals <- iter <- 0
+  loglik <- evals <- iter <- warning_prob <- 0
   conv <- double(3)
   mode(x) <- mode(weight) <- mode(beta) <- mode(offset) <- "double"
   mode(y) <- mode(firth) <- mode(n) <- mode(k) <- "integer"
   mode(maxstep) <- mode(lconv) <- mode(gconv) <- mode(xconv) <- mode(tau) <- "double"
   mode(loglik) <- "double"
   mode(col.fit) <- mode(ncolfit) <- mode(maxit) <- mode(maxhs) <- "integer"
-  mode(evals) <- mode(iter) <- "integer"
+  mode(evals) <- mode(iter) <- mode(warning_prob) <- "integer"
   
   res <- switch(fit, 
                 IRLS = .C(
     "logistffit_IRLS",
     x, y, n, k, weight, offset, beta=beta, col.fit, ncolfit,
     firth, maxit, maxstep, maxhs, lconv, gconv, xconv, tau,
-    var=covar,  pi=pi, Hdiag=Hdiag, loglik=loglik, evals=evals, iter=iter, conv=conv,
+    var=covar,  pi=pi, Hdiag=Hdiag, loglik=loglik, evals=evals, iter=iter, conv=conv, warning_prob = warning_prob,
     PACKAGE="logistf"
   ), 
                 NR = .C(
@@ -93,11 +93,15 @@ logistf.fit <- function(
     x, y, n, k, weight, offset, beta=beta, col.fit, ncolfit, 
     firth, maxit, maxstep, maxhs, lconv, gconv, xconv, tau,
     var=covar, Ustar=Ustar, pi=pi, Hdiag=Hdiag, 
-    loglik=loglik, evals=evals, iter=iter, conv=conv,
+    loglik=loglik, evals=evals, iter=iter, conv=conv, warning_prob = warning_prob,
     PACKAGE="logistf"
   )
   
   )
+  
+  if(warning_prob){
+    warning("fitted probabilities numerically 0 or 1 occurred")
+  }
   
   if(coll) {
     res$pi<-res$pi[attr(xc,"index")]

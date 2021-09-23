@@ -19,7 +19,8 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
                 double *loglik,				// 1
                 int *evals,
                 int *iter,
-                double *convergence		// 3
+                double *convergence, // 3
+                int *warning_prob
 )
 {
   long n = (long)*n_l, k = (long)*k_l, firth = (long)*firth_l, ncolfit = (long)*ncolfit_l;
@@ -72,11 +73,12 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   }
   
   //Calculation of hat matrix diagonal; needed for loglik calculation on augmented dataset and in first iteration of main loop
-  //-- Calculation of X^T W^(1/2)
+  //-- Calculation of X W^(1/2)
   for(i = 0; i < n; i++) { 
     wi = sqrt(weight[i] * pi[i] * (1.0 - pi[i]));
-    for(j = 0; j < k; j++)
+    for(j = 0; j < k; j++){
       xw2[i*k + j] = x[i + j*n] * wi; 
+    }
   }
   //-- Transpose: W^(1/2)^T X
   trans(xw2, xw2t, k, n);
@@ -90,11 +92,12 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   else {
     linpack_inv(fisher_cov, &k); 
   }
-  //-- Calculation of X^T W^(1/2) (X^TWX)^(-1)
+  //-- Calculation of X W^(1/2) (X^TWX)^(-1)
   XtY(xw2, fisher_cov, tmp, k, n, k);
+  //-- Calculation of diag(X W^(1/2) (X^TWX)^(-1) X^TW^(1/2))
   XYdiag(tmp, xw2, Hdiag, n, k);
 
-    *evals = 1, *iter = 0;
+  *evals = 1, *iter = 0, *warning_prob = 0;
   int bStop = 0;
   
   
@@ -111,7 +114,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
         	  }
       } else {
-          warning("fitted probabilities numerically 0 or 1 occurred");
+          *warning_prob = 1;
           *loglik = loglik_old;
           bStop = 1;
           break;
@@ -139,7 +142,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
 
       //--Calculation of (X^TWX)^(-1) using augmented dataset and only columns in selcol (columns to fit: colfit - 1)
       if(ncolfit > 0 && (selcol[0] != -1)) { // selcol[0] == -1 in case of just evaluating likelihood
-        //-- Calculation of X^T W^(1/2)
+        //-- Calculation of X W^(1/2)
         //---- XW^(1/2)
 
         for(i = 0; i < n; i++) {
@@ -152,8 +155,10 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
             xw2_reduced_augmented[i*ncolfit + j] =  x[i + selcol[j]*n] * wi;
           }
         }
+        
+        
 
-        //---- W^(1/2)^TX^T
+        //---- W^(1/2)^T X^T
         trans(xw2_reduced_augmented, xw2_reduced_augmented_t, ncolfit, n); 
         XtXasy(xw2_reduced_augmented_t, fisher_cov_reduced_augmented, n, ncolfit);
         linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
@@ -223,7 +228,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
             	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
             	  }
           } else {
-              warning("fitted probabilities numerically 0 or 1 occurred");
+              *warning_prob = 1;
               *loglik = loglik_old;
               bStop = 1;
               break;
@@ -297,7 +302,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
             	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
             	  }
           } else {
-              warning("fitted probabilities numerically 0 or 1 occurred");
+              *warning_prob = 1;
               *loglik = loglik_old;
               bStop = 1;
               break;
@@ -364,7 +369,8 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 								double *loglik,
 								int *evals,
 								int *iter,
-								double *convergence		// 3
+								double *convergence,		// 3
+								int *warning_prob
 ){
 	long n = (long)*n_l, k = (long)*k_l, ncolfit = (long)*ncolfit_l, firth = (long)*firth_l;
 	double wi, wi_augmented, logdet;
@@ -407,13 +413,13 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	// init loglik
 	double loglik_old, loglik_change = 5.0;
 	
-	*evals = 0, *iter = 0;
+	*evals = 0, *iter = 0, *warning_prob = 0;
 	int bStop = 0;
 	
 	//init delta: difference between beta values in iteration i-1 and i
 	//and beta
 	for(i=0; i < k; i++){
-			delta[i] = 0.0;
+		delta[i] = 0.0;
 	 }
 	
 	for(i=0; i < ncolfit; i++){
@@ -461,7 +467,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
         	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
         	  }
       } else {
-          warning("fitted probabilities numerically 0 or 1 occurred");
+          *warning_prob = 1;
           *loglik = loglik_old;
           bStop = 1;
           break;
@@ -487,7 +493,11 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
       
       // Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
       for(i = 0; i < n; i++) {
-            wi_augmented =  pi[i] * (1.0 - pi[i])* (weight[i] + 2* *tau * Hdiag[i]); 
+          if(firth){
+              wi_augmented =  pi[i] * (1.0 - pi[i])* (weight[i] + 2* *tau * Hdiag[i]); 
+          } else {
+              wi_augmented =  pi[i] * (1.0 - pi[i]);
+          }
         for(j = 0; j < ncolfit; j++){
           xw2_reduced_augmented[i*ncolfit + j] =  x[i + selcol[j]*n] * sqrt(wi_augmented);
           xw2_reduced[i*ncolfit + j] = x[i + selcol[j]*n] * wi_augmented;
@@ -504,7 +514,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
       linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
   
       	
-      //(X^TWX)^(-1)X^TW
+      //(-X^TWX)^(-1)X^TW
     	XY(fisher_cov_reduced_augmented, xw2_reduced, tmp1_reduced, ncolfit, ncolfit, n);
       	  
     	double tmp;
@@ -555,7 +565,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
         	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
         	  }
     	   } else {
-    	       warning("fitted probabilities numerically 0 or 1 occurred");
+    	       *warning_prob = 1;
     	       *loglik = loglik_old;
     	       bStop = 1;
     	       break;
@@ -611,7 +621,8 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 							double *betahist,			// k * maxit
 							double *loglik,				// 1
 							int *iter,						// 1 
-							double *convergence		// 2
+							double *convergence,		// 2
+							int *warning_prob
 							)
 {
 	long n = (long)*n_l, k = (long)*k_l, firth = (long)*firth_l;
@@ -662,6 +673,8 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 	 if (NULL == (pi = (double *) R_alloc(n, sizeof(double)))){error("no memory available\n");}
 	 if (NULL == (Hdiag = (double *) R_alloc(n, sizeof(double)))){error("no memory available\n");}
 	
+	*warning_prob = 0;
+	
 	// init pi
 	trans(x, xt, n, k);
 	//Calculate initial likelihood and Hdiag for first iteration:
@@ -704,7 +717,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
         	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
         	  }
       } else {
-          warning("fitted probabilities numerically 0 or 1 occurred");
+          *warning_prob = 1;
           break;
       }
 	}
@@ -807,7 +820,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
                 	    *loglik += (1.0-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1.0-pi[i]);
                 	  }
               } else {
-                  warning("fitted probabilities numerically 0 or 1 occurred");
+                  *warning_prob = 1;
                   bStop = 1;
                   *loglik = loglik_old;
                   break;
