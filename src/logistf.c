@@ -107,19 +107,21 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   for(i = 0; i < n; i++){ 
 	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
     	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
-        	  if(firth){
-        	    // weight first replication of dataset with h_i * tau 
-        	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-        	    // weight first replication of dataset with h_i * tau with opponent y
-        	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
-        	  }
       } else {
           *warning_prob = 1;
           *loglik = loglik_old;
           bStop = 1;
           break;
       }
-    }
+  }
+  if(firth){
+        	    // weight first replication of dataset with h_i * tau 
+        	    //*loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+        	    // weight first replication of dataset with h_i * tau with opponent y
+        	    //*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+        	    
+        	    *loglik += 0.5*logdet;
+  }
 
   //Calculation of initial U*:
   if(firth){
@@ -139,7 +141,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
     //--Save iteration values:
       loglik_old = *loglik;
       copy(beta, beta_old, k);
-
+      
       //--Calculation of (X^TWX)^(-1) using augmented dataset and only columns in selcol (columns to fit: colfit - 1)
       if(ncolfit > 0 && (selcol[0] != -1)) { // selcol[0] == -1 in case of just evaluating likelihood
         //-- Calculation of X W^(1/2)
@@ -211,6 +213,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         //-- Calculation of XWX
         XtXasy(xw2t, fisher_cov, n, k);
         //-- Invert:
+        linpack_det(fisher_cov, &k, &logdet);
         linpack_inv(fisher_cov, &k); 
         //-- Calculation of X^T W^(1/2) (X^TWX)^(-1)
         XtY(xw2, fisher_cov, tmp, k, n, k);
@@ -221,18 +224,19 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         for(i = 0; i < n; i++){ 
     	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
         	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
-            	  if(firth){
-            	    // weight first replication of dataset with h_i * tau 
-            	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-            	    // weight first replication of dataset with h_i * tau with opponent y
-            	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
-            	  }
           } else {
               *warning_prob = 1;
               *loglik = loglik_old;
               bStop = 1;
               break;
           }
+        }
+        if(firth){
+            	    // weight first replication of dataset with h_i * tau 
+            	    //*loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+            	    // weight first replication of dataset with h_i * tau with opponent y
+            	    //*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            	    *loglik += 0.5*logdet;
         }
         //Increase evaluation counter
         (*evals)++;
@@ -295,18 +299,20 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         for(i = 0; i < n; i++){ 
     	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
         	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
-            	  if(firth){
-            	    // weight first replication of dataset with h_i * tau 
-            	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-            	    // weight first replication of dataset with h_i * tau with opponent y
-            	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
-            	  }
           } else {
               *warning_prob = 1;
               *loglik = loglik_old;
               bStop = 1;
               break;
           }
+        }
+        if(firth){
+            	    // weight first replication of dataset with h_i * tau 
+            	    //*loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+            	    // weight first replication of dataset with h_i * tau with opponent y
+            	    //*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            	    
+            	    *loglik += 0.5*logdet;
         }
         //Increase evaluation counter
         (*evals)++;
@@ -460,12 +466,6 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	for(i = 0; i < n; i++){ 
 	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
     	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
-        	  if(firth){
-        	    // weight first replication of dataset with h_i * tau 
-        	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-        	    // weight first replication of dataset with h_i * tau with opponent y
-        	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
-        	  }
       } else {
           *warning_prob = 1;
           *loglik = loglik_old;
@@ -473,6 +473,14 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
           break;
       }
 	}
+	if(firth){
+        	    // weight first replication of dataset with h_i * tau 
+            	//*loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+            	// weight first replication of dataset with h_i * tau with opponent y
+            	//*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            	
+            	*loglik += 0.5*logdet;
+    }
 	(*evals)++;
 	
   //Start IRLS: 
@@ -558,12 +566,6 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	for(i = 0; i < n; i++){ 
     	   if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
     	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
-        	  if(firth){
-        	    // weight first replication of dataset with h_i * tau 
-        	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-        	    // weight first replication of dataset with h_i * tau with opponent y
-        	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
-        	  }
     	   } else {
     	       *warning_prob = 1;
     	       *loglik = loglik_old;
@@ -571,6 +573,14 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	       break;
     	   }
     	}
+    	if(firth){
+        	    // weight first replication of dataset with h_i * tau 
+            	//*loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+            	// weight first replication of dataset with h_i * tau with opponent y
+            	//*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            	    
+            	*loglik += 0.5*logdet;
+        }
     	(*evals)++;
     	
     	loglik_change = *loglik - loglik_old;
@@ -698,8 +708,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 	linpack_det(fisher, &k, &logdet);
     if (logdet < (-200)) {	
         error("Determinant of Fisher information matrix was %lf \n", exp(logdet));
-    }
-    else {
+    } else {
         linpack_inv(fisher, &k); 
     }
 	XtY(xw2, fisher, tmpNxK, k, n, k);
@@ -707,20 +716,24 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 	
 	// Calculation of loglikelihood using augmented dataset if firth:
 	*loglik = 0.0;
+	loglik_old = 0.0;
 	for(i = 0; i < n; i++){ 
 	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
     	      *loglik += y[i] * weight[i] * log(pi[i]) + (1-y[i]) * weight[i] * log(1.0-pi[i]);
-        	  if(firth){
-        	    // weight first replication of dataset with h_i * tau 
-        	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
-        	    // weight first replication of dataset with h_i * tau with opponent y
-        	    *loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
-        	  }
       } else {
           *warning_prob = 1;
+          *loglik = loglik_old;
           break;
       }
 	}
+	if(firth){
+        	    // weight first replication of dataset with h_i * tau 
+            	//*loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+            	// weight first replication of dataset with h_i * tau with opponent y
+            	//*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            	    
+                *loglik += 0.5*logdet;
+    }
 	
 	// Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
     for(i = 0; i < n; i++) {
@@ -757,14 +770,20 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
         }
         XtY(x, w, Ustar, n, k, 1);
 		
-		XtY(Ustar, fisher_augmented, tmpKx1, k, 1, k); 
+		//Mulitplication of U*IU*:  
+		for(i=0; i<(k*k); i++){
+		    fisher[i] = -fisher_augmented[i];
+		}
+		
+		XtY(Ustar, fisher, tmpKx1, k, 1, k); 
 		XtY(tmpKx1, Ustar, tmp1x1, k, 1, 1); //U*^T (X^TWX)^(-1) u*
 		
-		double underRoot = (-1.0) * (2.0* (*LL0 - *loglik) - tmp1x1[0]) / fisher_augmented[k*((*iSel)-1) + (*iSel)-1]; 
+		double underRoot = (-2.0) *((*LL0 - *loglik) + 0.5*tmp1x1[0]) / fisher_augmented[k*((*iSel)-1) + (*iSel)-1]; 
 		lambda = (underRoot < 0.0) ? 0.0 : (double)(*which) * sqrt(underRoot); 
 		
 		//add lambda to r-th entry in U*: 
 		Ustar[(*iSel)-1] += lambda;
+
 		XtY(fisher_augmented, Ustar, delta, k, k, 1);
         
 		mx = maxabs(delta, k) / *maxstep;
@@ -794,7 +813,6 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
         	    xw2[i*k + j] = x[i + j*n] * wi;
         	  }
         	}
-        	
         	//Calculation of Hat diag:
         	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
         	XtXasy(xw2t, fisher, n, k); //X^TWX
@@ -813,12 +831,6 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
         	for(i = 0; i < n; i++){ 
         	  if(R_FINITE(log(1.0-pi[i])) && R_FINITE(log(pi[i]))){
             	      *loglik += y[i] * weight[i] * log(pi[i]) + (1.0-y[i]) * weight[i] * log(1.0-pi[i]);
-                	  if(firth){
-                	    // weight first replication of dataset with h_i * tau 
-                	    *loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1.0-y[i]) * Hdiag[i] * *tau * log(1.0-pi[i]);
-                	    // weight second replication of dataset with h_i * tau with opponent y
-                	    *loglik += (1.0-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1.0-pi[i]);
-                	  }
               } else {
                   *warning_prob = 1;
                   bStop = 1;
@@ -826,6 +838,14 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
                   break;
               }
         	}
+        	if(firth){
+                	    // weight first replication of dataset with h_i * tau 
+            	        //*loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
+            	        // weight first replication of dataset with h_i * tau with opponent y
+            	        //*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
+            	    
+            	       *loglik += 0.5*logdet;
+            }
         	
         	if(bStop){
         	    break;
@@ -854,17 +874,15 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
         	
         	halfs++;
 			
-			if((halfs > *maxhs) || ((fabs(*loglik - *LL0) < fabs(loglik_old - *LL0)) && (*loglik > *LL0)))
+			if((halfs >= *maxhs) || ((fabs(*loglik - *LL0) < fabs(loglik_old - *LL0)) && (*loglik > *LL0)))
 				break; 
 			
 			for(i=0; i < k; i++) {
 				delta[i] /= 2.0;
 				beta[i] -= delta[i];
 			}
-			
 		}
 		
-
 		(*iter)++;
 		
 		for(i=0; i < k; i++){
