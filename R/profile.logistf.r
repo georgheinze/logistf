@@ -72,13 +72,17 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
   # Next line added by Harry Southworth, 22/10/02.
   if (missing(which) & missing(variable)) stop("You must specify a variable: either by which (a one-sided formula) or by variable.")
   if (missing(control)) control<-fitted$control
-  if (missing(plcontrol)) plcontrol<-logistpl.control()
+  if (missing(plcontrol)){
+    if(is.null(fitted$plcontrol)) plcontrol<-logistpl.control()
+    else plcontrol <- fitted$plcontrol
+  }
 
   modcontrol <- fitted$modcontrol 
    
   call <- match.call()
 
   x <- model.matrix(fitted$formula, model.frame(fitted))
+  y <- model.response(model.frame(fitted))
   n <- nrow(x)
   
   cov.name <- labels(x)[[2]]
