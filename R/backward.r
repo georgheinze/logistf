@@ -54,7 +54,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
   
   k <- length(attr(Terms, "term.labels"))+attr(Terms, "intercept")
   
-  terms.fit <- object$fitcontrol$terms.fit
+  terms.fit <- object$modcontrol$terms.fit
   if(!is.null(terms.fit)) stop("Please call backward on a logistf-object with all terms fitted.")
 
   working<-object
@@ -137,9 +137,9 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     tmp <- match(removal, variables)
     if(!length(tmp)==0){
       tofit <- (1:k)[-(tmp+1)]
-      fitcontrol <- object$fitcontrol
-      fitcontrol$terms.fit <- tofit
-      working<-update(working, fitcontrol = fitcontrol)
+      modcontrol <- object$modcontrol
+      modcontrol$terms.fit <- tofit
+      working<-update(working, modcontrol = modcontrol)
     }
   }
   return(working)
@@ -169,7 +169,7 @@ forward.logistf<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, p
   object <- eval(mf$object, parent.frame())
   variables <- object$terms[-1]
   
-  terms.fit <- object$fitcontrol$terms.fit
+  terms.fit <- object$modcontrol$terms.fit
   if(!is.null(terms.fit)) stop("Please call forward on a logistf-object with all terms fitted.")
   
   working<-object

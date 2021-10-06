@@ -9,7 +9,7 @@ print.flac <-
     cat("\n\nCoefficients:\n")
     out <- x$coefficients
     print(out)
-    LL <- 2 * diff(x$loglik)
+    LL <- -2 * (x$loglik['null']-x$loglik['full'])
     cat("\nLikelihood ratio test=", LL, " on ", x$df, " df, p=", 1 -
           pchisq(LL, x$df), ", n=",
         x$n, "\n\n", sep = "")

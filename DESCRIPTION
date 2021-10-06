@@ -21,6 +21,3 @@ NeedsCompilation: yes
 RoxygenNote: 7.1.1
 LazyData: true
 BugReports: https://github.com/georgheinze/logistf/issues/
-Suggests: 
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3

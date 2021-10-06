@@ -12,7 +12,7 @@ logistftest(
   beta0,
   weights,
   control,
-  fitcontrol,
+  modcontrol,
   ...
 )
 }
@@ -40,7 +40,7 @@ regression parameters.}
 
 \item{control}{Controls parameters for iterative fitting}
 
-\item{fitcontrol}{Controls additional parameter for fitting. Default is \code{logistf.fit.control = logistf.fit.control()}}
+\item{modcontrol}{Controls additional parameter for fitting. Default is \code{modcontrol} of \code{object}.}
 
 \item{...}{further arguments passed to logistf.fit}
 }

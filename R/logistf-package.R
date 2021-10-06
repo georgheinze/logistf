@@ -1,6 +1,8 @@
-#' @title Firth's Bias-Reduced Logistic Regression
 #' @docType package
-#' @aliases {logistf}-package
+#' @name logistf-package
+#' @aliases logistf
+#'
+#' @title Firth's Bias-Reduced Logistic Regression
 #' 
 #' @description 
 #' Fit a logistic regression model using Firth's bias reduction method, equivalent to penalization of the log-likelihood by the Jeffreys prior. 
@@ -130,7 +132,7 @@
 #' 
 #' @keywords models regression
 #' 
-#' @importFrom stats add1 anova as.formula binomial coef density drop1 glm lm model.frame model.matrix model.offset model.response model.weights pchisq pnorm prcomp predict qchisq qnorm terms uniroot update vcov factor.scope delete.response .checkMFClasses quantile binomial family makepredictcall na.pass sd
+#' @importFrom stats add1 anova as.formula binomial coef density drop1 glm lm model.frame model.matrix model.offset model.response model.weights pchisq pnorm prcomp predict qchisq qnorm terms uniroot update vcov factor.scope delete.response .checkMFClasses quantile binomial family makepredictcall na.pass sd get_all_vars
 #' @importFrom graphics abline axis grid legend lines mtext par plot points segments title
 #' @importFrom utils capture.output head
 #' @importFrom stats nobs

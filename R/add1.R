@@ -63,18 +63,17 @@ add1.logistf<-function(object, scope, test="PLR", ...){
 }
 #' @exportS3Method add1 flic
 add1.flic<-function(object, scope, test="PLR", ...){
-  add1.logistf(object, scope, test="PLR", ...)
+  add1.logistf(object, scope, ...)
 }
 
 #' @exportS3Method add1 flac
 add1.flac<-function(object, scope, test="PLR", ...){
-  add1.logistf(object, scope, test="PLR", ...)
+  add1.logistf(object, scope, ...)
 }
 #' @aliases drop1
 #' @method drop1 logistf
 #' @exportS3Method drop1 logistf
 drop1.logistf<-function(object, scope, test="PLR", ...){
-  
   mf <- match.call(expand.dots =FALSE)
   m <- match(c("object", "scope", "test"), names(mf), 0L)
   mf <- mf[c(1, m)]
@@ -119,11 +118,11 @@ drop1.logistf<-function(object, scope, test="PLR", ...){
 #' @method drop1 flic
 #' @exportS3Method drop1 flic
 drop1.flic<-function(object, scope, test="PLR", ...){
-  drop1.logistf(object, scope, test="PLR", ...)
+  drop1.logistf(object, scope,  ...)
 }
 
 #' @method drop1 flac
 #' @exportS3Method drop1 flac
 drop1.flac<-function(object, scope, test="PLR", ...){
-  drop1.logistf(object, scope, test="PLR", augmented_data=TRUE,...)
+  drop1.logistf(object, scope, augmented_data=TRUE,...)
 }

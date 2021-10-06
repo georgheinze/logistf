@@ -6,7 +6,7 @@
 \usage{
 logistpl.control(
   maxit = 100,
-  maxhs = 5,
+  maxhs = 0,
   maxstep = 5,
   lconv = 1e-05,
   xconv = 1e-05,

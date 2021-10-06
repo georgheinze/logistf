@@ -27,11 +27,10 @@ summary.logistf <-function(object,...){
    print(out)
    cat("\nMethod: 1-Wald, 2-Profile penalized log-likelihood, 3-None\n")
    
-   LL <- 2 * diff(object$loglik)
+   LL <- -2 * (object$loglik['null']-object$loglik['full'])
    cat("\nLikelihood ratio test=", LL, " on ", object$df, " df, p=", 1 -pchisq(LL, object$df), ", n=",object$n, sep = "")
    
-   if(object$terms[1]!="(Intercept)"){
-      wald.z <- tryCatch({
+   wald.z <- tryCatch({
          t(coefs) %*% solve(var.red) %*% coefs
       }, 
       error=function(cond){
@@ -39,19 +38,6 @@ summary.logistf <-function(object,...){
          return(NA)
          }
       )
-   }
-   else{
-      wald.z <- tryCatch({
-         t(coefs[2:nrow(var.red)]) %*%
-         solve(var.red[2:nrow(var.red),2:nrow(var.red)]) %*%
-         coefs[2:nrow(var.red)]
-      }, 
-      error=function(cond){
-         message("\n Variance-Covariance matrix is singular \n")
-         return(NA)
-      }
-      )
-   }
    cat("\nWald test =", wald.z, "on", object$df, "df, p =", 1 - pchisq(wald.z, object$df))
    #cat("\n\nCovariance-Matrix:\n")
    #print(object$var)

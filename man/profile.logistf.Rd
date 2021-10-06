@@ -47,9 +47,6 @@ maxit, maxhs, lconv, gconv, xconv)}}
 \item{plcontrol}{Controls Newton-Raphson iteration for the estimation of the profile likelihood 
 confidence intervals. Default is \code{plcontrol= logistpl.control(maxstep, maxit, maxhs, lconv, xconv, ortho, pr)}}
 
-\item{plot}{If \code{TRUE}, profile likelihood is plotted. This parameter becomes obsolete as a 
-generic plot function is now provided.}
-
 \item{...}{Further arguments to be passed.}
 }
 \value{
@@ -75,6 +72,7 @@ plot(profile(fit,variable="dia"), "cdf")
 plot(profile(fit,variable="dia"), "density")
 
 }
-\author{
-Georg Heinze and Meinhard Ploner
+\references{
+Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining 
+profile likelihood information from logistic regressions. Statistics in Medicine, to appear.
 }

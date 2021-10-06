@@ -18,5 +18,5 @@
 predict.flac <- function(object, newdata, type = c("link", "response", "terms"), se.fit=FALSE,...){
   type <- match.arg(type)
   object$flic <- FALSE
-  predict.logistf(object, newdata, type,flic=FALSE, se.fit=se.fit)
+  predict.logistf(object, newdata, type, flic=FALSE, se.fit=se.fit)
 } 
