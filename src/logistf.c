@@ -120,7 +120,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         	    // weight first replication of dataset with h_i * tau with opponent y
         	    //*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
         	    
-        	    *loglik += 0.5*logdet;
+        	    *loglik += *tau * logdet;
   }
 
   //Calculation of initial U*:
@@ -236,7 +236,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
             	    //*loglik += y[i] * Hdiag[i] * *tau * log(pi[i]) + (1-y[i]) * Hdiag[i] * *tau * log(1-pi[i]);
             	    // weight first replication of dataset with h_i * tau with opponent y
             	    //*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
-            	    *loglik += 0.5*logdet;
+            	    *loglik += *tau * logdet;
         }
         //Increase evaluation counter
         (*evals)++;
@@ -312,7 +312,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
             	    // weight first replication of dataset with h_i * tau with opponent y
             	    //*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
             	    
-            	    *loglik += 0.5*logdet;
+            	    *loglik += *tau * logdet;
         }
         //Increase evaluation counter
         (*evals)++;
@@ -479,7 +479,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
             	// weight first replication of dataset with h_i * tau with opponent y
             	//*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
             	
-            	*loglik += 0.5*logdet;
+            	*loglik += *tau * logdet;
     }
 	(*evals)++;
 	
@@ -579,7 +579,7 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
             	// weight first replication of dataset with h_i * tau with opponent y
             	//*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
             	    
-            	*loglik += 0.5*logdet;
+            	*loglik += *tau * logdet;
         }
     	(*evals)++;
     	
@@ -732,7 +732,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
             	// weight first replication of dataset with h_i * tau with opponent y
             	//*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
             	    
-                *loglik += 0.5*logdet;
+                *loglik += *tau * logdet;
     }
 	
 	// Fisher cov based on augmented dataset and normal X^TW (see iteration formula for beta_new): 
@@ -844,7 +844,7 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
             	        // weight first replication of dataset with h_i * tau with opponent y
             	        //*loglik += (1-y[i]) * Hdiag[i] * *tau * log(pi[i]) + y[i] * Hdiag[i] * *tau * log(1-pi[i]);
             	    
-            	       *loglik += 0.5*logdet;
+            	       *loglik += *tau * logdet;
             }
         	
         	if(bStop){
