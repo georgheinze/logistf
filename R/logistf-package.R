@@ -1,6 +1,6 @@
 #' @docType package
 #' @name logistf-package
-#' @aliases logistf
+#' @aliases logistf-package
 #'
 #' @title Firth's Bias-Reduced Logistic Regression
 #' 

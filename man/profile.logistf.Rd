@@ -17,7 +17,6 @@
   legends = TRUE,
   control,
   plcontrol,
-  plot = FALSE,
   ...
 )
 }

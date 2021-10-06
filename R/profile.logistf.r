@@ -50,7 +50,7 @@
 profile.logistf <-
 function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
                     alpha = 0.05,  firth = TRUE,
-                    legends = TRUE,  control, plcontrol, plot=FALSE, ...){
+                    legends = TRUE,  control, plcontrol,  ...){
 
   # by MP, 06.02.01
   # adapted and renamed by GH, 10.03.11 (incredible! 10 years!)

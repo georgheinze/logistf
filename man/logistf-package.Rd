@@ -3,7 +3,6 @@
 \docType{package}
 \name{logistf-package}
 \alias{logistf-package}
-\alias{logistf}
 \title{Firth's Bias-Reduced Logistic Regression}
 \description{
 Fit a logistic regression model using Firth's bias reduction method, equivalent to penalization of the log-likelihood by the Jeffreys prior. 
