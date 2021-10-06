@@ -114,8 +114,7 @@ logistf.fit <- function(
   }
   
   res <- res[c("beta", "var", "Ustar", "pi", "Hdiag", "loglik", 
-               "evals", "iter", "conv")]
-  res <- c(res, "tau"=tau)
+               "evals", "iter", "conv", "warning_prob", "tau")]
   res
 }
 
