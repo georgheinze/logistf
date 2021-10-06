@@ -122,17 +122,16 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
   std.pos <- diag(fitted$var)[pos]^0.5
    
   coefs <- fitted$coefficients 
-  covs <- fitted$var 
-
-  LL.0 <- fit$loglik['full'] - qchisq(1 - alpha, 1)/2
+  
+  LL.0 <- fitted$loglik['full'] - qchisq(1 - alpha, 1)/2
   if(missing(limits)) {
     lower.fit <- logistpl(x, y, init=fitted$coefficients, weight=weight, offset=offset, firth=firth, LL.0=LL.0, which=-1, i=pos, plcontrol=plcontrol, modcontrol = modcontrol)
-    upper.fit <- logistpl(x, y, init=fit$coefficients, weight=weight, offset=offset, firth=firth, LL.0=LL.0, which=1, i=pos, plcontrol=plcontrol, modcontrol = modcontrol)
+    upper.fit <- logistpl(x, y, init=fitted$coefficients, weight=weight, offset=offset, firth=firth, LL.0=LL.0, which=1, i=pos, plcontrol=plcontrol, modcontrol = modcontrol)
     limits <- c(lower.fit$beta, upper.fit$beta)
-  }
+  } 
   
   limits <- (limits - coefs[pos])/std.pos
-  limits <- c(min(qnorm(alpha/2), limits[1]) - 0.5, max(qnorm(1 - alpha/2), limits[2]) + 0.5)
+  #limits <- c(min(qnorm(alpha/2), limits[1]) - 0.5, max(qnorm(1 - alpha/2), limits[2]) + 0.5)
   limits <- c(floor(limits[1]/pitch) * pitch, ceiling(limits[2]/pitch) * pitch)
   
   knots <- seq(limits[1], limits[2], diff(limits)/steps)
@@ -140,8 +139,10 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
   res <- matrix(NA, nn, 3) 
   dimnames(res) <- list(1:nn, c("std", cov.name2, "log-likelihood"))
   res[,1] <- knots
-  res[,2] <- coefs[pos] + covs[pos, pos]^0.5 * knots
+  res[,2] <- coefs[pos] + std.pos * knots
    
+  res <- res[order(abs(res[,cov.name2]-coefs[pos])),]
+  
   #first iteration: 
   init<-fitted$coefficients
   init[pos]<-res[1,2]
@@ -149,16 +150,19 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
                      control=control, modcontrol = update(fitted$modcontrol, terms.fit = (1:k)[-pos])) 
   res[1, 3] <- xx$loglik
   for(i in 2:nn) {
-    if(xx$iter == 0 && xx$loglik == 0){
-      init<-numeric(length(xx$beta))
-      } else {
-        init<-xx$beta
-      }
+    init<-xx$beta
     init[pos]<-res[i,2]
     xx <- logistf.fit(x, y, weight=weight, offset=offset, firth=firth, init=init,
                      control=control, modcontrol = update(fitted$modcontrol, terms.fit = (1:k)[-pos])) 
+    if(xx$warning_prob){
+      warning("fitted probabilities numerically 0 or 1 occurred.")
+      res <- res[!is.na(res[, "log-likelihood"]),]
+      break
+    } 
     res[i, 3] <- xx$loglik
-   }
+  }
+  
+  res <- res[order(res[,cov.name2]),]
   
    signed.root<-sqrt(2*(-res[,3]+max(res[,3])))*sign(res[,2]-fitted$coefficients[pos])
    cdf<-pnorm(signed.root)
