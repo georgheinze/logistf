@@ -179,12 +179,14 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         XtY(cov_augmented, Ustar, delta, k, k, 1);
         
         // Check for maxstep:
-        double mx = maxabs(delta, k) / *maxstep;
-        if(mx > 1.0){
-          for(i=0; i < k; i++) {
-            delta[i] /= mx;
+        if(*maxstep >= 0){
+            double mx = maxabs(delta, k) / *maxstep;
+            if(mx > 1.0){
+              for(i=0; i < k; i++) {
+                delta[i] /= mx;
+              }
+            }
           }
-        }
       }
       
       //Update coefficient vector beta:
@@ -786,12 +788,14 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 
 		XtY(fisher_augmented, Ustar, delta, k, k, 1);
         
-		mx = maxabs(delta, k) / *maxstep;
-		if(mx > 1.0) {
-		    for(i=0; i < k; i++){
-		        delta[i] /= mx;
-		    }
-		}
+        if(*maxstep >= 0){
+            mx = maxabs(delta, k) / *maxstep;
+    		if(mx > 1.0) {
+    		    for(i=0; i < k; i++){
+    		        delta[i] /= mx;
+    		    }
+    		}
+        }
 		
 		for(i=0; i < k; i++){
 		    beta[i] += delta[i];

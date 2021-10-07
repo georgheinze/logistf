@@ -9,7 +9,7 @@
 #' @param maxhs The maximum number of step-halvings in one iteration. The increment of the 
 #' beta vector within one iteration is divided by 2 if the new beta leads to a decrease 
 #' in log likelihood.
-#' @param maxstep Specifies the maximum step size in the beta vector within one iteration.
+#' @param maxstep Specifies the maximum step size in the beta vector within one iteration. Set to -1 for infinite stepsize.
 #' @param lconv Specifies the convergence criterion for the log likelihood.
 #' @param gconv Specifies the convergence criterion for the first derivative of the log likelihood (the score vector).
 #' @param xconv Specifies the convergence criterion for the parameter estimates.
