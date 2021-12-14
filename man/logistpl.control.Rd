@@ -21,7 +21,7 @@ logistpl.control(
 beta vector within one iteration is divided by 2 if the new beta leads to a decrease 
 in log likelihood.}
 
-\item{maxstep}{Specifies the maximum step size in the beta vector within one iteration.}
+\item{maxstep}{Specifies the maximum step size in the beta vector within one iteration. Set to -1 for infinite stepsize.}
 
 \item{lconv}{Specifies the convergence criterion for the log likelihood.}
 
