@@ -145,12 +145,11 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, modcontrol,
     }
     else if(is.factor(y)){
       if(length(levels(y))==2){
-        warning(paste0("Ivalid response variable: Changing value ", levels(y)[1], " to 0 and value ",  levels(y)[2], " to 1." ))
-        y <- as.numeric(y)-1
+        y <- as.numeric(y != levels(y)[1L])
       }
       
     }else if(!is.numeric(y)){
-      stop("Invalid response variable: must be logical or numeric")
+      stop("Invalid response variable: must be logical or numeric or factor with 2 levels.")
     }
     
     n <- length(y)
