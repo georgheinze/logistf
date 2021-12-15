@@ -14,7 +14,7 @@
 #' @examples
 #' data(sexagg)
 #' fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, 
-#' fitcontrol=logistf.fit.control(terms.fit=c(1,2)))
+#' modcontrol=logistf.mod.control(terms.fit=c(1,2)))
 #' summary(fit2)
 #' 
 logistf.mod.control <- function(tau=0.5, terms.fit = NULL){

@@ -22,7 +22,7 @@ Sets parameters for \code{logistf} calls.
 \examples{
 data(sexagg)
 fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, 
-fitcontrol=logistf.fit.control(terms.fit=c(1,2)))
+modcontrol=logistf.mod.control(terms.fit=c(1,2)))
 summary(fit2)
 
 }

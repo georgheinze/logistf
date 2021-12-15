@@ -1,5 +1,5 @@
 #' @exportS3Method summary logistf
-summary.logistf <-function(object,...){
+summary.logistf <-function(object){
   # object ... object of class logistf
    print(object$call)
    cat("\nModel fitted by", object$method)
