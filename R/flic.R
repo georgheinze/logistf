@@ -123,13 +123,19 @@ flic.formula <- function(formula,data,model = TRUE, control, modcontrol, ...){
   #variance covariance matrix: (X^TWX)^-1
   pred.prob <- as.vector(1/(1+exp(-x%*%c(ic, FL$coef[-1]))))
   W <- diag(pred.prob, nrow=length(pred.prob))
-  var <- solve(t(x)%*%W%*%x)
+  if(!is.null(modcontrol$terms.fit)){
+    var <- matrix(0, nrow = ncol(x), ncol = ncol(x))
+    varreduced <- solve(t(x[,modcontrol$terms.fit])%*%W%*%x[,modcontrol$terms.fit])
+    var[modcontrol$terms.fit,modcontrol$terms.fit] <- varreduced
+  } else {
+    var <- solve(t(x)%*%W%*%x)
+  }
   
   
   res <- list(coefficients=c(ic, FL$coef[-1]),
               alpha = FL$alpha,
               terms=colnames(x),
-              var = tmp.var,
+              var = var,
               df=FL$df,
               loglik=c('full' = unname(full_loglik), 
                        'null' = unname(FL$loglik['null'])), 
@@ -196,7 +202,13 @@ flic.logistf <- function(lfobject,model=TRUE,...){
   #variance covariance matrix: (X^TWX)^-1
   pred.prob <- as.vector(1/(1+exp(-designmat%*%c(ic, lfobject$coef[-1]))))
   W <- diag(pred.prob, nrow=length(pred.prob))
-  var <- solve(t(designmat)%*%W%*%designmat)
+  if(!is.null(modcontrol$terms.fit)){
+    var <- matrix(0, nrow = ncol(designmat), ncol = ncol(designmat))
+    varreduced <- solve(t(designmat[,modcontrol$terms.fit])%*%W%*%designmat[,modcontrol$terms.fit])
+    var[modcontrol$terms.fit,modcontrol$terms.fit] <- varreduced
+  } else {
+    var <- solve(t(designmat)%*%W%*%designmat)
+  }
   
   res <- list(coefficients=c(ic, lfobject$coef[-1]), 
               alpha = lfobject$alpha, 
