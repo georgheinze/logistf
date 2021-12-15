@@ -79,6 +79,7 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
     ff0<-fit1 #swap
     fit1<-fit2
     fit2<-ff0
+    out2 <- fit2$formula
     }
   } else {
     out2 <- formula
