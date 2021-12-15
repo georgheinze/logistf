@@ -143,7 +143,15 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
 #' @method anova flic
 #' @exportS3Method anova flic
 anova.flic<-function(object,  fit2, formula, method="nested", ...){
-  anova.logistf(object,  fit2, formula, ...)
+  object$firth <- TRUE
+  if(missing(formula)){
+    if(inherits(fit2, "flic")){
+      fit2$firth <- TRUE
+      anova.logistf(object, fit2 = fit2, ...)
+    }
+  } else {
+    anova.logistf(object, formula = formula, ...)
+  }
 }
 
 #' @exportS3Method print anova.logistf
