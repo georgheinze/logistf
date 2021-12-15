@@ -140,5 +140,4 @@
 #' @importFrom mice complete
 #' @importFrom formula.tools lhs.vars
 #' 
-#' @useDynLib logistf, .registration = TRUE
 NULL
