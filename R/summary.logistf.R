@@ -7,12 +7,12 @@ summary.logistf <-function(object,...){
    
    #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
    call <- object$call
-   if(!is.null(object$fitcontrol$terms.fit)){
-      var.red <- object$var[object$fitcontrol$terms.fit,object$fitcontrol$terms.fit]
-      coefs <- coef(object)[object$fitcontrol$terms.fit]
+   if(!is.null(object$modcontrol$terms.fit)){
+      var.red <- object$var[object$modcontrol$terms.fit,object$modcontrol$terms.fit]
+      coefs <- coef(object)[object$modcontrol$terms.fit]
       chi2 <- vector(length=length(object$terms))
-      chi2[object$fitcontrol$terms.fit] <- qchisq(1 - object$prob[object$fitcontrol$terms.fit], 1)
-      chi2[-object$fitcontrol$terms.fit] <- 0
+      chi2[object$modcontrol$terms.fit] <- qchisq(1 - object$prob[object$modcontrol$terms.fit], 1)
+      chi2[-object$modcontrol$terms.fit] <- 0
    }
    else {
       var.red <- object$var
