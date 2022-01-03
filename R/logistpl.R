@@ -3,8 +3,6 @@ logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, 
     k<-ncol(x)
     if (is.null(init)) init<-rep(0,k)
     beta<-init
-    if (is.null(offset)) offset=rep(0,n)
-    if (is.null(weight)) weight=rep(1,n)
     if (missing(plcontrol)) {
         plcontrol<-logistpl.control()
     }    
@@ -38,7 +36,7 @@ logistpl <- function(x, y, init=NULL, i, LL.0, firth, which = -1, offset=rep(0, 
     #warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations or alter step size by passing 'pl.control(maxit=..., maxstep=...)' to parameter plcontrol"))
     #}
     if(res$warning_prob){
-      warning("fitted probabilities numerically 0 or 1 occurred")
+      warning("fitted probabilities numerically 0 or 1 occurred for variable ", colnames(x)[i])
     }
     
     res <- res[c("beta", "betahist", "loglik", "iter", "conv")]

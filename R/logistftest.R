@@ -84,11 +84,10 @@ function(object, test, values, firth = TRUE, beta0, weights, control, modcontrol
     }
     
     cov.name <- labels(x)[[2]]
-    if(missing(weights) & !is.null(object$weights)) weight <- object$weights
-    else weight<-NULL
-    offset <- as.vector(model.offset(mf)   )
+    if(missing(weights)) weights <- model.weights(model.frame(object))
+    offset <- as.vector(model.offset(model.frame(object)))
     if (is.null(offset)) offset<-rep(0,n)
-    if (is.null(weight)) weight<-rep(1,n)
+    if (is.null(weights)) weights<-rep(1,n)
 
     k <- ncol(x)
     if (dimnames(x)[[2]][1] == "(Intercept)")  {
@@ -99,7 +98,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, modcontrol
         coltotest <-1:k
     }
 
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, control=control, modcontrol = modcontrol, ... )
+    fit.full<-logistf.fit(x=x, y=y, weight=weights, offset=offset, firth, control=control, modcontrol = modcontrol, ... )
     
     if(fit.full$iter>=control$maxit){
         warning(paste("logistftest: Maximum number of iterations for full model exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))
@@ -142,7 +141,7 @@ function(object, test, values, firth = TRUE, beta0, weights, control, modcontrol
         modcontrol$terms.fit <- (1:k)[-pos]
     }
 
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, control=control, init=beta, modcontrol = modcontrol, ...)
+    fit.null<-logistf.fit(x=x, y=y, weight=weights, offset=offset, firth, control=control, init=beta, modcontrol = modcontrol, ...)
 
     if(fit.null$iter>=control$maxit){
         warning(paste("logistftest: Maximum number of iterations for null model exceeded. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control"))

@@ -51,15 +51,6 @@ profile.logistf <-
 function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
                     alpha = 0.05,  firth = TRUE,
                     legends = TRUE,  control, plcontrol,  ...){
-
-  # by MP, 06.02.01
-  # adapted and renamed by GH, 10.03.11 (incredible! 10 years!)
-  # again adapted and renamed by GH, 13.05.13
-  # which  ... righthand formula des zu plottenden Term (z.B. ~B oder ~A:D)
-  # pitch  ... distances between points in std's
-  # limits ... vector of MIN & MAX in std's, default=extremes of both CI's
-  #            +- 0.5 std. of beta
-  #
   
   mf <- match.call(expand.dots =FALSE)
   m <- match(c("fitted","which"), names(mf), 0L)
@@ -69,7 +60,6 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
   
   formula<-fitted$formula
 
-  # Next line added by Harry Southworth, 22/10/02.
   if (missing(which) & missing(variable)) stop("You must specify a variable: either by which (a one-sided formula) or by variable.")
   if (missing(control)) control<-fitted$control
   if (missing(plcontrol)){
@@ -87,8 +77,8 @@ function(fitted,  which, variable, steps=100, pitch = 0.05, limits,
   
   cov.name <- labels(x)[[2]]
 
-  offset <- model.offset(mf)   
-  weight <- model.weights(mf)
+  offset <- model.offset(model.frame(fitted))   
+  weight <- model.weights(model.frame(fitted))
   if(is.null(offset)) {
     offset <- rep(0,n)
   }
