@@ -26,6 +26,10 @@
 #' @param model If TRUE the corresponding components of the fit are returned.
 #' @param control Controls iteration parameter. Taken from \code{logistf}-object when specified. Otherwise default is \code{control= logistf.control()}.
 #' @param modcontrol  Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.mod.control()}.
+#' @param weights specifies case weights. Each line of the input data set is multiplied 
+#' by the corresponding element of weights
+#' @param na.action a function which indicates what should happen when the data contain NAs
+#' @param offset a priori known component to be included in the linear predictor
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flac} object with components:
@@ -70,10 +74,10 @@
 flac <- function(...){
   UseMethod("flac")
 }
-#' @method flac formula
-#' @exportS3Method flac formula
-#' @describeIn flac With formula and data
-flac.formula <- function(formula, data, model=TRUE, control, modcontrol, ...){
+#' @method flac default
+#' @exportS3Method flac default
+#' @describeIn flac with formula and data
+flac.default <- function(formula, data, model=TRUE, control, modcontrol, weights, offset, na.action,...){
   extras <- list(...)
 
   if(missing(control)){
@@ -84,11 +88,15 @@ flac.formula <- function(formula, data, model=TRUE, control, modcontrol, ...){
   }
   
   mf <- match.call(expand.dots =FALSE)
-  m <- match(c("formula", "data"), names(mf), 0L)
-  
+  m <- match(c("formula","data","weights","na.action","offset"), names(mf), 0L)
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1L]] <- quote(stats::model.frame)
+  
+  f <- substitute(logistf(formula, data=data, pl=F, control = control, modcontrol = modcontrol, 
+                       weights = weights, offset = offset, na.action = na.action,...))
+  temp.fit1 <- eval(f)
+  
   mf <- eval(mf, parent.frame())
   mt <- attr(mf, "terms")
   
@@ -96,29 +104,28 @@ flac.formula <- function(formula, data, model=TRUE, control, modcontrol, ...){
   n <- length(y)
   x <- model.matrix(mt, mf)
   
+  weights <- model.weights(mf)
+  offset <- as.vector(model.offset(mf))
+  if (is.null(offset)) offset<-rep(0,n)
+  if (is.null(weights)) weights<-rep(1,n)
+  
   response <- formula.tools::lhs.vars(formula)
   scope <- formula.tools::rhs.vars(formula)
-  
-  temp.fit1 <- logistf(formula, data=data, pl=F, control = control, modcontrol = modcontrol, ...)
   
   #apply firths logistic regression and calculate diagonal elements h_i of hat matrix
   #and construct augmented dataset and definition of indicator variable g
   temp.pseudo <- c(rep(0,length(y)), rep(1,2*length(y)))
-  temp.neww <- c(rep(1,length(y)), temp.fit1$hat/2, temp.fit1$hat/2)
+  temp.neww <- c(weights*rep(1,length(y)), temp.fit1$hat/2, temp.fit1$hat/2)
 
-  data.inverse <- data
-  data.inverse[,match(response, names(data.inverse))] <- 1- data.inverse[,match(response, names(data.inverse))]
-  newdat <- data.frame(rbind(data, data, data.inverse), temp.pseudo=temp.pseudo, temp.neww=temp.neww)
-  names(newdat)[match(names(newdat), response)] <- "newresp"
-  
+  newdat <- data.frame(rbind(x[,-1], x[,-1], x[,-1]), newresp = c(y,y,1-y), temp.pseudo=temp.pseudo, temp.neww=temp.neww)
+
   #ML estimation on augmented dataset
-  newform <- update(formula, ~ .+temp.pseudo)
-  newform <- update(newform, newresp ~ . )
-  temp.fit2 <- logistf(newform,data=newdat, weights=temp.neww, firth=FALSE, control = control, modcontrol = modcontrol, ...)
-  temp.fit3 <- logistf(newresp ~ temp.pseudo,data=newdat, weights=temp.neww, firth=FALSE, ...)
+  temp.fit2 <- logistf(newresp ~.-temp.neww,data=newdat, weights=temp.neww, firth=FALSE, control = control, modcontrol = modcontrol, pl=TRUE, ...)
+  temp.fit3 <- logistf(newresp ~ temp.pseudo,data=newdat, weights=temp.neww, firth=FALSE, pl = TRUE, ...)
   
   #outputs
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients) & "`(weights)`"!=names(temp.fit2$coefficients))]
+  names(coefficients) <- names(coef(temp.fit1))
   fitted <- temp.fit2$predict[1:length(temp.fit1$y)]
   linear.predictors <- temp.fit2$linear.predictors[1:length(y)]
   prob <- temp.fit2$prob[which("temp.pseudo"!=names(temp.fit2$prob))]
@@ -159,73 +166,33 @@ flac.formula <- function(formula, data, model=TRUE, control, modcontrol, ...){
 #' @describeIn flac With logistf object
 flac.logistf <- function(lfobject, data, model=TRUE, ... ){
   extras <- list(...)
-
+  Call <- match.call()
+  
   mf <- match.call(expand.dots =FALSE)
-  m <- match(c("lfobject", "data"), names(mf), 0L)
+  m <- match(c("lfobject", "data", "model"), names(mf), 0L)
   mf <- mf[c(1, m)]
   lfobject <- eval(mf$lfobject, parent.frame())
   
-  modcontrol <- lfobject$modcontrol
+  weights <- model.weights(lfobject$model)
+  offset <- model.offset(lfobject$model)
+  if (is.null(offset)) offset<-rep(0,nrow(data))
+  if (is.null(weights)) weights<-rep(1,nrow(data))
   
-  if(!is.null(extras$formula)) lfobject <- update(lfobject, formula. = extras$formula) #to update flac.logistf objects at least with formula
-
-  variables <- lfobject$terms[-1]
+  #to update flac.logistf objects at least with formula
+  if(!is.null(extras$formula)) lfobject <- update(lfobject, formula. = extras$formula)
+  
+  modcontrol <- lfobject$modcontrol
+  control <- lfobject$control
   
   if(lfobject$flic) stop("Please call flac() only on logistf-objects with flic=FALSE")
   
-  response <- formula.tools::lhs.vars(lfobject$formula)
-  scope <- formula.tools::rhs.vars(lfobject$formula)
+  formula <- lfobject$formula
   
-  temp.pseudo <- c(rep(0,length(lfobject$y)), rep(1,2*length(lfobject$y)))
-  temp.neww <- c(rep(1,length(lfobject$y)), lfobject$hat/2, lfobject$hat/2)
+  f <- substitute(flac.default(formula, data=data, model = model, control = control, modcontrol = modcontrol, 
+                       weights = weights, offset = offset, ...))
+  fit <- eval(f)
   
-  data.inverse <- data
-  data.inverse[,match(response, names(data.inverse))] <- 1- data.inverse[,match(response, names(data.inverse))]
-  newdat <- data.frame(rbind(data, data, data.inverse), temp.pseudo=temp.pseudo, temp.neww=temp.neww)
-  names(newdat)[match(names(newdat), response)] <- "newresp"
+  fit$call <- Call
   
-  #ML estimation on augmented dataset
-  newform <- update(lfobject$formula, ~ .+temp.pseudo)
-  newform <- update(newform, newresp ~ . )
-  temp.fit2 <- update(lfobject, formula. = newform, data=newdat, weights=temp.neww, firth=FALSE)
-  temp.fit3 <- update(lfobject, formula. = newresp ~ temp.pseudo, data=newdat, weights=temp.neww, firth=FALSE)
-  
-  #outputs
-  coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients)& "`(weights)`"!=names(temp.fit2$coefficients))]
-  fitted <- temp.fit2$predict[1:length(lfobject$y)]
-  linear.predictors <- temp.fit2$linear.predictors[1:length(lfobject$y)]
-  prob <- temp.fit2$prob[which("temp.pseudo"!=names(temp.fit2$prob))]
-  ci.lower <- temp.fit2$ci.lower[which("temp.pseudo"!=names(temp.fit2$ci.lower))]
-  ci.upper <- temp.fit2$ci.upper[which("temp.pseudo"!=names(temp.fit2$ci.upper))]
-  var <- temp.fit2$var
-  rownames(var) <- colnames(var) <- names(temp.fit2$coefficients)
-  var <- var[which("temp.pseudo"!=names(temp.fit2$coefficients)), which("temp.pseudo"!=names(temp.fit2$coefficients))]
-  method.ci <- temp.fit2$method.ci[which("temp.pseudo"!=names(temp.fit2$coefficients))]
-  
-  res <- list(coefficients=coefficients, 
-              alpha = lfobject$alpha,
-              terms=lfobject$terms, 
-              var=var, 
-              df = lfobject$df,  
-              loglik = c('full' = unname(temp.fit2$loglik['full']), 
-                         'null' = unname(temp.fit3$loglik['full'])),
-              n=lfobject$n,
-              formula=formula(lfobject$formula),
-              call=match.call(),
-              linear.predictors=linear.predictors, 
-              predict = fitted, prob=prob,
-              method = temp.fit2$method,
-              method.ci = method.ci,
-              ci.lower=ci.lower,
-              ci.upper=ci.upper,
-              augmented.data = newdat, 
-              control = lfobject$control, 
-              modcontrol = modcontrol
-              )
-  
-  if(model) {
-    res$model <-lfobject$model
-  }
-  attr(res, "class") <- c("flac")
-  res
+  return(fit)
 }

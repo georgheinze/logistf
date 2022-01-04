@@ -25,6 +25,10 @@
 #' @param model If TRUE the corresponding components of the fit are returned.
 #' @param control Controls iteration parameter. Taken from \code{logistf}-object when specified. Otherwise default is \code{control= logistf.control()}.
 #' @param modcontrol  Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.mod.control()}.
+#' @param weights specifies case weights. Each line of the input data set is multiplied 
+#' by the corresponding element of weights
+#' @param na.action a function which indicates what should happen when the data contain NAs
+#' @param offset a priori known component to be included in the linear predictor
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flic} object with components:
@@ -72,11 +76,10 @@ flic <- function(...){
   UseMethod("flic")
 }
 #'
-#' @method flic formula
-#' @exportS3Method flic formula
-#' @describeIn flic With formula and data
-#' @export flic.formula
-flic.formula <- function(formula,data,model = TRUE, control, modcontrol, ...){
+#' @method flic default
+#' @exportS3Method flic default
+#' @describeIn flic with formula and data
+flic.default <- function(formula, data, model = TRUE, control, modcontrol, weights, offset, na.action, ...){
   extras <- list(...)
 
   if(missing(control)){
@@ -92,6 +95,11 @@ flic.formula <- function(formula,data,model = TRUE, control, modcontrol, ...){
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1L]] <- quote(stats::model.frame)
+  
+  f <- substitute(logistf(formula, data=data, control = control, modcontrol = modcontrol, 
+                       weights = weights, offset = offset, na.action, ...))
+  FL <- eval(f)
+  
   mf <- eval(mf, parent.frame())
   mt <- attr(mf, "terms")  
   
@@ -99,7 +107,10 @@ flic.formula <- function(formula,data,model = TRUE, control, modcontrol, ...){
   n <- length(y)
   x <- model.matrix(mt, mf)
   
-  FL <- logistf(formula, data=data, control = control, modcontrol = modcontrol, ...)
+  weights <- model.weights(mf)
+  offset <- as.vector(model.offset(mf))
+  if (is.null(offset)) offset<-rep(0,n)
+  if (is.null(weights)) weights<-rep(1,n)
 
   response <- lhs.vars(formula) 
   
@@ -107,7 +118,7 @@ flic.formula <- function(formula,data,model = TRUE, control, modcontrol, ...){
   lp <- FL$linear.predictors-FL$coefficients[1]
   #determine ML estimate of intercept 
   fit <- glm(as.formula(paste(response, paste("1"), sep=" ~ ")), family=binomial(link=logit), 
-             data=mf, offset=lp)
+             data=mf, offset=lp+offset, weights = weights)
   #se of intercept
   W <- diag(fit$fitted.values*(1-fit$fitted.values))
   XWX <- t(x)%*%W%*%x
@@ -170,13 +181,18 @@ flic.logistf <- function(lfobject,model=TRUE,...){
   modcontrol <- lfobject$modcontrol
 
   mf <- match.call(expand.dots =FALSE)
-  m <- match("lfobject", names(mf), 0L)
+  m <- match(c("lfobject","model"), names(mf), 0L)
   mf <- mf[c(1, m)]
   lfobject <- eval(mf$lfobject, parent.frame())
   if(!is.null(extras$formula)) lfobject <- update(lfobject, formula. = extras$formula) #to update flac.logistf objects at least with formula
   
   variables <- lfobject$terms[-1]
   data <- model.frame(lfobject)
+  
+  weights <- model.weights(lfobject$model)
+  offset <- model.offset(lfobject$model)
+  if (is.null(offset)) offset<-rep(0,nrow(data))
+  if (is.null(weights)) weights<-rep(1,nrow(data))
   
   response <- formula.tools::lhs.vars(lfobject$formula)
   scope <- formula.tools::rhs.vars(lfobject$formula)
@@ -186,7 +202,7 @@ flic.logistf <- function(lfobject,model=TRUE,...){
   #determine ML estimate of intercept 
   response <- all.vars(lfobject$formula)[1]
   lfformula <- as.formula(paste(response, paste("1"), sep=" ~ "))
-  fit <- glm(lfformula, family=binomial(link=logit), data=data, offset=lp)
+  fit <- glm(lfformula, family=binomial(link=logit), data=data, offset=lp+offset, weights = weights)
   #se of intercept
   W <- diag(fit$fitted.values*(1-fit$fitted.values))
   designmat <- model.matrix(lfobject$formula, data)

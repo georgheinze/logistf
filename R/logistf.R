@@ -32,6 +32,7 @@
 #' @param weights specifies case weights. Each line of the input data set is multiplied 
 #' by the corresponding element of weights
 #' @param na.action a function which indicates what should happen when the data contain NAs
+#' @param offset a priori known component to be included in the linear predictor
 #' @param plconf specifies the variables (as vector of their indices) for which profile likelihood 
 #' confidence intervals should be computed. Default is to compute for all variables.
 #' @param flic If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
@@ -130,7 +131,7 @@
 #' @seealso [add1.logistf()], [drop1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, modcontrol, firth = TRUE, init, weights,na.action, plconf=NULL,flic=FALSE, model = TRUE, ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, modcontrol, firth = TRUE, init, weights, na.action, offset, plconf=NULL,flic=FALSE, model = TRUE, ...){
    call <- match.call()
    if(missing(control)) control<-logistf.control()
    if(pl==TRUE & missing(plcontrol)) plcontrol<-logistpl.control()

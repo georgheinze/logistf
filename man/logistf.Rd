@@ -17,6 +17,7 @@ logistf(
   init,
   weights,
   na.action,
+  offset,
   plconf = NULL,
   flic = FALSE,
   model = TRUE,
@@ -57,6 +58,8 @@ logistic regression parameters.}
 by the corresponding element of weights}
 
 \item{na.action}{a function which indicates what should happen when the data contain NAs}
+
+\item{offset}{a priori known component to be included in the linear predictor}
 
 \item{plconf}{specifies the variables (as vector of their indices) for which profile likelihood 
 confidence intervals should be computed. Default is to compute for all variables.}

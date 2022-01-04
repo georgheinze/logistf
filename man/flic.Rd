@@ -3,13 +3,23 @@
 \encoding{UTF-8}
 \name{flic}
 \alias{flic}
-\alias{flic.formula}
+\alias{flic.default}
 \alias{flic.logistf}
 \title{FLIC - Firth's logistic regression with intercept correction}
 \usage{
 flic(...)
 
-\method{flic}{formula}(formula, data, model = TRUE, control, modcontrol, ...)
+\method{flic}{default}(
+  formula,
+  data,
+  model = TRUE,
+  control,
+  modcontrol,
+  weights,
+  offset,
+  na.action,
+  ...
+)
 
 \method{flic}{logistf}(lfobject, model = TRUE, ...)
 }
@@ -27,6 +37,13 @@ and the model terms on the right. The response must be a vector with 0 and 1 or 
 \item{control}{Controls iteration parameter. Taken from \code{logistf}-object when specified. Otherwise default is \code{control= logistf.control()}.}
 
 \item{modcontrol}{Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.mod.control()}.}
+
+\item{weights}{specifies case weights. Each line of the input data set is multiplied 
+by the corresponding element of weights}
+
+\item{offset}{a priori known component to be included in the linear predictor}
+
+\item{na.action}{a function which indicates what should happen when the data contain NAs}
 
 \item{lfobject}{A fitted \code{\link{logistf}} object.}
 }
@@ -73,7 +90,7 @@ ratio tests.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{formula}: With formula and data
+\item \code{default}: with formula and data
 
 \item \code{logistf}: With logistf object
 }}
