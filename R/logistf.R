@@ -131,7 +131,7 @@
 #' 
 #' @useDynLib logistf, .registration = TRUE
 #' 
-#' @seealso [add1.logistf()], [drop1.logistf()], [anova.logistf()]
+#' @seealso [add1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
 function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, modcontrol, firth = TRUE, init, weights, na.action, offset, plconf=NULL,flic=FALSE, model = TRUE, ...){

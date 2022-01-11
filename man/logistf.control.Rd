@@ -19,8 +19,8 @@ logistf.control(
 \arguments{
 \item{maxit}{The maximum number of iterations}
 
-\item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the 
-beta vector within one iteration is divided by 2 if the new beta leads to a decrease 
+\item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the
+beta vector within one iteration is divided by 2 if the new beta leads to a decrease
 in log likelihood.}
 
 \item{maxstep}{Specifies the maximum step size in the beta vector within one iteration. Set to -1 for infinite stepsize.}
@@ -37,22 +37,22 @@ in log likelihood.}
 }
 \value{
 \item{maxit}{The maximum number of iterations}
-   \item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the 
-beta vector within one iteration is divided by 2 if the new beta leads to a decrease 
+\item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the
+beta vector within one iteration is divided by 2 if the new beta leads to a decrease
 in log likelihood.}
-   \item{maxstep}{Specifies the maximum step size in the beta vector within one iteration.}
-   \item{lconv}{Specifies the convergence criterion for the log likelihood.}
-   \item{gconv}{Specifies the convergence criterion for the first derivative of the log likelihood (the score vector).}
-   \item{xconv}{Specifies the convergence criterion for the parameter estimates.}
-   \item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
-   \item{fit}{Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
-   \item{call}{The function call.}
+\item{maxstep}{Specifies the maximum step size in the beta vector within one iteration.}
+\item{lconv}{Specifies the convergence criterion for the log likelihood.}
+\item{gconv}{Specifies the convergence criterion for the first derivative of the log likelihood (the score vector).}
+\item{xconv}{Specifies the convergence criterion for the parameter estimates.}
+\item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
+\item{fit}{Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
+\item{call}{The function call.}
 }
 \description{
 Sets parameters for iterations in Firth's penalized-likelihood logistic regression.
 }
 \details{
-\code{logistf.control()} is used by \code{logistf} and \code{logistftest} to set control parameters to default values. 
+\code{logistf.control()} is used by \code{logistf} and \code{logistftest} to set control parameters to default values.
 Different values can be specified, e. g., by \code{logistf(..., control= logistf.control(maxstep=1))}.
 }
 \examples{

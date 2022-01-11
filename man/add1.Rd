@@ -10,11 +10,11 @@
 \arguments{
 \item{object}{A fitted \code{logistf, flic} or \code{flac} object}
 
-\item{scope}{The scope of variables considered for adding or dropping. Should be a 
-vector of variable names. Can be left missing; the method will then use all variables 
+\item{scope}{The scope of variables considered for adding or dropping. Should be a
+vector of variable names. Can be left missing; the method will then use all variables
 in the object's data slot which are not identified as the response variable.}
 
-\item{test}{The type of test statistic. Currently, only the PLR test (penalized likelihood 
+\item{test}{The type of test statistic. Currently, only the PLR test (penalized likelihood
 ratio test) is allowed for logistf fits.}
 
 \item{...}{Further arguments passed to or from other methods.}
@@ -23,11 +23,11 @@ ratio test) is allowed for logistf fits.}
 A matrix with \code{nvar} rows and 3 columns (Chisquared, degrees of freedom, p-value).
 }
 \description{
-Compute all the single terms in the scope argument that can be added to or dropped 
+Compute all the single terms in the scope argument that can be added to or dropped
 from the model, fit those models and compute a table of the changes in fit.
 }
 \details{
-\code{drop1} and \code{add1} generate a table where for each variable the penalized 
+\code{drop1} and \code{add1} generate a table where for each variable the penalized
 likelihood ratio chi-squared, the degrees of freedom, and the p-value for dropping/adding this variable are given.
 }
 \examples{

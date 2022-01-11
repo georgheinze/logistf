@@ -77,7 +77,7 @@ flac <- function(...){
 }
 #' @method flac default
 #' @exportS3Method flac default
-#' @describeIn flac with formula and data
+#' @describeIn flac With formula and data
 flac.default <- function(formula, data, model=TRUE, control, modcontrol, weights, offset, na.action,...){
   extras <- list(...)
 

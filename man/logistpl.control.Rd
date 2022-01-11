@@ -17,8 +17,8 @@ logistpl.control(
 \arguments{
 \item{maxit}{The maximum number of iterations}
 
-\item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the 
-beta vector within one iteration is divided by 2 if the new beta leads to a decrease 
+\item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the
+beta vector within one iteration is divided by 2 if the new beta leads to a decrease
 in log likelihood.}
 
 \item{maxstep}{Specifies the maximum step size in the beta vector within one iteration. Set to -1 for infinite stepsize.}
@@ -33,22 +33,22 @@ in log likelihood.}
 }
 \value{
 \item{maxit}{The maximum number of iterations}
-   \item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the 
-beta vector within one iteration is divided by 2 if the new beta leads to a decrease 
+\item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the
+beta vector within one iteration is divided by 2 if the new beta leads to a decrease
 in log likelihood.}
-   \item{maxstep}{Specifies the maximum step size in the beta vector within one iteration.}
-   \item{lconv}{Specifies the convergence criterion for the log likelihood.}
-   \item{xconv}{Specifies the convergence criterion for the parameter estimates.}
-   \item{ortho}{specifies if orthogonalization is requested.}
-   \item{pr}{specifies if rotation is requested}
+\item{maxstep}{Specifies the maximum step size in the beta vector within one iteration.}
+\item{lconv}{Specifies the convergence criterion for the log likelihood.}
+\item{xconv}{Specifies the convergence criterion for the parameter estimates.}
+\item{ortho}{specifies if orthogonalization is requested.}
+\item{pr}{specifies if rotation is requested}
 }
 \description{
-Sets parameters for modified Newton-Raphson iteration for finding 
+Sets parameters for modified Newton-Raphson iteration for finding
 profile likelihood confidence intervals in Firth's penalized likelihood logistic regression
 }
 \details{
-\code{logistpl.control()} is used by \code{logistf} to set control parameters to default values 
-when computing profile likelihood confidence intervals. 
+\code{logistpl.control()} is used by \code{logistf} to set control parameters to default values
+when computing profile likelihood confidence intervals.
 Different values can be specified, e. g., by \code{logistf(..., control= logistf.control(maxstep=1))}.
 }
 \examples{

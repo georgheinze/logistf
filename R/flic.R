@@ -80,7 +80,7 @@ flic <- function(...){
 #'
 #' @method flic default
 #' @exportS3Method flic default
-#' @describeIn flic with formula and data
+#' @describeIn flic With formula and data
 flic.default <- function(formula, data, model = TRUE, control, modcontrol, weights, offset, na.action, ...){
   extras <- list(...)
 

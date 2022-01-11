@@ -14,7 +14,7 @@ logistf.mod.control(tau = 0.5, terms.fit = NULL)
 }
 \value{
 \item{tau}{Penalization parameter (default = 0.5)}
-   \item{terms.fit}{A numeric vector of terms to fit. Intercept has to be included if needed.}
+\item{terms.fit}{A numeric vector of terms to fit. Intercept has to be included if needed.}
 }
 \description{
 Sets parameters for \code{logistf} calls.

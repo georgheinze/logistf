@@ -7,7 +7,7 @@
 #' defined as factors in the original data set.
 #' 
 #' @param object A fitted logistf model object. To start with an empty model, create a model fit 
-#' with a formula=<y>~1, pl=FALSE. (Replace <y> by your response variable.)
+#' with a formula= y~1, pl=FALSE. (Replace y by your response variable.)
 #' @param scope The scope of variables to add/drop from the model. Can be missing for backward, backward will use 
 #' the terms of the object fit. Alternatively, an arbitrary vector of variable names can be given, to allow 
 #' that only some of the variables will be competitively selected or dropped. Has to be provided for forward.
@@ -216,12 +216,4 @@ forward.logistf<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, p
    if(pl) working<-update(working, pl=TRUE)
    if(trace) cat("\n")
    return(working)
-}
-
-
-#' @exportS3Method backward flac
-#' @method backward flac
-#' @rdname backward
-backward.flac<-function(object, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE,...){
-  stop("Currently not implemented.")
 }

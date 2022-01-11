@@ -13,46 +13,46 @@
 
 \item{formula}{Alternatively to \code{fit2}, a formula which specifies terms to omit from the object model fit.}
 
-\item{method}{One of c("nested","PLR"). nested is the default for hierarchically nested 
+\item{method}{One of c("nested","PLR"). nested is the default for hierarchically nested
 models, and will compare the penalized likelihood ratio statistics (minus twice
 the difference between maximized penalized log likelihood and null penalized
-log likelihood), where the null penalized log likelihood is computed from the 
-same, hierarchically superior model. Note that unlike in maximum likelihood 
-analysis, the null penalized likelihood depends on the penalty (Jeffreys prior) 
-which itself depends on the scope of variables of the hierarchically superior 
-model. PLR compares the difference in penalized likelihood ratio between the 
-two models, where for each model the null penalized likelihood is computed 
-within the scope of variables in that model. For PLR, the models need not be 
+log likelihood), where the null penalized log likelihood is computed from the
+same, hierarchically superior model. Note that unlike in maximum likelihood
+analysis, the null penalized likelihood depends on the penalty (Jeffreys prior)
+which itself depends on the scope of variables of the hierarchically superior
+model. PLR compares the difference in penalized likelihood ratio between the
+two models, where for each model the null penalized likelihood is computed
+within the scope of variables in that model. For PLR, the models need not be
 hierarchically nested.}
 
 \item{...}{Further arguments passed to the method.}
 }
 \value{
 An object of class \code{anova.logistf} with items
-  \item{chisq}{the chisquared statistic for the model comparison}
-  \item{df}{The degrees of freedom}
-  \item{pval}{The p-value}
-  \item{call}{The function call}
-  \item{method}{The method of comparison (input)}
-  \item{model1}{The first model}
-  \item{model2}{The second model which was compared to the first model}
-  \item{PLR1}{The PLR statistic of the first model}
-  \item{PLR2}{the PLR statistic of the second model; for the nested method, this will be the drop in chi-squared due to setting the coefficients to zero}
+\item{chisq}{the chisquared statistic for the model comparison}
+\item{df}{The degrees of freedom}
+\item{pval}{The p-value}
+\item{call}{The function call}
+\item{method}{The method of comparison (input)}
+\item{model1}{The first model}
+\item{model2}{The second model which was compared to the first model}
+\item{PLR1}{The PLR statistic of the first model}
+\item{PLR2}{the PLR statistic of the second model; for the nested method, this will be the drop in chi-squared due to setting the coefficients to zero}
 }
 \description{
-This method compares hierarchical and non-hierarchical logistf models using 
-penalized likelhood ratio tests. It replaces the function logistftest of former 
+This method compares hierarchical and non-hierarchical logistf models using
+penalized likelhood ratio tests. It replaces the function logistftest of former
 versions of logistf.
 }
 \details{
-Comparing models fitted by penalized methods, one must consider that the penalized likelihoods 
-are not directly comparable, since a penalty is involved. Or in other words, inserting zero for 
-some regression coefficients will not lead to the same penalized likelihood as if the corresponding 
-variables are simply "unknown" to a model. The anova method takes care that the same penalty is 
-used for two hierarchically nested models, and if the models are not hierarchically nested, it will 
-first relate each penalized likelihood to its null penalized likelihood, and only compare the resulting 
-penalized likelihod ratio statistics. The chi-squared approximation for this latter method (PLR) is 
-considered less accurate than that of the nested method. Nevertheless, it is the only way to go for 
+Comparing models fitted by penalized methods, one must consider that the penalized likelihoods
+are not directly comparable, since a penalty is involved. Or in other words, inserting zero for
+some regression coefficients will not lead to the same penalized likelihood as if the corresponding
+variables are simply "unknown" to a model. The anova method takes care that the same penalty is
+used for two hierarchically nested models, and if the models are not hierarchically nested, it will
+first relate each penalized likelihood to its null penalized likelihood, and only compare the resulting
+penalized likelihod ratio statistics. The chi-squared approximation for this latter method (PLR) is
+considered less accurate than that of the nested method. Nevertheless, it is the only way to go for
 comparison of non-nested models.
 }
 \examples{

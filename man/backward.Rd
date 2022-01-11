@@ -6,7 +6,6 @@
 \alias{backward.flic}
 \alias{forward}
 \alias{forward.logistf}
-\alias{backward.flac}
 \title{Backward Elimination/Forward Selection of Model Terms in logistf Models}
 \usage{
 backward(object, ...)
@@ -45,25 +44,15 @@ forward(object, ...)
   pl = TRUE,
   ...
 )
-
-\method{backward}{flac}(
-  object,
-  steps = 1000,
-  slstay = 0.05,
-  trace = TRUE,
-  printwork = FALSE,
-  full.penalty = FALSE,
-  ...
-)
 }
 \arguments{
-\item{object}{A fitted logistf model object. To start with an empty model, create a model fit 
-with a formula=<y>~1, pl=FALSE. (Replace <y> by your response variable.)}
+\item{object}{A fitted logistf model object. To start with an empty model, create a model fit
+with a formula= y~1, pl=FALSE. (Replace y by your response variable.)}
 
 \item{...}{Further arguments to be passed to methods.}
 
-\item{scope}{The scope of variables to add/drop from the model. Can be missing for backward, backward will use 
-the terms of the object fit. Alternatively, an arbitrary vector of variable names can be given, to allow 
+\item{scope}{The scope of variables to add/drop from the model. Can be missing for backward, backward will use
+the terms of the object fit. Alternatively, an arbitrary vector of variable names can be given, to allow
 that only some of the variables will be competitively selected or dropped. Has to be provided for forward.}
 
 \item{steps}{The number of forward selection/backward elimination steps.}
@@ -87,8 +76,8 @@ An updated \code{logistf, flic} or \code{flac} fit with the finally selected mod
 These functions provide simple backward elimination/forward selection procedures for logistf models.
 }
 \details{
-The variable selection is simply performed by repeatedly calling add1 or drop1 methods for logistf, 
-and is based on penalized likelihood ratio test. It can also properly handle variables that were 
+The variable selection is simply performed by repeatedly calling add1 or drop1 methods for logistf,
+and is based on penalized likelihood ratio test. It can also properly handle variables that were
 defined as factors in the original data set.
 }
 \section{Functions}{

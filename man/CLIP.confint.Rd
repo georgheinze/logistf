@@ -47,31 +47,31 @@ CLIP.confint(
 }
 \value{
 An object of class \code{CLIP.confint}, with items:
-   \item{variable}{The variable(s) which were analyzed}
-   \item{estimate}{The pooled estimate (average over imputations)}
-   \item{ci}{The confidence interval(s)}
-   \item{pvalue}{The p-value(s)}
-   \item{imputations}{The number of imputed datasets}
-   \item{ci.level}{The confidence level (input)}
-   \item{bound.lo}{The bounds used for finding the lower confidence limit; usually not of interest. May be useful for error-tracing.}
-   \item{bound.up}{The bounds used for finding the upper confidence limit}
-   \item{iter}{The number of iterations (for each variable and each tail)}
-   \item{call}{The call object}
+\item{variable}{The variable(s) which were analyzed}
+\item{estimate}{The pooled estimate (average over imputations)}
+\item{ci}{The confidence interval(s)}
+\item{pvalue}{The p-value(s)}
+\item{imputations}{The number of imputed datasets}
+\item{ci.level}{The confidence level (input)}
+\item{bound.lo}{The bounds used for finding the lower confidence limit; usually not of interest. May be useful for error-tracing.}
+\item{bound.up}{The bounds used for finding the upper confidence limit}
+\item{iter}{The number of iterations (for each variable and each tail)}
+\item{call}{The call object}
 }
 \description{
-This function implements the new combination of likelihood profiles (CLIP) method described in 
-Heinze, Ploner and Beyea (2013). This method is useful for computing confidence intervals for 
-parameters after multiple imputation of data sets, if the normality assumption on parameter estimates and consequently the validity of applying Rubin's rules (pooling of variances) is in doubt. It 
-consists of combining the profile likelihoods into a posterior. The function CLIP.confint searches 
-for those values of a regression coefficient, at which the cumulative distribution function of the 
-posterior is equal to the values specified in the argument ci.level (usually 0.025 and 0.975). The 
+This function implements the new combination of likelihood profiles (CLIP) method described in
+Heinze, Ploner and Beyea (2013). This method is useful for computing confidence intervals for
+parameters after multiple imputation of data sets, if the normality assumption on parameter estimates and consequently the validity of applying Rubin's rules (pooling of variances) is in doubt. It
+consists of combining the profile likelihoods into a posterior. The function CLIP.confint searches
+for those values of a regression coefficient, at which the cumulative distribution function of the
+posterior is equal to the values specified in the argument ci.level (usually 0.025 and 0.975). The
 search is performed using R's optimize function.
 }
 \details{
-For each confidence limit, this function performs a binary search to evaluate the combined posterior, 
-which is obtained by first transforming the imputed-data likelihood profiles into cumulative distribution functions (CDFs), and then averaging the CDFs to obtain the CDF of the posterior. Usually, 
-the binary search manages to find the confidence intervals very quickly. The number of iterations 
-(mean and maximum) will be supplied in the output object. Further details on the method can be 
+For each confidence limit, this function performs a binary search to evaluate the combined posterior,
+which is obtained by first transforming the imputed-data likelihood profiles into cumulative distribution functions (CDFs), and then averaging the CDFs to obtain the CDF of the posterior. Usually,
+the binary search manages to find the confidence intervals very quickly. The number of iterations
+(mean and maximum) will be supplied in the output object. Further details on the method can be
 found in Heinze, Ploner and Beyea (2013).
 }
 \examples{
@@ -103,11 +103,11 @@ for(i in 1:5){
  
 }
 \references{
-Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining 
+Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining
 profile likelihood information from logistic regressions. Statistics in Medicine, to appear.
 }
 \seealso{
-[logistf()] for Firth's bias-Reduced penalized-likelihood logistic regression.
+\code{\link[=logistf]{logistf()}} for Firth's bias-Reduced penalized-likelihood logistic regression.
 }
 \author{
 Georg Heinze and Meinhard Ploner

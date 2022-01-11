@@ -12,27 +12,27 @@ PVR.confint(obj, variable, skewbeta = FALSE)
 
 \item{variable}{The variable(s) to compute the PVR confidence intervals, either provided as names or as numbers}
 
-\item{skewbeta}{If \code{TRUE}, incorporates information on the skewness of the parameter estimates 
+\item{skewbeta}{If \code{TRUE}, incorporates information on the skewness of the parameter estimates
 across the imputed data sets.}
 }
 \value{
 An object of class \code{PVR.confint} with items:
-  \item{estimate}{the pooled parameter estimate(s) (the average across completed-data estimates)} 
-  \item{ci}{the confidence intervals based on the PVR method} 
-  \item{lower.var}{the lower pseudo-variance(s)} 
-  \item{upper.var}{the upper pseudo-variance(s)} 
-  \item{conflev}{the confidence level: this is determined by the confidence level (1-alpha) used in the input fit objects} 
-  \item{call}{the function call} 
-  \item{variable}{the variable(s) for which confidence intervals were computed}
+\item{estimate}{the pooled parameter estimate(s) (the average across completed-data estimates)}
+\item{ci}{the confidence intervals based on the PVR method}
+\item{lower.var}{the lower pseudo-variance(s)}
+\item{upper.var}{the upper pseudo-variance(s)}
+\item{conflev}{the confidence level: this is determined by the confidence level (1-alpha) used in the input fit objects}
+\item{call}{the function call}
+\item{variable}{the variable(s) for which confidence intervals were computed}
 }
 \description{
-The pseudo-variance modification proposed by Heinze, Ploner and Beyea (2013) provides a quick 
-way to adapt Rubin's rules to situations of a non-normal distribution of a regression coefficient. 
+The pseudo-variance modification proposed by Heinze, Ploner and Beyea (2013) provides a quick
+way to adapt Rubin's rules to situations of a non-normal distribution of a regression coefficient.
 However, the approxiation is less accurate than that of the CLIP method.
 }
 \details{
-The pseudo-variance modification computes a lower and an upper pseudo-variance, which are based 
-on the distance between profile likelihood limits and the parameter estimates. These are then 
+The pseudo-variance modification computes a lower and an upper pseudo-variance, which are based
+on the distance between profile likelihood limits and the parameter estimates. These are then
 plugged into the usual Rubin's rules method of variance combination
 }
 \examples{
@@ -64,7 +64,7 @@ PVR.confint(obj=fit.list)
 
 }
 \references{
-Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining 
+Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining
 profile likelihood information from logistic regressions. Statistics in Medicine, to appear.
 }
 \author{

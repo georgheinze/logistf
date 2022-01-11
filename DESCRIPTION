@@ -21,3 +21,4 @@ NeedsCompilation: yes
 RoxygenNote: 7.1.1
 LazyData: true
 BugReports: https://github.com/georgheinze/logistf/issues/
+Roxygen: list(markdown = TRUE)

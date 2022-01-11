@@ -26,8 +26,8 @@ flic(...)
 \arguments{
 \item{...}{Further arguments passed to the method or \code{\link{logistf}}-call.}
 
-\item{formula}{A formula object, with the response on the left of the operator, 
-and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and 
+\item{formula}{A formula object, with the response on the left of the operator,
+and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and
 \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.}
 
 \item{data}{If using with formula, a data frame containing the variables in the model.}
@@ -38,7 +38,7 @@ and the model terms on the right. The response must be a vector with 0 and 1 or 
 
 \item{modcontrol}{Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.mod.control()}.}
 
-\item{weights}{specifies case weights. Each line of the input data set is multiplied 
+\item{weights}{specifies case weights. Each line of the input data set is multiplied
 by the corresponding element of weights}
 
 \item{offset}{a priori known component to be included in the linear predictor}
@@ -49,25 +49,24 @@ by the corresponding element of weights}
 }
 \value{
 A \code{flic} object with components:
-  \item{coefficients}{The coefficients of the parameter in the fitted model.}
-  \item{predict}{A vector with the predicted probability of each observation.}
-  \item{linear.predictors}{A vector with the linear predictor of each observation.}
-  \item{var}{The variance-covariance-matrix of the parameters.}
-  \item{prob}{The p-values of the specific parameters.}
-  \item{ci.lower}{The lower confidence limits of the parameter.}
-  \item{ci.upper}{The upper confidence limits of the parameter.}
-  \item{call}{The call object.}
-  \item{alpha}{The significance level: 0.95.}
-  \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
-  \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
-  \item{df}{The number of degrees of freedom in the model.}
-  \item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
-  \item{n}{The number of observations.}
-  \item{formula}{The formula object.}
-  \item{control}{a copy of the control parameters.}  
-  \item{modcontrol}{a copy of the modcontrol parameters.}  
-  \item{terms}{the model terms (column names of design matrix).}
-  \item{model}{if requested (the default), the model frame used.}
+\item{coefficients}{The coefficients of the parameter in the fitted model.}
+\item{predict}{A vector with the predicted probability of each observation.}
+\item{linear.predictors}{A vector with the linear predictor of each observation.}
+\item{var}{The variance-covariance-matrix of the parameters.}
+\item{prob}{The p-values of the specific parameters.}
+\item{ci.lower}{The lower confidence limits of the parameter.}
+\item{ci.upper}{The upper confidence limits of the parameter.}
+\item{call}{The call object.}
+\item{alpha}{The significance level: 0.95.}
+\item{method}{depending on the fitting method 'Penalized ML' or \verb{Standard ML'.\} \\item\{method.ci\}\{the method in calculating the confidence intervals, i.e. }profile likelihood' or `Wald', depending on the argument pl and plconf.}
+\item{df}{The number of degrees of freedom in the model.}
+\item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
+\item{n}{The number of observations.}
+\item{formula}{The formula object.}
+\item{control}{a copy of the control parameters.}
+\item{modcontrol}{a copy of the modcontrol parameters.}
+\item{terms}{the model terms (column names of design matrix).}
+\item{model}{if requested (the default), the model frame used.}
 }
 \description{
 \code{flic} implements Firth's bias-reduced penalized-likelihood logistic regression with intercept correction.
@@ -77,20 +76,20 @@ FLIC is a simple modification of Firth's logistic regression which provides aver
 probabilities equal to the observed proportion of events, while preserving the ability to deal
 with separation.
 
-In general the average predicted probability in Firth's logistic regression is not equal to the observed 
-proportion of events. Because the determinant of the Fisher-Information matrix is maximized 
-for \eqn{\pi_i = \frac{1}{2}} it is concluded that Firth's penalization tends to push the 
+In general the average predicted probability in Firth's logistic regression is not equal to the observed
+proportion of events. Because the determinant of the Fisher-Information matrix is maximized
+for \eqn{\pi_i = \frac{1}{2}} it is concluded that Firth's penalization tends to push the
 predicted probabilities towards one-half compared with ML-estimation.
-FLIC first applies Firth's logistic regression and then corrects the intercept such that the predicted probabilities become unbiased while keeping 
+FLIC first applies Firth's logistic regression and then corrects the intercept such that the predicted probabilities become unbiased while keeping
 all other coefficients constant.
 The following generic methods are available for \code{flic}'s output object: \code{print, summary, coef, confint, anova, extractAIC, add1, drop1, 
-profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
-that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
+profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note
+that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood
 ratio tests.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: with formula and data
+\item \code{default}: With formula and data
 
 \item \code{logistf}: With logistf object
 }}
@@ -106,7 +105,7 @@ flic(lf)
 
 }
 \references{
-Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth’s logistic regression with rare events: 
+Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth’s logistic regression with rare events:
 accurate effect estimates and predictions? Statistics in Medicine 36: 2302–2317.
 }
 \seealso{

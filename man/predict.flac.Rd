@@ -17,7 +17,7 @@
 
 \item{newdata}{Optionally, a data frame in which to look for variables with which to predict. If omitted, the fitted linear predictors are used.}
 
-\item{type}{The type of prediction required. The default is on the scale of the linear predictors. 
+\item{type}{The type of prediction required. The default is on the scale of the linear predictors.
 The alternative \code{response} gives the predicted probabilities. Type \code{terms} returns a matrix with the fitted
 values of each term in the formula on the linear predictor scale.}
 

@@ -25,46 +25,46 @@ logistf(
 )
 }
 \arguments{
-\item{formula}{A formula object, with the response on the left of the operator, 
-and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and 
-\code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled. It is 
-possible to include contrasts, interactions, nested effects, cubic or polynomial 
+\item{formula}{A formula object, with the response on the left of the operator,
+and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and
+\code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled. It is
+possible to include contrasts, interactions, nested effects, cubic or polynomial
 splines and all S features as well, e.g. Y ~ X1*X2 + ns(X3, df=4).}
 
-\item{data}{A data.frame where the variables named in the formula can be found, 
+\item{data}{A data.frame where the variables named in the formula can be found,
 i. e. the variables containing the binary response and the covariates.}
 
-\item{pl}{Specifies if confidence intervals and tests should be based on the profile 
+\item{pl}{Specifies if confidence intervals and tests should be based on the profile
 penalized log likelihood (\code{pl=TRUE}, the default) or on the Wald method (\code{pl=FALSE}).}
 
 \item{alpha}{The significance level (1-\eqn{\alpha} the confidence level, 0.05 as default).}
 
 \item{control}{Controls iteration parameter. Default is \code{control= logistf.control()}}
 
-\item{plcontrol}{Controls Newton-Raphson iteration for the estimation of the profile 
+\item{plcontrol}{Controls Newton-Raphson iteration for the estimation of the profile
 likelihood confidence intervals. Default is \code{plcontrol= logistpl.control()}}
 
 \item{modcontrol}{Controls additional parameter for fitting. Default is \code{logistf.mod.control()}}
 
-\item{firth}{Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) or the 
-standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression. 
-Note that by specifying \code{pl=TRUE} and \code{firth=FALSE} (and probably a lower number 
-of iterations) one obtains profile likelihood confidence intervals for maximum likelihood 
+\item{firth}{Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) or the
+standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression.
+Note that by specifying \code{pl=TRUE} and \code{firth=FALSE} (and probably a lower number
+of iterations) one obtains profile likelihood confidence intervals for maximum likelihood
 logistic regression parameters.}
 
 \item{init}{Specifies the initial values of the coefficients for the fitting algorithm}
 
-\item{weights}{specifies case weights. Each line of the input data set is multiplied 
+\item{weights}{specifies case weights. Each line of the input data set is multiplied
 by the corresponding element of weights}
 
 \item{na.action}{a function which indicates what should happen when the data contain NAs}
 
 \item{offset}{a priori known component to be included in the linear predictor}
 
-\item{plconf}{specifies the variables (as vector of their indices) for which profile likelihood 
+\item{plconf}{specifies the variables (as vector of their indices) for which profile likelihood
 confidence intervals should be computed. Default is to compute for all variables.}
 
-\item{flic}{If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
+\item{flic}{If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while
 keeping all other coefficients constant (see Puhr et al, 2017)}
 
 \item{model}{If TRUE the corresponding components of the fit are returned.}
@@ -73,46 +73,45 @@ keeping all other coefficients constant (see Puhr et al, 2017)}
 }
 \value{
 The object returned is of the class \code{logistf} and has the following attributes:
-   \item{coefficients}{the coefficients of the parameter in the fitted model.}
-   \item{alpha}{the significance level (1- the confidence level) as specified in the input.}
-   \item{terms}{the column names of the design matrix}
-   \item{var}{the variance-covariance-matrix of the parameters.}
-   \item{df}{the number of degrees of freedom in the model.}
-   \item{loglik}{a vector of the (penalized) log-likelihood of the restricted and the full models.}
-   \item{iter}{A vector of the number of iterations needed in the fitting process for the null and full model.}
-   \item{n}{the number of observations.}
-   \item{y}{the response-vector, i. e. 1 for successes (events) and 0 for failures.}
-   \item{formula}{the formula object.}
-   \item{call}{the call object.}
-   \item{terms}{the model terms (column names of design matrix).}
-   \item{linear.predictors}{ a vector with the linear predictor of each observation.}
-   \item{predict}{a vector with the predicted probability of each observation.}
-   \item{hat.diag}{a vector with the diagonal elements of the Hat Matrix.}
-   \item{conv}{the convergence status at last iteration: a vector of length 3 with elements: last change in log likelihood, max(abs(score vector)), max change in beta at last iteration.}
-   \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
-   \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
-   \item{ci.lower}{the lower confidence limits of the parameter.}
-   \item{ci.upper}{the upper confidence limits of the parameter.}
-   \item{prob}{ the p-values of the specific parameters.}
-   \item{pl.iter}{only if pl==TRUE: the number of iterations needed for each confidence limit.}
-   \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
-   \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
-   \item{control}{a copy of the control parameters.}
-   \item{modcontrol}{a copy of the modcontrol parameters.}
-   \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
-keeping all other coefficients constant. According to input of logistf.}  
-   \item{model}{if requested (the default), the model frame used.}
-   \item{na.action}{information returned by model.frame on the special handling of NAs}
+\item{coefficients}{the coefficients of the parameter in the fitted model.}
+\item{alpha}{the significance level (1- the confidence level) as specified in the input.}
+\item{terms}{the column names of the design matrix}
+\item{var}{the variance-covariance-matrix of the parameters.}
+\item{df}{the number of degrees of freedom in the model.}
+\item{loglik}{a vector of the (penalized) log-likelihood of the restricted and the full models.}
+\item{iter}{A vector of the number of iterations needed in the fitting process for the null and full model.}
+\item{n}{the number of observations.}
+\item{y}{the response-vector, i. e. 1 for successes (events) and 0 for failures.}
+\item{formula}{the formula object.}
+\item{call}{the call object.}
+\item{terms}{the model terms (column names of design matrix).}
+\item{linear.predictors}{ a vector with the linear predictor of each observation.}
+\item{predict}{a vector with the predicted probability of each observation.}
+\item{hat.diag}{a vector with the diagonal elements of the Hat Matrix.}
+\item{conv}{the convergence status at last iteration: a vector of length 3 with elements: last change in log likelihood, max(abs(score vector)), max change in beta at last iteration.}
+\item{method}{depending on the fitting method 'Penalized ML' or \verb{Standard ML'.\} \\item\{method.ci\}\{the method in calculating the confidence intervals, i.e. }profile likelihood' or `Wald', depending on the argument pl and plconf.}
+\item{ci.lower}{the lower confidence limits of the parameter.}
+\item{ci.upper}{the upper confidence limits of the parameter.}
+\item{prob}{ the p-values of the specific parameters.}
+\item{pl.iter}{only if pl==TRUE: the number of iterations needed for each confidence limit.}
+\item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
+\item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
+\item{control}{a copy of the control parameters.}
+\item{modcontrol}{a copy of the modcontrol parameters.}
+\item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while
+keeping all other coefficients constant. According to input of logistf.}
+\item{model}{if requested (the default), the model frame used.}
+\item{na.action}{information returned by model.frame on the special handling of NAs}
 }
 \description{
 Implements Firth's bias-Reduced penalized-likelihood logistic regression.
 }
 \details{
-\code{logistf} is the main function of the package. It fits a logistic regression 
-model applying Firth's correction to the likelihood. The following generic methods are available for logistf's output 
+\code{logistf} is the main function of the package. It fits a logistic regression
+model applying Firth's correction to the likelihood. The following generic methods are available for logistf's output
 object: \code{print, summary, coef, vcov, confint, anova, extractAIC, add1, drop1, 
-profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
-that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
+profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note
+that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood
 ratios.
 }
 \examples{
@@ -149,28 +148,28 @@ fitf
 
 }
 \references{
-Firth D (1993). Bias reduction of maximum likelihood estimates. Biometrika 80, 27-38. 
-Heinze G, Schemper M (2002). A solution to the problem of separation in logistic regression. 
+Firth D (1993). Bias reduction of maximum likelihood estimates. Biometrika 80, 27-38.
+Heinze G, Schemper M (2002). A solution to the problem of separation in logistic regression.
 Statistics in Medicine 21: 2409-2419.
 
-Heinze G, Ploner M (2003). Fixing the nonconvergence bug in logistic regression with SPLUS and 
+Heinze G, Ploner M (2003). Fixing the nonconvergence bug in logistic regression with SPLUS and
 SAS. Computer Methods and Programs in Biomedicine 71: 181-187.
 
 Heinze G, Ploner M (2004). Technical Report 2/2004: A SAS-macro, S-PLUS library and R
-package to perform logistic regression without convergence problems. Section of Clinical Biometrics, Department of Medical Computer Sciences, Medical University of Vienna, Vienna, Austria. 
+package to perform logistic regression without convergence problems. Section of Clinical Biometrics, Department of Medical Computer Sciences, Medical University of Vienna, Vienna, Austria.
 http://www.meduniwien.ac.at/user/georg.heinze/techreps/tr2_2004.pdf
 
-Heinze G (2006). A comparative investigation of methods for logistic regression with separated or 
-nearly separated data. Statistics in Medicine 25: 4216-4226. 
+Heinze G (2006). A comparative investigation of methods for logistic regression with separated or
+nearly separated data. Statistics in Medicine 25: 4216-4226.
 
-Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth’s logistic regression with rare events: 
+Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth’s logistic regression with rare events:
 accurate effect estimates and predictions? Statistics in Medicine 36: 2302–2317.
 
-Venzon DJ, Moolgavkar AH (1988). A method for computing profile-likelihood based confidence 
+Venzon DJ, Moolgavkar AH (1988). A method for computing profile-likelihood based confidence
 intervals. Applied Statistics 37:87-94.
 }
 \seealso{
-[add1.logistf()], [drop1.logistf()], [anova.logistf()]
+\code{\link[=add1.logistf]{add1.logistf()}}, \code{\link[=anova.logistf]{anova.logistf()}}
 }
 \author{
 Georg Heinze and Meinhard Ploner
