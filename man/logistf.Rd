@@ -65,7 +65,7 @@ by the corresponding element of weights}
 confidence intervals should be computed. Default is to compute for all variables.}
 
 \item{flic}{If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
-keeping all other coefficients constant}
+keeping all other coefficients constant (see Puhr et al, 2017)}
 
 \item{model}{If TRUE the corresponding components of the fit are returned.}
 
@@ -162,6 +162,9 @@ http://www.meduniwien.ac.at/user/georg.heinze/techreps/tr2_2004.pdf
 
 Heinze G (2006). A comparative investigation of methods for logistic regression with separated or 
 nearly separated data. Statistics in Medicine 25: 4216-4226. 
+
+Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth’s logistic regression with rare events: 
+accurate effect estimates and predictions? Statistics in Medicine 36: 2302–2317.
 
 Venzon DJ, Moolgavkar AH (1988). A method for computing profile-likelihood based confidence 
 intervals. Applied Statistics 37:87-94.

@@ -5,26 +5,13 @@
 #' @title Firth's Bias-Reduced Logistic Regression
 #' 
 #' @description 
-#' Fit a logistic regression model using Firth's bias reduction method, equivalent to penalization of the log-likelihood by the Jeffreys prior. 
-#' Confidence intervals for regression coefficients can be computed by penalized profile likelihood. Firth's method was proposed as ideal 
-#' solution to the problem of separation in logistic regression. If needed, the bias reduction can be turned off such that ordinary 
+#' Fits a binary logistic regression model using Firth's bias reduction method, and its modifications FLIC and FLAC, which both ensure that the sum of the predicted
+#' probabilities equals the number of events. If needed, the bias reduction can be turned off such that ordinary 
 #' maximum likelihood logistic regression is obtained.
 #' 
 #' @details 
-#' The package logistf provides a comprehensive tool to facilitate the application of Firth's modified score 
-#' procedure in logistic regression analysis. It was written on a PC with S-PLUS 4.0, later translated to S-PLUS 6.0, and to \R.
-#' 
-#' Version 1.10 improves on previous versions by the possibility to include case weights and offsets, and better control 
-#' of the iterative fitting algorithm. 
-#' 
-#' Version 1.20 provides a major update in many respects: 
-#' \enumerate{
-#' \item{Many S3Methods have been defined for objects of type logistf, including add1, drop1 and anova methods}
-#' \item{New forward and backward functions allow for automated variable selection using penalized likelihood ratio tests}
-#' \item{The core routines have been transferred to C code, and many improvements for speed have been done}
-#' \item{Handling of multiple imputed data sets: the 'combination of likelihood profiles' (CLIP) method has been implemented, which builds on datasets that were imputed 
-#' by the package \code{mice}, but can also handle any imputed data.}
-#' }
+#' The package logistf provides a comprehensive tool to facilitate the application of Firth's correction for 
+#' logistic regression analysis, including its modifications FLIC and FLAC. 
 #' 
 #' The call of the main function of the library follows the structure of the standard functions as lm or glm, requiring a data.frame and a 
 #' formula for the model specification.  The resulting object belongs to the new class logistf, which includes penalized maximum likelihood 
@@ -43,12 +30,12 @@
 #' Heinze and Schemper (2002) give the explicit formulae for \eqn{I(\beta)}{I(beta)}
 #' and \eqn{I(\beta)/d \beta_r}{d I(beta)/d beta_r}. 
 #' 
-#' In our programs estimation of \eqn{\beta}{beta} is based on a Newton-Raphson 
-#' algorithm. Parameter values are initialized usually with 0, but in 
+#' In our programs estimation of \eqn{\beta}{beta} can be based on a Newton-Raphson 
+#' algorithm or on iteratively reweighted least squares. Parameter values are initialized usually with 0, but in 
 #' general the user can specify arbitrary starting values.
 #' 
 #' With a starting value of \eqn{\beta^{(0)}}{beta^(0)}, the penalized maximum
-#' likelihood estimate \eqn{\beta}{beta} is obtained iteratively:
+#' likelihood estimate \eqn{\beta}{beta} is obtained iteratively via Newton-Raphson:
 #' \deqn{\beta^{(s+1)}= \beta^{(s)} + I(\beta^{(s)})^{-1} U(\beta^{(s)})^* }{beta^(s+1)= beta^(s) + I(beta^(s))^{-1} U(beta^(s))* }
 #' 
 #' If the penalized log likelihood evaluated at \eqn{\beta^{(s+1)}} is less
@@ -88,26 +75,25 @@
 #' not be interested in interval estimation, anyway. In such cases, the
 #' user can request computation of Wald confidence intervals and P-values,
 #' which are based on the normal approximation of the parameter estimates
-#' and do not need any iterative estimation process. Standard errors
-#' \eqn{\sigma_r, r = 1,...,k}{sigma_r, r = 1,...,k}, of the parameter estimates are computed as
-#' the roots of the diagonal elements of the variance matrix \eqn{V(\beta) =
-#' I(\beta)^{-1}}{V(beta) =  I(beta)^{-1}} . A \eqn{100(1 - \alpha)}{100(1 - alpha)} per cent Wald confidence interval for 
-#' parameter \eqn{\beta_r}{beta_r} is then defined as \eqn{[\beta_r + 
-#' \Psi_{\alpha/2}\sigma_r, \beta_r+\Psi_{1-\alpha/2}\sigma_r]}{[beta_r + 
-#' Psi_{alpha/2}sigma_r, beta_r+Psi_{1-alpha/2}sigma_r]} where 
-#' \eqn{\Psi_{\alpha}}{Psi_{alpha}} denotes the \eqn{\alpha}{alpha}-quantile of the standard normal 
-#' distribution function. The adequacy of Wald confidence intervals for 
-#' parameter estimates should be verified by plotting the profile penalized 
+#' and do not need any iterative estimation process. Note that from version 1.24.1 on, the variance-covariance matrix
+#' is based on the second derivative of the likelihood of the augmented data rather than the original data, which proved to be a better approximation if  
+#' the user chooses to set a higher value for \eqn{\tau}, the penalty strength. 
+#' 
+#' The adequacy of Wald confidence intervals for 
+#' parameter estimates can be verified by plotting the profile penalized 
 #' log likelihood (PPL) function. A symmetric shape of the PPL function 
 #' allows use of Wald intervals, while an asymmetric shape demands profile 
 #' penalized likelihood intervals (\cite{Heinze & Schemper (2002)}).  Further documentation 
 #' can be found in \cite{Heinze & Ploner (2004)}. 
 #' 
-#' The latest version now also includes functions to work with multiply imputed data sets, such as generated by the \code{\link{mice}} package. 
+#' The package includes functions to work with multiply imputed data sets, such as generated by the \code{\link{mice}} package. 
 #' Results on individual fits can be pooled to obtain point and interval estimates, as well as profile likelihood confidence intervals and likelihood 
 #' profiles in general (Heinze, Ploner and Beyea, 2013).
 #' 
-#' @author Georg Heinze <georg.heinze@meduniwien.ac.at> and Meinhard Ploner
+#' Moreover, in the package the modifications FLIC and FLAC have been implemented, which were described in Puhr et al (2017) as solutions to obtain
+#' accurate predicted probabilities.
+#' 
+#' @author Georg Heinze <georg.heinze@meduniwien.ac.at>, Meinhard Ploner and Lena Jiricka.
 #' @references 
 #' Firth D (1993). Bias reduction of maximum likelihood estimates. \emph{Biometrika} 80, 27--38.
 #' 
@@ -125,7 +111,10 @@
 #' Heinze G (2006). A comparative investigation of methods for logistic regression
 #' with separated or nearly separated data. \emph{Statistics in Medicine} 25: 4216-4226.
 #' 
-#' Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining profile likelihood information from logistic regressions. Statistics in Medicine, to appear. 
+#' Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining profile likelihood information from logistic regressions. \emph{Statistics in Medicine} 32:5062–5076. 
+#' 
+#' Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth’s logistic regression with rare events: 
+#' accurate effect estimates and predictions? \emph{Statistics in Medicine} 36: 2302–2317.
 #' 
 #' Venzon DJ, Moolgavkar AH (1988). A method for computing profile-likelihood 
 #' based confidence intervals. \emph{Applied Statistics} 37:87-94.

@@ -76,7 +76,7 @@ A \code{flac} object with components:
 \details{
 FLAC is a simple modification of Firth's logistic regression which provides average predicted
 probabilities equal to the observed proportion of events, while preserving the ability to deal
-with separation.
+with separation. It has been described by Puhr et al (2017).
 
 The modified score equations to estimate coefficients for Firth's logistic regression can be 
 interpreted as score equations for ML estimates for an augmented data set. This data set can be 
@@ -107,7 +107,8 @@ flac(lf, data=sex2)
 
 }
 \references{
-Puhr, R., Heinze, G., Nold, M., Lusa, L., and Geroldinger, A. (2017) Firth's logistic regression with rare events: accurate effect estimates and predictions?. Statist. Med., 36: 2302-2317. doi: 10.1002/sim.7273.
+Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth’s logistic regression with rare events: 
+accurate effect estimates and predictions? Statistics in Medicine 36: 2302–2317.
 }
 \seealso{
 [logistf()] for Firth's bias-Reduced penalized-likelihood logistic regression.

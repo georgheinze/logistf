@@ -12,4 +12,3 @@ in `predict.logistf()`, `predict.flic()` and `predict.flac()`.
 * Added a new fitting method: Iteratively reweighted least squares (IRLS). 
 * Added `na.action` option to `logistf()` and `predict.logistf()`.
 * Updated `flic()` and `flac()` to be called with interactions in formula.
-* Added `nas()` and `predict.nas()`: Generates a Basis Matrix for Natural Cubic Splines according to the guidelines of `Hmisc::rcspline.eval()`.
