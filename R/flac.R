@@ -65,8 +65,8 @@
 #' lf <- logistf(formula = case ~ age + oc + vic + vicl + vis + dia, data = sex2)
 #' flac(lf, data=sex2)
 #' 
-#' @references Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth’s logistic regression with rare events: 
-#' accurate effect estimates and predictions? Statistics in Medicine 36: 2302–2317.
+#' @references Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth's logistic regression with rare events: 
+#' accurate effect estimates and predictions? Statistics in Medicine 36: 2302-2317.
 #' 
 #' @seealso [logistf()] for Firth's bias-Reduced penalized-likelihood logistic regression.
 #' @importFrom stats formula
