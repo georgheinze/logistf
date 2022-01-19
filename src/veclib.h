@@ -79,6 +79,20 @@ void XtY(double *X, double *Y, double *res, long k, long m, long n)
 			res[i + j*m] = tmp;
 		}
 }
+// cross-product of m x k matrix and k x n matrix (XY)  ; result is m x n
+void XY(double *X, double *Y, double *res,long k, long m, long n)
+{
+	long i, j, ind;
+	double tmp;
+	
+	for(i=0; i < m; i++)
+		for(j=0; j < n; j++) {
+			tmp = 0.0;
+			for(ind = 0; ind < m; ind++)
+				tmp += X[i + ind*m] * Y[ind + j*k];
+			res[i + j*m] = tmp;
+		}
+}
 
 // X'X (X is k x k)
 void XtXsym(double *X, double *res, long *k_l)

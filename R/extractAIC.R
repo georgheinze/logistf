@@ -1,6 +1,6 @@
 #' @exportS3Method extractAIC logistf
 extractAIC.logistf<-function(fit, scale, k=2, ...){
-  dev<- -2*diff(fit$loglik)
+  dev<- -2 * (fit$loglik['null']-fit$loglik['full'])
   AIC<- dev+k*fit$df
   edf<- fit$df
   return(c(edf,AIC))
@@ -8,14 +8,14 @@ extractAIC.logistf<-function(fit, scale, k=2, ...){
 
 #' @exportS3Method extractAIC flic
 extractAIC.flic<-function(fit, scale, k=2, ...){
-  dev<- -2*diff(fit$loglik)
+  dev<- -2 * (fit$loglik['null']-fit$loglik['full'])
   AIC<- dev+k*fit$df
   edf<- fit$df
   return(c(edf,AIC))
 }
 #' @exportS3Method extractAIC flac
 extractAIC.flac<-function(fit, scale, k=2, ...){
-  dev<- -2*diff(fit$loglik)
+  dev<- -2 * (fit$loglik['null']-fit$loglik['full'])
   AIC<- dev+k*fit$df
   edf<- fit$df
   return(c(edf,AIC))
@@ -34,8 +34,3 @@ nobs.flic<-function(object, ...){
 nobs.flac<-function(object, ...){
   return(object$n)
 }
-
-# @exportS3Method terms logistf
-#terms.logistf<-function(x, ...){
-#  return(terms(formula(x)))
-#}

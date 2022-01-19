@@ -20,9 +20,10 @@ The call of the main function of the library follows the structure of the standa
 or glm, requiring a data.frame and a formula for the model specification. The resulting object belongs to the new class logistf, 
 which includes penalized maximum likelihood ('Firth-Logistic'- or 'FL'-type) logistic regression parameters, standard errors, 
 confidence limits, p-values, the value of the maximized penalized log likelihood, the linear predictors, the number of iterations 
-needed to arrive at the maximum and much more. Furthermore, specific methods for the resulting object are supplied. 
-Additionally, a function to plot profiles of the penalized likelihood function and a function to perform penalized 
-likelihood ratio tests have been included.
+needed to arrive at the maximum and much more. Furthermore, specific methods for the resulting object are supplied. The two modifications of
+FL: FLIC and FLAC have been implemented. 
+A function to generate and plot profiles of the penalized likelihood function and a function to perform penalized 
+likelihood ratio tests are available.
 
 ```r
 data(sex2)
@@ -33,3 +34,7 @@ summary(lf)
 ## Acknowledgment
 
 This work was supported by the Austrian Science Fund (FWF) (award I 2276).
+
+<!-- badges: start -->
+[![R build status](https://github.com/georgheinze/logistf/workflows/R-CMD-check/badge.svg)](https://github.com/georgheinze/logistf/actions)
+<!-- badges: end -->

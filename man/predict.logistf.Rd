@@ -4,18 +4,34 @@
 \alias{predict.logistf}
 \title{Predict Method for logistf Fits}
 \usage{
-\method{predict}{logistf}(object, newdata, type = c("link", "response"), flic = FALSE, ...)
+\method{predict}{logistf}(
+  object,
+  newdata,
+  type = c("link", "response", "terms"),
+  flic = FALSE,
+  se.fit = FALSE,
+  reference,
+  na.action = na.pass,
+  ...
+)
 }
 \arguments{
 \item{object}{A fitted object of class \code{logistf}.}
 
-\item{newdata}{Optionally, a data frame in which to look for variables with which to predict. 
+\item{newdata}{Optionally, a data frame in which to look for variables with which to predict.
 If omitted, the fitted linear predictors are used.}
 
-\item{type}{The type of prediction required. The default is on the scale of the linear predictors. 
-The alternative \code{response} gives the predicted probabilities.}
+\item{type}{The type of prediction required. The default is on the scale of the linear predictors.
+The alternative \code{response} gives the predicted probabilities. Type \code{terms} returns a matrix with the fitted
+values of each term in the formula on the linear predictor scale.}
 
 \item{flic}{If \code{TRUE}(default = \code{FALSE}), predictions are computed with intercept correction.}
+
+\item{se.fit}{If \code{TRUE}(default = \code{FALSE}) standard errors are computed.}
+
+\item{reference}{A named vector of reference values for each variable for \code{type="terms"}.}
+
+\item{na.action}{Function determining what should be done with missing values in newdata. The default is to predict NA.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

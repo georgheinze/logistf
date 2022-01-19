@@ -1,5 +1,5 @@
 #' @exportS3Method summary logistf
-summary.logistf <-function(object,...){
+summary.logistf <-function(object, ...){
   # object ... object of class logistf
    print(object$call)
    cat("\nModel fitted by", object$method)
@@ -7,13 +7,12 @@ summary.logistf <-function(object,...){
    
    #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
    call <- object$call
-   if(!is.null(call$terms.fit)){
-      loc <- match(call$terms.fit, object$terms)
-      var.red <- object$var[loc,loc]
-      coefs <- coef(object)[loc]
+   if(!is.null(object$modcontrol$terms.fit)){
+      var.red <- object$var[object$modcontrol$terms.fit,object$modcontrol$terms.fit]
+      coefs <- coef(object)[object$modcontrol$terms.fit]
       chi2 <- vector(length=length(object$terms))
-      chi2[loc] <- qchisq(1 - object$prob[loc], 1)
-      chi2[-loc] <- 0
+      chi2[object$modcontrol$terms.fit] <- qchisq(1 - object$prob[object$modcontrol$terms.fit], 1)
+      chi2[-object$modcontrol$terms.fit] <- 0
    }
    else {
       var.red <- object$var
@@ -28,11 +27,10 @@ summary.logistf <-function(object,...){
    print(out)
    cat("\nMethod: 1-Wald, 2-Profile penalized log-likelihood, 3-None\n")
    
-   LL <- 2 * diff(object$loglik)
+   LL <- -2 * (object$loglik['null']-object$loglik['full'])
    cat("\nLikelihood ratio test=", LL, " on ", object$df, " df, p=", 1 -pchisq(LL, object$df), ", n=",object$n, sep = "")
    
-   if(object$terms[1]!="(Intercept)"){
-      wald.z <- tryCatch({
+   wald.z <- tryCatch({
          t(coefs) %*% solve(var.red) %*% coefs
       }, 
       error=function(cond){
@@ -40,19 +38,6 @@ summary.logistf <-function(object,...){
          return(NA)
          }
       )
-   }
-   else{
-      wald.z <- tryCatch({
-         t(coefs[2:nrow(var.red)]) %*%
-         solve(var.red[2:nrow(var.red),2:nrow(var.red)]) %*%
-         coefs[2:nrow(var.red)]
-      }, 
-      error=function(cond){
-         message("\n Variance-Covariance matrix is singular \n")
-         return(NA)
-      }
-      )
-   }
    cat("\nWald test =", wald.z, "on", object$df, "df, p =", 1 - pchisq(wald.z, object$df))
    #cat("\n\nCovariance-Matrix:\n")
    #print(object$var)

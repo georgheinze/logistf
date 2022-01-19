@@ -11,7 +11,7 @@
 #' @param maxhs The maximum number of step-halvings in one iteration. The increment of the 
 #' beta vector within one iteration is divided by 2 if the new beta leads to a decrease 
 #' in log likelihood.
-#' @param maxstep Specifies the maximum step size in the beta vector within one iteration.
+#' @param maxstep Specifies the maximum step size in the beta vector within one iteration. Set to -1 for infinite stepsize.
 #' @param lconv Specifies the convergence criterion for the log likelihood.
 #' @param xconv Specifies the convergence criterion for the parameter estimates.
 #' @param ortho Requests orthogonalization of variable for which confidence intervals are computed with respect to other covariates
@@ -35,8 +35,8 @@
 #' data(sexagg)
 #' fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, 
 #'     plcontrol=logistpl.control(maxstep=1))
-#'summary(fit2)
+#' summary(fit2)
 #'
-logistpl.control<-function(maxit=100, maxhs=5, maxstep=5, lconv=0.00001, xconv=0.00001, ortho=FALSE, pr=FALSE){
+logistpl.control<-function(maxit=100, maxhs=0, maxstep=5, lconv=0.00001, xconv=0.00001, ortho=FALSE, pr=FALSE){
   list(maxit=maxit, maxhs=maxhs, maxstep=maxstep, lconv=lconv, xconv=xconv, ortho=ortho, pr=pr)
 }

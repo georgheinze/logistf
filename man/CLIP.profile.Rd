@@ -21,16 +21,16 @@ CLIP.profile(
 )
 }
 \arguments{
-\item{obj}{Either a list of logistf fits (on multiple imputed data sets), or the result 
+\item{obj}{Either a list of logistf fits (on multiple imputed data sets), or the result
 of analysis of a \code{mice} (multiply imputed) object using \code{with.mids}.}
 
-\item{variable}{The variable of interest, for which confidence intervals should be computed. 
+\item{variable}{The variable of interest, for which confidence intervals should be computed.
 If missing, confidence intervals for all variables will be computed.}
 
-\item{data}{A list of data set corresponding to the model fits. Can be left blank if obj was 
+\item{data}{A list of data set corresponding to the model fits. Can be left blank if obj was
 obtained with the dataout=TRUE option or if obj was obtained by mice.}
 
-\item{which}{Alternatively to variable, the argument which allows to specify the variable to 
+\item{which}{Alternatively to variable, the argument which allows to specify the variable to
 compute the profile for as righthand formula, e.g. which=~X.}
 
 \item{firth}{If \code{TRUE}, applies the Firth correction. Should correspond to the entry in obj.}
@@ -53,22 +53,22 @@ compute the profile for as righthand formula, e.g. which=~X.}
 }
 \value{
 An object of class \code{CLIP.profile} with items:
-   \item{beta}{The values of the regression coefficient}
-   \item{cdf}{The cumulative distribution function of the posterior}
-   \item{profile}{The profile of the posterior}
-   \item{cdf.matrix}{An imputations x steps matrix with the values of the completed-data CDFs for each beta}
-   \item{profile.matrix}{An imputations x steps matrix with the values of the completed-data profiles for each beta}
-   \item{call}{The function call}
+\item{beta}{The values of the regression coefficient}
+\item{cdf}{The cumulative distribution function of the posterior}
+\item{profile}{The profile of the posterior}
+\item{cdf.matrix}{An imputations x steps matrix with the values of the completed-data CDFs for each beta}
+\item{profile.matrix}{An imputations x steps matrix with the values of the completed-data profiles for each beta}
+\item{call}{The function call}
 }
 \description{
-This function uses CLIP (combination of likelihood profiles) 
+This function uses CLIP (combination of likelihood profiles)
 to compute the pooled profile of the posterior after multiple imputation.
 }
 \details{
-While CLIP.confint iterates to find those values at which the CDF of the 
-pooled posterior equals the confidence levels, CLIP.profile will evaluate 
-the whole profile, which enables plotting and evaluating the skewness of the combined and the completed-data profiles. The combined and completeddata profiles are available as cumulative distribution function (CDF) or in the scaling of relative 
-profile likelihood (minus twice the likelihood ratio statistic compared to the maximum). Using a 
+While CLIP.confint iterates to find those values at which the CDF of the
+pooled posterior equals the confidence levels, CLIP.profile will evaluate
+the whole profile, which enables plotting and evaluating the skewness of the combined and the completed-data profiles. The combined and completeddata profiles are available as cumulative distribution function (CDF) or in the scaling of relative
+profile likelihood (minus twice the likelihood ratio statistic compared to the maximum). Using a
 plot method, the pooled posterior can also be displayed as a density.
 }
 \examples{
@@ -94,7 +94,7 @@ for(i in 1:5){
 }
 
 # logistf analyses of each imputed data set
-fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE, dataout=TRUE))
+fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE))
 
 # CLIP profile
 xprof<-CLIP.profile(obj=fit.list, variable="x",data =toymi, keep=TRUE)
@@ -108,7 +108,7 @@ plot(xprof, "density")
 
 }
 \references{
-Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining profile 
+Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining profile
 likelihood information from logistic regressions. Statistics in Medicine, to appear.
 }
 \author{

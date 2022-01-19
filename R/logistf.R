@@ -19,11 +19,10 @@
 #' @param pl Specifies if confidence intervals and tests should be based on the profile 
 #' penalized log likelihood (\code{pl=TRUE}, the default) or on the Wald method (\code{pl=FALSE}).
 #' @param alpha The significance level (1-\eqn{\alpha} the confidence level, 0.05 as default).
-#' @param control Controls Newton-Raphson iteration. Default is \code{control= logistf.control(maxstep, 
-#' maxit, maxhs, lconv, gconv, xconv)}
+#' @param control Controls iteration parameter. Default is \code{control= logistf.control()}
 #' @param plcontrol Controls Newton-Raphson iteration for the estimation of the profile 
-#' likelihood confidence intervals. Default is \code{plcontrol= logistpl.control(maxstep, maxit, 
-#' maxhs, lconv, xconv, ortho, pr)}
+#' likelihood confidence intervals. Default is \code{plcontrol= logistpl.control()}
+#' @param modcontrol Controls additional parameter for fitting. Default is \code{logistf.mod.control()}
 #' @param firth Use of Firth's penalized maximum likelihood (\code{firth=TRUE}, default) or the 
 #' standard maximum likelihood method (\code{firth=FALSE}) for the logistic regression. 
 #' Note that by specifying \code{pl=TRUE} and \code{firth=FALSE} (and probably a lower number 
@@ -32,10 +31,12 @@
 #' @param init Specifies the initial values of the coefficients for the fitting algorithm
 #' @param weights specifies case weights. Each line of the input data set is multiplied 
 #' by the corresponding element of weights
+#' @param na.action a function which indicates what should happen when the data contain NAs
+#' @param offset a priori known component to be included in the linear predictor
 #' @param plconf specifies the variables (as vector of their indices) for which profile likelihood 
-#' confidence intervals should be computed. Default is to compute for all variables
+#' confidence intervals should be computed. Default is to compute for all variables.
 #' @param flic If \code{TRUE}, intercept is altered such that the predicted probabilities become unbiased while 
-#' keeping all other coefficients constant
+#' keeping all other coefficients constant (see Puhr et al, 2017)
 #' @param model  If TRUE the corresponding components of the fit are returned.
 #' @param ... Further arguments to be passed to \code{logistf}
 #' 
@@ -46,7 +47,7 @@
 #'    \item{var}{the variance-covariance-matrix of the parameters.}
 #'    \item{df}{the number of degrees of freedom in the model.}
 #'    \item{loglik}{a vector of the (penalized) log-likelihood of the restricted and the full models.}
-#'    \item{iter}{the number of iterations needed in the fitting process.}
+#'    \item{iter}{A vector of the number of iterations needed in the fitting process for the null and full model.}
 #'    \item{n}{the number of observations.}
 #'    \item{y}{the response-vector, i. e. 1 for successes (events) and 0 for failures.}
 #'    \item{formula}{the formula object.}
@@ -65,9 +66,11 @@
 #'    \item{betahist}{only if pl==TRUE: the complete history of beta estimates for each confidence limit.}
 #'    \item{pl.conv}{only if pl==TRUE: the convergence status (deviation of log likelihood from target value, last maximum change in beta) for each confidence limit.}
 #'    \item{control}{a copy of the control parameters.}
+#'    \item{modcontrol}{a copy of the modcontrol parameters.}
 #'    \item{flic}{logical, is TRUE  if intercept was altered such that the predicted probabilities become unbiased while 
 #' keeping all other coefficients constant. According to input of logistf.}  
 #'    \item{model}{if requested (the default), the model frame used.}
+#'    \item{na.action}{information returned by model.frame on the special handling of NAs}
 #'     
 #' @export
 #'
@@ -119,27 +122,44 @@
 #' Heinze G (2006). A comparative investigation of methods for logistic regression with separated or 
 #' nearly separated data. Statistics in Medicine 25: 4216-4226. 
 #' 
+#' Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth's logistic regression with rare events: 
+#' accurate effect estimates and predictions? Statistics in Medicine 36: 2302-2317.
+#' 
 #' Venzon DJ, Moolgavkar AH (1988). A method for computing profile-likelihood based confidence 
 #' intervals. Applied Statistics 37:87-94.
-#' @seealso [add1.logistf, drop1.logistf, anova.logistf]
+#' 
+#' 
+#' @useDynLib logistf, .registration = TRUE
+#' 
+#' @seealso [add1.logistf()], [anova.logistf()]
 #' @rdname logistf
 logistf <-
-function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRUE, init, weights, plconf=NULL,flic=FALSE, model = TRUE, ...){
+function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, modcontrol, firth = TRUE, init, weights, na.action, offset, plconf=NULL,flic=FALSE, model = TRUE, ...){
    call <- match.call()
-   extras <- list(...)
-   call_out <- match.call()
    if(missing(control)) control<-logistf.control()
    if(pl==TRUE & missing(plcontrol)) plcontrol<-logistpl.control()
+   if(missing(modcontrol)) modcontrol<-logistf.mod.control()
    
     mf <- match.call(expand.dots =FALSE)
     m <- match(c("formula", "data","weights","na.action","offset"), names(mf), 0L)
-
     mf <- mf[c(1, m)]
     mf$drop.unused.levels <- TRUE
     mf[[1L]] <- quote(stats::model.frame)
     mf <- eval(mf, parent.frame())
     mt <- attr(mf, "terms")
-    y <- model.response(mf)
+    y <- model.response(mf, type="any")
+    if(is.logical(y)){
+      y <- as.numeric(y)
+    }
+    else if(is.factor(y)){
+      if(length(levels(y))==2){
+        y <- as.numeric(y != levels(y)[1L])
+      }
+      
+    }else if(!is.numeric(y)){
+      stop("Invalid response variable: must be logical or numeric or factor with 2 levels.")
+    }
+    
     n <- length(y)
     x <- model.matrix(mt, mf)
     
@@ -152,9 +172,9 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
 
     if (missing(init)) init<-rep(0,k)
     if (is.null(plconf)) {  #if only intercept has to be fitted: calculate Wald CI for intercept
-      if(isspecnum(cov.name,"(Intercept)")){
-        plconf <- NULL
-        rest_plconf <- 1
+      if(identical(cov.name,"(Intercept)")){
+          plconf <- NULL
+          rest_plconf <- 1
       }
       else{
       plconf<-1:k
@@ -173,30 +193,33 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
         coltotest <-1:k
     }
     
-    #for backward function to update logistf object
-    if (!is.null(extras$terms.fit)){
-      colfit <- eval(extras$terms.fit)
-      matched <- match(colfit, cov.name)
-      if(any(is.na(matched))) stop(paste0("term(s): ", paste(colfit[is.na(matched)],collapse=", ")," not found in formula.\n"))
-      nterms <- length(matched)
-      colfit <- (1:k)[matched]
-      call_out$terms.fit <- extras$terms.fit
-      rest_plconf <- (1:k)[-matched] #compute confidence intervals for variables not specified in terms.fit with Wald
+   #Terms to be fitted: 
+    if (!is.null(modcontrol$terms.fit)){
+      colfit <- modcontrol$terms.fit
+      rest_plconf <- (1:k)[-colfit] #compute confidence intervals for variables not specified in terms.fit with Wald
+      plconf <- intersect(plconf, colfit)
+      nterms <- length(colfit)
     }
     else {
       colfit <- 1:k
       nterms <- k
     }
-    
-    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=colfit, init, control=control)
-    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, col.fit=int, init, control=control)
+
+    fit.full<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, init, control=control, modcontrol = modcontrol)
+    modcontrolnull <-modcontrol
+    modcontrolnull$terms.fit <- 1
+    fit.null<-logistf.fit(x=x, y=y, weight=weight, offset=offset, firth, rep(0,k), control=control, modcontrol = modcontrolnull)
+
     
     if(fit.full$iter>=control$maxit){
-      warning(paste("Maximum number of iterations exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
+      warning(paste("logistf.fit: Maximum number of iterations for full model exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
+    }
+    if(fit.null$iter>=control$maxit){
+      warning(paste("logistf.fit: Maximum number of iterations for null model exceeded. Try to increase the number of iterations or alter step size by passing 'logistf.control(maxit=..., maxstep=...)' to parameter control"))
     }
     
-    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = nterms-int, loglik =c(fit.null$loglik, fit.full$loglik),
-        iter = fit.full$iter, n = sum(weight), y = y, formula = formula(formula), call=call_out, conv=fit.full$conv)
+    fit <- list(coefficients = fit.full$beta, alpha = alpha, terms=colnames(x), var = fit.full$var, df = nterms-int, loglik =c('full' = fit.full$loglik, 'null' = fit.null$loglik),
+        iter = c('full' = fit.full$iter, 'null' = fit.null$iter), n = sum(weight), y = y, formula = formula(formula), call = call, conv=fit.full$conv)
     
     names(fit$conv)<-c("LL change","max abs score","beta change")
     beta<-fit.full$beta
@@ -209,13 +232,13 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     if(firth) fit$method <- "Penalized ML"
     else fit$method <- "Standard ML"
     
-    if (!is.null(extras$terms.fit)){ #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
-      loc <- match(extras$terms.fit, fit$terms)
-      var.red <- fit$var[loc,loc]
-      vars <- diag(var.red)
-      waldprob <- 1 - pchisq((beta[loc]^2/vars), 1)
-      wald_ci.lower <- as.vector(beta[loc] + qnorm(alpha/2) * vars^0.5)
-      wald_ci.upper <- as.vector(beta[loc] + qnorm(1 - alpha/2) * vars^0.5)
+    if (!is.null(modcontrol$terms.fit)){ #consider for wald only covariance matrix with columns corresponding to variables in terms.fit
+      var.red <- fit$var[modcontrol$terms.fit,modcontrol$terms.fit]
+      vars <- diag(as.matrix(var.red))
+      waldprob <- wald_ci.lower <- wald_ci.upper <- vector(length = k)
+      waldprob[modcontrol$terms.fit] <- 1 - pchisq((beta[modcontrol$terms.fit]^2/vars), 1)
+      wald_ci.lower[modcontrol$terms.fit] <- as.vector(beta[modcontrol$terms.fit] + qnorm(alpha/2) * vars^0.5)
+      wald_ci.upper[modcontrol$terms.fit] <- as.vector(beta[modcontrol$terms.fit] + qnorm(1 - alpha/2) * vars^0.5)
     }
     else {
       vars <- diag(covs)
@@ -227,36 +250,44 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     fit$alpha<-alpha
     fit$conflev<-1-alpha
     
-    if(pl) {
-        #intialisation
+    if(pl){
+        #initialisation
         betahist.lo<-vector(length(plconf),mode="list")
         betahist.up<-vector(length(plconf),mode="list")
         pl.conv<-matrix(0,length(plconf),4)
         dimnames(pl.conv)[[1]]<-as.list(plconf)
         dimnames(pl.conv)[[2]]<-as.list(c("lower, loglik","lower, beta", "upper, loglik", "upper, beta"))
         LL.0 <- fit.full$loglik - qchisq(1 - alpha, 1)/2
-        pl.iter<-matrix(0,k,2)
+        pl.iter<-matrix(0,k,3)
         icount<-0
         iters <- vector() #number of iterations of fit.i per variable 
         for(i in plconf) {
             icount<-icount+1
-            inter<-logistpl(x, y, beta, i, LL.0, firth, -1, offset, weight, plcontrol)
+            inter<-logistpl(x, y, beta, i, LL.0, firth, -1, offset, weight, plcontrol, modcontrol = modcontrol)
             fit$ci.lower[i] <- inter$beta
             pl.iter[i,1]<-inter$iter
             betahist.lo[[icount]]<-inter$betahist
             pl.conv.lower<-t(inter$conv)
-            inter<-logistpl(x, y, beta, i, LL.0, firth, 1, offset, weight, plcontrol)
+            inter<-logistpl(x, y, beta, i, LL.0, firth, 1, offset, weight, plcontrol, modcontrol = modcontrol)
             fit$ci.upper[i] <- inter$beta
             pl.iter[i,2]<-inter$iter
             betahist.up[[icount]]<-inter$betahist
             pl.conv.upper<-t(inter$conv)
             pl.conv[icount,]<-cbind(pl.conv.lower,pl.conv.upper)
-            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, col.fit=(1:k)[-i], control=control)
-            iters <- c(iters, fit.i$iter)
+            tofit <- setdiff(colfit,i)
+            if(length(tofit) == 0){
+              tofit <- 0
+            }
+            modcontrolpl <-modcontrol
+            modcontrolpl$terms.fit <- tofit
+            fit.i<-logistf.fit(x,y, weight=weight, offset=offset, firth, control=control, modcontrol = modcontrolpl)
+            pl.iter[i,3]<-fit.i$iter
             fit$prob[i] <- 1-pchisq(2*(fit.full$loglik-fit.i$loglik),1)
             fit$method.ci[i] <- "Profile Likelihood"
         }
-        fit$pl.iter<-pl.iter
+          
+        fit$pl.iter <- pl.iter
+        colnames(fit$pl.iter)<-c("Lower", "Upper", "Null model")
         if(sum(fit$pl.iter>=plcontrol$maxit)){
           notconv <- cov.name[apply(fit$pl.iter>=plcontrol$maxit, 1, sum)>0]
           warning(paste("Nonconverged PL confidence limits: maximum number of iterations for variables:",paste0(notconv,collapse=", ")), " exceeded. Try to increase the number of iterations by passing 'logistpl.control(maxit=...)' to parameter plcontrol")
@@ -266,7 +297,13 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
         fit$pl.conv<-pl.conv
         if(sum(iters>=control$maxit)>0){ #check if algorithms for all models have converged
           notconv <- cov.name[iters>=control$maxit]
-          warning(paste("Maximum number of iterations for variables:",paste0(notconv,collapse=", ")), " exceeded. P-value may be incorrect. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control")
+          warning(paste("Maximum number of iterations for PLR test for variables:",paste0(notconv,collapse=", ")), " exceeded. P-value may be incorrect. Try to increase the number of iterations by passing 'logistf.control(maxit=...)' to parameter control")
+        }
+        for (i in rest_plconf){
+          fit$ci.lower[i] <- 0
+          fit$ci.upper[i] <- 0
+          fit$prob[i] <- 0
+          fit$method.ci[i] <- "-"
         }
     }
     else { 
@@ -274,12 +311,6 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
       fit$method.ci <- rep("Wald",k)
       fit$ci.lower <- wald_ci.lower
       fit$ci.upper <- wald_ci.upper
-    }
-    for (i in rest_plconf){
-      fit$ci.lower[i] <- 0
-      fit$ci.upper[i] <- 0
-      fit$prob[i] <- 0
-      fit$method.ci[i] <- "-"
     }
     names(fit$prob) <- names(fit$ci.upper) <- names(fit$ci.lower) <- names(fit$coefficients) <- dimnames(x)[[2]]
     #flic: 
@@ -305,7 +336,9 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, firth = TRU
     else fit$flic <- FALSE
     
     fit$control <- control
+    fit$modcontrol <- modcontrol
     if (model) fit$model <- mf
+    fit$na.action <- attr(mf, "na.action")
     attr(fit, "class") <- c("logistf")
     fit
 }
@@ -341,5 +374,10 @@ vcov.logistf<-function(object,...){
   colnames(var) <- rownames(var) <- object$terms
   return(var)
 }
-  
+
+#' @method family logistf
+#' @exportS3Method family logistf
+family.logistf<-function(object, ...){
+  return(stats::binomial())
+}
   

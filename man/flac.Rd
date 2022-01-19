@@ -3,73 +3,94 @@
 \encoding{UTF-8}
 \name{flac}
 \alias{flac}
-\alias{flac.formula}
+\alias{flac.default}
 \alias{flac.logistf}
 \title{FLAC - Firth's logistic regression with added covariate}
 \usage{
 flac(...)
 
-\method{flac}{formula}(formula, data, model = TRUE, ...)
+\method{flac}{default}(
+  formula,
+  data,
+  model = TRUE,
+  control,
+  modcontrol,
+  weights,
+  offset,
+  na.action,
+  ...
+)
 
-\method{flac}{logistf}(lfobject, model = TRUE, ...)
+\method{flac}{logistf}(lfobject, data, model = TRUE, ...)
 }
 \arguments{
 \item{...}{Further arguments passed to the method or \code{\link{logistf}}-call.}
 
-\item{formula}{A formula object, with the response on the left of the operator, 
-and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and 
+\item{formula}{A formula object, with the response on the left of the operator,
+and the model terms on the right. The response must be a vector with 0 and 1 or \code{FALSE} and
 \code{TRUE} for the outcome, where the higher value (1 or \code{TRUE}) is modeled.}
 
-\item{data}{If using with formula, a data frame containing the variables in the model.}
+\item{data}{A data frame containing the variables in the model.}
 
 \item{model}{If TRUE the corresponding components of the fit are returned.}
 
-\item{lfobject}{A fitted \code{\link{logistf}} object}
+\item{control}{Controls iteration parameter. Taken from \code{logistf}-object when specified. Otherwise default is \code{control= logistf.control()}.}
+
+\item{modcontrol}{Controls additional parameter for fitting. Taken from \code{logistf}-object when specified. Otherwise default is \code{logistf.mod.control()}.}
+
+\item{weights}{specifies case weights. Each line of the input data set is multiplied
+by the corresponding element of weights}
+
+\item{offset}{a priori known component to be included in the linear predictor}
+
+\item{na.action}{a function which indicates what should happen when the data contain NAs}
+
+\item{lfobject}{A fitted \code{\link{logistf}} object.}
 }
 \value{
 A \code{flac} object with components:
-  \item{coefficients}{The coefficients of the parameter in the fitted model.}
-  \item{predict}{A vector with the predicted probability of each observation}
-  \item{linear.predictors}{A vector with the linear predictor of each observation.}
-  \item{prob}{The p-values of the specific parameters}
-  \item{ci.lower}{The lower confidence limits of the parameter.}
-  \item{ci.upper}{The upper confidence limits of the parameter.}
-  \item{call}{The call object.}
-  \item{alpha}{The significance level: 0.95}
-  \item{var}{The variance-covariance-matrix of the parameters.}
-  \item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
-  \item{n}{The number of observations.}
-  \item{formula}{The formula object.}
-  \item{augmented.data}{The augmented dataset used}
-  \item{df}{The number of degrees of freedom in the model.}
-  \item{method}{depending on the fitting method 'Penalized ML' or `Standard ML'.}
-  \item{method.ci}{the method in calculating the confidence intervals, i.e. `profile likelihood' or `Wald', depending on the argument pl and plconf.}
-  \item{control}{a copy of the control parameters.}  
-  \item{terms}{the model terms (column names of design matrix).}
-  \item{model}{if requested (the default), the model frame used.}
+\item{coefficients}{The coefficients of the parameter in the fitted model.}
+\item{predict}{A vector with the predicted probability of each observation}
+\item{linear.predictors}{A vector with the linear predictor of each observation.}
+\item{prob}{The p-values of the specific parameters}
+\item{ci.lower}{The lower confidence limits of the parameter.}
+\item{ci.upper}{The upper confidence limits of the parameter.}
+\item{call}{The call object.}
+\item{alpha}{The significance level: 0.95}
+\item{var}{The variance-covariance-matrix of the parameters.}
+\item{loglik}{A vector of the (penalized) log-likelihood of the restricted and the full models.}
+\item{n}{The number of observations.}
+\item{formula}{The formula object.}
+\item{augmented.data}{The augmented dataset used}
+\item{df}{The number of degrees of freedom in the model.}
+\item{method}{depending on the fitting method 'Penalized ML' or \verb{Standard ML'.\} \\item\{method.ci\}\{the method in calculating the confidence intervals, i.e. }profile likelihood' or `Wald', depending on the argument pl and plconf.}
+\item{control}{a copy of the control parameters.}
+\item{modcontrol}{a copy of the modcontrol parameters.}
+\item{terms}{the model terms (column names of design matrix).}
+\item{model}{if requested (the default), the model frame used.}
 }
 \description{
 \code{flac} implements Firth's bias-reduced penalized-likelihood logistic regression with added covariate.
 }
 \details{
-Flac is a simple modification of Firth's logistic regression which provides average predicted
+FLAC is a simple modification of Firth's logistic regression which provides average predicted
 probabilities equal to the observed proportion of events, while preserving the ability to deal
-with seperation.
+with separation. It has been described by Puhr et al (2017).
 
-The modified score equation to estimate coefficients for Firth's logistic regression can be 
-interpreted as score equations for ML estimates for an augmented data set. This data set can be 
-created by complementing each original observation i with two pseudo-observations weighted by 
+The modified score equations to estimate coefficients for Firth's logistic regression can be
+interpreted as score equations for ML estimates for an augmented data set. This data set can be
+created by complementing each original observation i with two pseudo-observations weighted by
 \eqn{h_i/2} with unchanged covariate values and with response values set to \eqn{y=0} and \eqn{y=1}
-respectively. The basic idea of Flac is to discriminate between original and pseudo-observations
+respectively. The basic idea of FLAC is to discriminate between original and pseudo-observations
 in the alternative formulation of Firth's estimation as an iterative data augmentation procedure.
-The following generic methods are available for flac's output object: \code{print, summary, coef, confint, anova, extractAIC, add1, drop1, 
-profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note 
-that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood 
-ratios.
+The following generic methods are available for ' \code{flac}'s output object: \code{print, summary, coef, confint, anova, extractAIC, add1, drop1, 
+profile, terms, nobs, predict}. Furthermore, forward and backward functions perform convenient variable selection. Note
+that anova, extractAIC, add1, drop1, forward and backward are based on penalized likelihood
+ratio tests.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{formula}: With formula and data
+\item \code{default}: With formula and data
 
 \item \code{logistf}: With logistf object
 }}
@@ -81,12 +102,13 @@ flac(case ~ age + oc + vic + vicl + vis + dia, sex2)
 
 #With a logistf object:
 lf <- logistf(formula = case ~ age + oc + vic + vicl + vis + dia, data = sex2)
-flac(lf)
+flac(lf, data=sex2)
 
 }
 \references{
-Puhr, R., Heinze, G., Nold, M., Lusa, L., and Geroldinger, A. (2017) Firth's logistic regression with rare events: accurate effect estimates and predictions?. Statist. Med., 36: 2302-2317. doi: 10.1002/sim.7273.
+Puhr R, Heinze G, Nold M, Lusa L, Geroldinger A (2017). Firth's logistic regression with rare events:
+accurate effect estimates and predictions? Statistics in Medicine 36: 2302-2317.
 }
 \seealso{
-[logistf()] for Firth's bias-Reduced penalized-likelihood logistic regression.
+\code{\link[=logistf]{logistf()}} for Firth's bias-Reduced penalized-likelihood logistic regression.
 }

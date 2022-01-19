@@ -45,8 +45,8 @@
 #' #generate data set with NAs 
 #' freq=c(5,2,2,7,5,4)
 #' y<-c(rep(1,freq[1]+freq[2]), rep(0,freq[3]+freq[4]), rep(1,freq[5]), rep(0,freq[6]))
-#' x<-c(rep(1,freq[1]), rep(0,freq[2]), rep(1,freq[3]), rep(0,freq[4]), rep(NA,freq[5]),
-#' rep(NA,freq[6]))
+#' x<-c(rep(1,freq[1]), rep(0,freq[2]), rep(1,freq[3]), rep(0,freq[4]), 
+#' rep(NA,freq[5]),rep(NA,freq[6]))
 #' toy<-data.frame(x=x,y=y)
 #' 
 #' # impute data set 5 times
@@ -62,11 +62,12 @@
 #'   toymi[[i]]$x[y0==TRUE]<-xnew0
 #'   }
 #'   
-#'   # logistf analyses of each imputed data set
-#'   fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE))
+#'  # logistf analyses of each imputed data set
+#'  fit.list<-lapply(1:5, function(X) logistf(data=toymi[[X]], y~x, pl=TRUE))
 #'   
-#'   # CLIP confidence limits
-#'   CLIP.confint(obj=fit.list, data = toymi)
+#'  # CLIP confidence limits
+#'  CLIP.confint(obj=fit.list, data = toymi)
+#'  
 #' @author Georg Heinze and Meinhard Ploner
 #' @references Heinze G, Ploner M, Beyea J (2013). Confidence intervals after multiple imputation: combining 
 #' profile likelihood information from logistic regressions. Statistics in Medicine, to appear.
@@ -207,7 +208,7 @@ CLIP.confint <- function(obj=NULL, variable=NULL, data, firth=TRUE, weightvar=NU
     
     iter<-numeric(0)
     
-    loglik<-unlist(lapply(1:imputations, function(x) fits[[x]]$loglik[2]))
+    loglik<-unlist(lapply(1:imputations, function(x) fits[[x]]$loglik['full']))
     beta<-t(matrix(unlist(lapply(1:imputations,function(x) fits[[x]]$coefficients)),k,imputations))
     
 

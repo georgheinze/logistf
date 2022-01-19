@@ -7,22 +7,23 @@
 \usage{
 logistf.control(
   maxit = 25,
-  maxhs = 5,
+  maxhs = 0,
   maxstep = 5,
   lconv = 1e-05,
   gconv = 1e-05,
   xconv = 1e-05,
-  collapse = TRUE
+  collapse = TRUE,
+  fit = "NR"
 )
 }
 \arguments{
 \item{maxit}{The maximum number of iterations}
 
-\item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the 
-beta vector within one iteration is divided by 2 if the new beta leads to a decrease 
+\item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the
+beta vector within one iteration is divided by 2 if the new beta leads to a decrease
 in log likelihood.}
 
-\item{maxstep}{Specifies the maximum step size in the beta vector within one iteration.}
+\item{maxstep}{Specifies the maximum step size in the beta vector within one iteration. Set to -1 for infinite stepsize.}
 
 \item{lconv}{Specifies the convergence criterion for the log likelihood.}
 
@@ -31,32 +32,33 @@ in log likelihood.}
 \item{xconv}{Specifies the convergence criterion for the parameter estimates.}
 
 \item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
+
+\item{fit}{Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
 }
 \value{
 \item{maxit}{The maximum number of iterations}
-   \item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the 
-beta vector within one iteration is divided by 2 if the new beta leads to a decrease 
+\item{maxhs}{The maximum number of step-halvings in one iteration. The increment of the
+beta vector within one iteration is divided by 2 if the new beta leads to a decrease
 in log likelihood.}
-   \item{maxstep}{Specifies the maximum step size in the beta vector within one iteration.}
-   \item{lconv}{Specifies the convergence criterion for the log likelihood.}
-   \item{gconv}{Specifies the convergence criterion for the first derivative of the log likelihood (the score vector).}
-   \item{xconv}{Specifies the convergence criterion for the parameter estimates.}
-   \item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
+\item{maxstep}{Specifies the maximum step size in the beta vector within one iteration.}
+\item{lconv}{Specifies the convergence criterion for the log likelihood.}
+\item{gconv}{Specifies the convergence criterion for the first derivative of the log likelihood (the score vector).}
+\item{xconv}{Specifies the convergence criterion for the parameter estimates.}
+\item{collapse}{If \code{TRUE}, evaluates all unique combinations of x and y and collapses data set.}
+\item{fit}{Fitting method used. One of Newton-Raphson: "NR" or Iteratively reweighted least squares: "IRLS"}
+\item{call}{The function call.}
 }
 \description{
-Sets parameters for Newton-Raphson iteration in Firth's penalized-likelihood logistic regression.
+Sets parameters for iterations in Firth's penalized-likelihood logistic regression.
 }
 \details{
-\code{logistf.control()} is used by \code{logistf} and \code{logistftest} to set control parameters to default values. 
+\code{logistf.control()} is used by \code{logistf} and \code{logistftest} to set control parameters to default values.
 Different values can be specified, e. g., by \code{logistf(..., control= logistf.control(maxstep=1))}.
 }
 \examples{
 data(sexagg)
 fit2<-logistf(case ~ age+oc+vic+vicl+vis+dia, data=sexagg, weights=COUNT, 
-    control=logistf.control(maxstep=1))
+control=logistf.control(maxstep=1))
 summary(fit2)
 
-}
-\author{
-Georg Heinze
 }
