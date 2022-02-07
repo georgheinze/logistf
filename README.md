@@ -1,5 +1,10 @@
 # logistf
 
+<!-- badges: start -->
+[![R build status](https://github.com/georgheinze/logistf/workflows/RCMDcheck/badge.svg)](https://github.com/georgheinze/logistf/actions)
+[![CRAN status](https://www.r-pkg.org/badges/version/logistf)](https://cran.r-project.org/package=logistf)
+<!-- badges: end -->
+
 ## Overview
 
 The package logistf provides a comprehensive tool to facilitate the application of Firth’s modified
@@ -34,7 +39,3 @@ summary(lf)
 ## Acknowledgment
 
 This work was supported by the Austrian Science Fund (FWF) (award I 2276).
-
-<!-- badges: start -->
-[![R build status](https://github.com/georgheinze/logistf/workflows/R-CMD-check/badge.svg)](https://github.com/georgheinze/logistf/actions)
-<!-- badges: end -->
