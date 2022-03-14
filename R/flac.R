@@ -30,6 +30,10 @@
 #' by the corresponding element of weights
 #' @param na.action a function which indicates what should happen when the data contain NAs
 #' @param offset a priori known component to be included in the linear predictor
+#' @param pl Specifies if confidence intervals and tests should be based on the profile 
+#' penalized log likelihood (\code{pl=TRUE}, the default) or on the Wald method (\code{pl=FALSE}).
+#' @param plconf specifies the variables (as vector of their indices) for which profile likelihood 
+#' confidence intervals should be computed. Default is to compute for all variables.
 #' @param ... Further arguments passed to the method or \code{\link{logistf}}-call.
 #'
 #' @return A \code{flac} object with components:
@@ -78,7 +82,7 @@ flac <- function(...){
 #' @method flac default
 #' @exportS3Method flac default
 #' @describeIn flac With formula and data
-flac.default <- function(formula, data, model=TRUE, control, modcontrol, weights, offset, na.action,...){
+flac.default <- function(formula, data, model=TRUE, control, modcontrol, weights, offset, na.action, pl=TRUE, plconf=NULL,...){
   extras <- list(...)
 
   if(missing(control)){
@@ -116,13 +120,13 @@ flac.default <- function(formula, data, model=TRUE, control, modcontrol, weights
   #apply firths logistic regression and calculate diagonal elements h_i of hat matrix
   #and construct augmented dataset and definition of indicator variable g
   temp.pseudo <- c(rep(0,length(y)), rep(1,2*length(y)))
-  temp.neww <- c(weights*rep(1,length(y)), temp.fit1$hat/2, temp.fit1$hat/2)
+  temp.neww <- c(weights*rep(1,length(y)), temp.fit1$hat*temp.fit1$modcontrol$tau, temp.fit1$hat*temp.fit1$modcontrol$tau)
 
   newdat <- data.frame(rbind(x[,-1], x[,-1], x[,-1]), newresp = c(y,y,1-y), temp.pseudo=temp.pseudo, temp.neww=temp.neww)
 
   #ML estimation on augmented dataset
-  temp.fit2 <- logistf(newresp ~.-temp.neww,data=newdat, weights=temp.neww, firth=FALSE, control = control, modcontrol = modcontrol, pl=TRUE, ...)
-  temp.fit3 <- logistf(newresp ~ temp.pseudo,data=newdat, weights=temp.neww, firth=FALSE, pl = TRUE, ...)
+  temp.fit2 <- logistf(newresp ~.-temp.neww,data=newdat, weights=temp.neww, firth=FALSE, control = control, modcontrol = modcontrol, pl=pl, ...)
+  temp.fit3 <- logistf(newresp ~ temp.pseudo,data=newdat, weights=temp.neww, firth=FALSE, pl = FALSE, ...)
   
   #outputs
   coefficients <- temp.fit2$coefficients[which("temp.pseudo"!=names(temp.fit2$coefficients) & "`(weights)`"!=names(temp.fit2$coefficients))]
