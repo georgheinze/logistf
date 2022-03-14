@@ -1,6 +1,6 @@
 Package: logistf
-Version: 1.24.1
-Date: 2022-01-11
+Version: 1.24.2
+Date: 2022-03-14
 Title: Firth's Bias-Reduced Logistic Regression
 Authors@R: c(person("Georg", "Heinze", role=c("aut", "cre"), email="georg.heinze@meduniwien.ac.at"),
 			 person("Meinhard", "Ploner", role=c("aut")),
