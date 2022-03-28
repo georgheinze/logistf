@@ -122,7 +122,7 @@ flac.default <- function(formula, data, model=TRUE, control, modcontrol, weights
   temp.pseudo <- c(rep(0,length(y)), rep(1,2*length(y)))
   temp.neww <- c(weights*rep(1,length(y)), temp.fit1$hat*temp.fit1$modcontrol$tau, temp.fit1$hat*temp.fit1$modcontrol$tau)
 
-  newdat <- data.frame(rbind(x[,-1], x[,-1], x[,-1]), newresp = c(y,y,1-y), temp.pseudo=temp.pseudo, temp.neww=temp.neww)
+  newdat <- data.frame(rbind(x[,-1, drop=FALSE], x[,-1, drop=FALSE], x[,-1, drop=FALSE]), newresp = c(y,y,1-y), temp.pseudo=temp.pseudo, temp.neww=temp.neww)
 
   #ML estimation on augmented dataset
   temp.fit2 <- logistf(newresp ~.-temp.neww,data=newdat, weights=temp.neww, firth=FALSE, control = control, modcontrol = modcontrol, pl=pl, ...)
