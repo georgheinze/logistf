@@ -122,20 +122,20 @@ flic.default <- function(formula, data, model = TRUE, control, modcontrol, weigh
   fit <- glm(as.formula(paste(response, paste("1"), sep=" ~ ")), family=binomial(link=logit), 
              data=mf, offset=lp+offset, weights = weights)
   #se of intercept
-  W <- diag(fit$fitted.values*(1-fit$fitted.values))
+  W <- Matrix::Diagonal(x = fit$fitted.values*(1-fit$fitted.values))
   XWX <- t(x)%*%W%*%x
   tmp.var <- solve(XWX)
   beta0.se <- sqrt(tmp.var[1,1])
   
   #compute penalized likelihood: 
   loglik <- sum(log(fit$fitted^(FL$y)*(1-fit$fitted)^(1-FL$y)))
-  I <- 0.5*log(det(XWX))
+  I <- 0.5*log(Matrix::det(XWX))
   full_loglik <- loglik+I
   ic <- fit$coef
   
   #variance covariance matrix: (X^TWX)^-1
   pred.prob <- as.vector(1/(1+exp(-x%*%c(ic, FL$coef[-1]))))
-  W <- diag(pred.prob, nrow=length(pred.prob))
+  W <- Matrix::Diagonal(x = pred.prob)
   if(!is.null(modcontrol$terms.fit)){
     var <- matrix(0, nrow = ncol(x), ncol = ncol(x))
     varreduced <- solve(t(x[,modcontrol$terms.fit])%*%W%*%x[,modcontrol$terms.fit])
@@ -206,20 +206,20 @@ flic.logistf <- function(lfobject,model=TRUE,...){
   lfformula <- as.formula(paste(response, paste("1"), sep=" ~ "))
   fit <- glm(lfformula, family=binomial(link=logit), data=data, offset=lp+offset, weights = weights)
   #se of intercept
-  W <- diag(fit$fitted.values*(1-fit$fitted.values))
+  W <- Matrix::Diagonal(x = fit$fitted.values*(1-fit$fitted.values))
   designmat <- model.matrix(lfobject$formula, data)
-  if( det(t(designmat)%*%W%*%designmat) == 0) stop('Fisher Information matrix is singular')
+  if( Matrix::det(t(designmat)%*%W%*%designmat) == 0) stop('Fisher Information matrix is singular')
   XWX <- t(designmat)%*%W%*%designmat
   tmp.var <- solve(XWX)
   beta0.se <- sqrt(tmp.var[1,1])
   #compute penalized likelihood: 
   loglik <- sum(log(fit$fitted^(lfobject$y)*(1-fit$fitted)^(1-lfobject$y)))
-  I <- 0.5*log(det(XWX))
+  I <- 0.5*log(Matrix::det(XWX))
   full_loglik <- loglik+I
   ic <- fit$coef
   #variance covariance matrix: (X^TWX)^-1
   pred.prob <- as.vector(1/(1+exp(-designmat%*%c(ic, lfobject$coef[-1]))))
-  W <- diag(pred.prob, nrow=length(pred.prob))
+  W <- Matrix::Diagonal(x = pred.prob)
   if(!is.null(modcontrol$terms.fit)){
     var <- matrix(0, nrow = ncol(designmat), ncol = ncol(designmat))
     varreduced <- solve(t(designmat[,modcontrol$terms.fit])%*%W%*%designmat[,modcontrol$terms.fit])
