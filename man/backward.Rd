@@ -82,9 +82,9 @@ defined as factors in the original data set.
 }
 \section{Functions}{
 \itemize{
-\item \code{forward}: Forward Selection
-}}
+\item \code{forward()}: Forward Selection
 
+}}
 \examples{
 data(sex2) 
 fit<-logistf(data=sex2, case~1, pl=FALSE) 
