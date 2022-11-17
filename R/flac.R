@@ -115,7 +115,6 @@ flac.default <- function(formula, data, model=TRUE, control, modcontrol, weights
   if (is.null(weights)) weights<-rep(1,n)
   
   response <- formula.tools::lhs.vars(formula)
-  scope <- formula.tools::rhs.vars(formula)
   
   #apply firths logistic regression and calculate diagonal elements h_i of hat matrix
   #and construct augmented dataset and definition of indicator variable g
