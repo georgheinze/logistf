@@ -89,11 +89,11 @@ ratio tests.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: With formula and data
+\item \code{flic(default)}: With formula and data
 
-\item \code{logistf}: With logistf object
+\item \code{flic(logistf)}: With logistf object
+
 }}
-
 \examples{
 #With formula and data:
 data(sex2)

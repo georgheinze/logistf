@@ -1,14 +1,15 @@
 Package: logistf
-Version: 1.24.2
+Version: 1.24.3
 Date: 2022-03-14
 Title: Firth's Bias-Reduced Logistic Regression
 Authors@R: c(person("Georg", "Heinze", role=c("aut", "cre"), email="georg.heinze@meduniwien.ac.at"),
 			 person("Meinhard", "Ploner", role=c("aut")),
 			 person("Daniela","Dunkler", role=c("ctb")),
 			 person("Harry", "Southworth", role=c("ctb")), 
-			 person("Lena", "Jiricka", role=c("aut")))
+			 person("Lena", "Jiricka", role=c("aut")),
+			 person("Gregor", "Steiner", role=c("aut")))
 Depends: R (>= 3.0.0)
-Imports: mice, mgcv, formula.tools
+Imports: mice, mgcv, formula.tools, Matrix
 Description: Fit a logistic regression model using Firth's bias reduction method, equivalent to penalization of the log-likelihood by the Jeffreys 
 	prior. Confidence intervals for regression coefficients can be computed by penalized profile likelihood. Firth's method was proposed as ideal
 	solution to the problem of separation in logistic regression, see Heinze and Schemper (2002) <doi:10.1002/sim.1047>. If needed, the bias reduction can be turned off such that ordinary
@@ -18,7 +19,7 @@ License: GPL
 URL: https://cemsiis.meduniwien.ac.at/en/kb/science-research/software/statistical-software/firth-correction/
 LazyLoad: yes
 NeedsCompilation: yes
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.2
 LazyData: true
 BugReports: https://github.com/georgheinze/logistf/issues/
 Roxygen: list(markdown = TRUE)

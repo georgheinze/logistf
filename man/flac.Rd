@@ -18,6 +18,8 @@ flac(...)
   weights,
   offset,
   na.action,
+  pl = TRUE,
+  plconf = NULL,
   ...
 )
 
@@ -44,6 +46,12 @@ by the corresponding element of weights}
 \item{offset}{a priori known component to be included in the linear predictor}
 
 \item{na.action}{a function which indicates what should happen when the data contain NAs}
+
+\item{pl}{Specifies if confidence intervals and tests should be based on the profile
+penalized log likelihood (\code{pl=TRUE}, the default) or on the Wald method (\code{pl=FALSE}).}
+
+\item{plconf}{specifies the variables (as vector of their indices) for which profile likelihood
+confidence intervals should be computed. Default is to compute for all variables.}
 
 \item{lfobject}{A fitted \code{\link{logistf}} object.}
 }
@@ -90,11 +98,11 @@ ratio tests.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: With formula and data
+\item \code{flac(default)}: With formula and data
 
-\item \code{logistf}: With logistf object
+\item \code{flac(logistf)}: With logistf object
+
 }}
-
 \examples{
 #With formula and data:
 data(sex2)
