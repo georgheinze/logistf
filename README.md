@@ -3,7 +3,6 @@
 <!-- badges: start -->
 [![R build status](https://github.com/georgheinze/logistf/workflows/RCMDcheck/badge.svg)](https://github.com/georgheinze/logistf/actions)
 [![CRAN status](https://www.r-pkg.org/badges/version/logistf)](https://cran.r-project.org/package=logistf)
-[![R-CMD-check](https://github.com/georgheinze/logistf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/georgheinze/logistf/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Overview
