@@ -322,8 +322,8 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, modcontrol,
         response <- formula.tools::lhs.vars(formula)
         fit_flic <- glm(as.formula(paste(response, paste("1"), sep=" ~ ")), family=binomial(link=logit), 
                    data=data, offset=lp_flic)
-        W <- diag(fit_flic$fitted.values*(1-fit_flic$fitted.values))
-        tmp.var <- solve(t(x)%*%W%*%x)
+        W <- Matrix::Diagonal(x = fit_flic$fitted.values*(1-fit_flic$fitted.values))
+        tmp.var <- solve(t(x) %*% W %*% x)
         beta0.se <- sqrt(tmp.var[1,1])
         fit$coefficients <- c(fit_flic$coef, fit$coef[-1])
         fit$ci.lower <- c(fit_flic$coef-beta0.se*1.96, fit$ci.lower[-1])
