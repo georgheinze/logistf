@@ -12,3 +12,7 @@ in `predict.logistf()`, `predict.flic()` and `predict.flac()`.
 * Added a new fitting method: Iteratively reweighted least squares (IRLS). 
 * Added `na.action` option to `logistf()` and `predict.logistf()`.
 * Updated `flic()` and `flac()` to be called with interactions in formula.
+
+# logistf 1.24.4
+
+* Fixed memory bug with large data sets in `flic()`.
