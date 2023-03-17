@@ -16,3 +16,7 @@ in `predict.logistf()`, `predict.flic()` and `predict.flac()`.
 # logistf 1.24.4
 
 * Fixed memory bug with large data sets in `flic()`.
+
+# logistf 1.24.5
+
+* Added support for `emmeans`: `emmeans::emmeans()` now works with `logistf` objects.
