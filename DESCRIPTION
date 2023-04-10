@@ -20,7 +20,7 @@ License: GPL
 URL: https://cemsiis.meduniwien.ac.at/en/kb/science-research/software/statistical-software/firth-correction/
 LazyLoad: yes
 NeedsCompilation: yes
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3.9000
 LazyData: true
 BugReports: https://github.com/georgheinze/logistf/issues/
 Roxygen: list(markdown = TRUE)
