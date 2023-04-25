@@ -9,6 +9,6 @@ terms.flic <- function(x, ...) {
 }
 
 #' @exportS3Method terms logistf
-terms.flac <- function(x, ....) {
+terms.flac <- function(x, ...) {
   attr(x$model, which = 'terms', exact = TRUE)
 }
