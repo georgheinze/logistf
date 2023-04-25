@@ -313,7 +313,7 @@ void linpack_choleski(double *A_doub, long *size)
 }
 
 
-void testRmath()
+void testRmath(void)
 {
 	double res;
 	res = R_pow(3.0, 2.0);
