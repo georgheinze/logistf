@@ -114,7 +114,7 @@ flic.default <- function(formula, data, model = TRUE, control, modcontrol, weigh
   if (is.null(offset)) offset<-rep(0,n)
   if (is.null(weights)) weights<-rep(1,n)
 
-  response <- lhs.vars(formula) 
+  response <- as.character.default(formula)
   
   #calculate linear predictors ommiting the intercept
   lp <- FL$linear.predictors-FL$coefficients[1]
@@ -196,8 +196,10 @@ flic.logistf <- function(lfobject,model=TRUE,...){
   if (is.null(offset)) offset<-rep(0,nrow(data))
   if (is.null(weights)) weights<-rep(1,nrow(data))
   
-  response <- formula.tools::lhs.vars(lfobject$formula)
-  scope <- formula.tools::rhs.vars(lfobject$formula)
+  response <- as.character.default(lfobject$formula)[2]
+  
+  scope <- strsplit(as.character.default(lfobject$formula)[3], split = " +")[[1]] # split rhs variables along '+' signs
+  scope <- scope[scope != "+"] # remove '+' signs
   
   #calculate linear predictors ommiting the intercept
   lp <- lfobject$linear.predictors-lfobject$coefficients[1]

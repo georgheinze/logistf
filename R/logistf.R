@@ -319,7 +319,7 @@ function(formula, data, pl = TRUE, alpha = 0.05, control, plcontrol, modcontrol,
         #calculate linear predictors ommiting the intercept
         lp_flic <-  fit$linear.predictors-fit$coef[1]
         #determine ML estimate of intercept 
-        response <- formula.tools::lhs.vars(formula)
+        response <- as.character.default(formula)[2]
         fit_flic <- glm(as.formula(paste(response, paste("1"), sep=" ~ ")), family=binomial(link=logit), 
                    data=data, offset=lp_flic)
         W <- Matrix::Diagonal(x = fit_flic$fitted.values*(1-fit_flic$fitted.values))

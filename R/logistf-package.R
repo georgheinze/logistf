@@ -127,6 +127,5 @@
 #' @importFrom stats nobs
 #' @importFrom mgcv uniquecombs
 #' @importFrom mice complete
-#' @importFrom formula.tools lhs.vars
 #' 
 NULL
