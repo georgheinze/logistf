@@ -51,7 +51,7 @@ add1.logistf<-function(object, scope, test="PLR", ...){
   nvar<-length(variables)
   mat<-matrix(0,nvar,3)
   for(i in 1:nvar){
-    newform<-as.formula(paste(object$formula,variables[i], sep="+"))
+    newform<-as.formula(paste(deparse1(object$formula),variables[i], sep="+"))
     res<-anova(object, update(object,formula=newform))
     mat[i,1]<-res$chisq
     mat[i,2]<-res$df

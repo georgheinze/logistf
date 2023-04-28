@@ -114,7 +114,7 @@ flic.default <- function(formula, data, model = TRUE, control, modcontrol, weigh
   if (is.null(offset)) offset<-rep(0,n)
   if (is.null(weights)) weights<-rep(1,n)
 
-  response <- as.character.default(formula)
+  response <- as.character.default(formula)[2]
   
   #calculate linear predictors ommiting the intercept
   lp <- FL$linear.predictors-FL$coefficients[1]
