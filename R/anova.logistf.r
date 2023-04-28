@@ -65,7 +65,6 @@
 anova.logistf<-function(object,  fit2, formula, method="nested", ...){
  # methods: "PLR": take difference in PLR, "nested": proper method for nested models
  # needed in logistf class: $firth, $data
-  
   mf <- match.call(expand.dots =FALSE)
   m <- match(c("object","fit2","formula","method"), names(mf), 0L)
   mf <- mf[c(1, m)]
@@ -93,7 +92,7 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
     chisq<-PLR1-PLR2
     if (chisq<0) chisq<-0
     pval<-1-pchisq(chisq,df)
-    model2<-as.character(fit2$formula)
+    model2<-deparse1(fit2$formula)
   } else if(method=="nested"){
     f1<-fit1$formula
     a<-attr(terms(fit1),"term.labels")
@@ -123,7 +122,7 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
       f3<-paste(f3, "-1")
       f3<-as.formula(f3, env = environment(object$formula))
     } else {
-      f3<-as.formula(paste(paste(as.character(formula), collapse=""),"-1",collapse=""), env = environment(object$formula))
+      f3<-as.formula(paste(deparse1(formula),"-1",collapse=""), env = environment(object$formula))
     }
       
     test<-logistftest(object=fit1, test = f3, firth=fit1$firth, weights=model.weights(model.frame(fit1)),...)
@@ -135,7 +134,7 @@ anova.logistf<-function(object,  fit2, formula, method="nested", ...){
     pval<-test$prob
     model2<-as.character(f3)
   }
-  res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method=method, model1=as.character(fit1$formula), model2=out2, PLR1=PLR1, PLR2=PLR2)
+  res<-list(chisq=chisq, df=df, pval=pval, call=match.call(), method=method, model1=fit1$formula, model2=out2, PLR1=PLR1, PLR2=PLR2)
   attr(res,"class")<-"anova.logistf"
   return(res)
 }
@@ -158,7 +157,7 @@ anova.flic<-function(object,  fit2, formula, method="nested", ...){
 print.anova.logistf <-function(x,...){
     cat("Comparison of logistf models:\n")
     obj<-x
-    pdat<-data.frame(Formula=c(as.character(obj$model1),as.character(obj$model2)), ChiSquared=c(obj$PLR1,obj$PLR2))
+    pdat<-data.frame(Formula=c(deparse1(obj$model1), deparse1(obj$model2)), ChiSquared=c(obj$PLR1,obj$PLR2))
     pdatrows<-capture.output(print(pdat))
     for(i in 1:3) cat(pdatrows[i],"\n")
     cat("\nMethod: ", obj$method, "\n")
