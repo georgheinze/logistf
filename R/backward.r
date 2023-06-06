@@ -43,11 +43,6 @@ backward <- function(object,...){
 backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
   istep<-0 #index of steps
   
-  mf <- match.call(expand.dots =FALSE)
-  m <- match("object", names(mf), 0L)
-  mf <- mf[c(1, m)]
-  object <- eval(mf$object, parent.frame())
-  object <- update(object, formula=object$formula)
   variables <- attr(terms(object),"term.labels")
   form <- formula(terms(object)) #to take care of dot shortcut
   Terms <- terms(object)
@@ -163,10 +158,6 @@ forward <- function(object,...){
 forward.logistf<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork=FALSE, pl=TRUE, ...){
   istep<-0
   
-  mf <- match.call(expand.dots =FALSE)
-  m <- match("object", names(mf), 0L)
-  mf <- mf[c(1, m)]
-  object <- eval(mf$object, parent.frame())
   variables <- object$terms[-1]
   
   terms.fit <- object$modcontrol$terms.fit
