@@ -57,6 +57,8 @@ with a formula= y~1, pl=FALSE. (Replace y by your response variable.)}
 the terms of the object fit. Alternatively, an arbitrary vector of variable names can be given, to allow
 that only some of the variables will be competitively selected or dropped. Has to be provided for forward.}
 
+\item{data}{The data frame used to fit the object.}
+
 \item{steps}{The number of forward selection/backward elimination steps.}
 
 \item{slstay}{For \code{backward}, the significance level to stay in the model.}
@@ -90,9 +92,9 @@ defined as factors in the original data set.
 \examples{
 data(sex2) 
 fit<-logistf(data=sex2, case~1, pl=FALSE) 
-fitf<-forward(fit, scope = c("dia", "age")) 
+fitf<-forward(fit, scope=c("dia", "age"), data=sex2) 
 
 fit2<-logistf(data=sex2, case~age+oc+vic+vicl+vis+dia) 
-fitb<-backward(fit2)
+fitb<-backward(fit2, data=sex2)
 
 }

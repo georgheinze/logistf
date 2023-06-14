@@ -10,6 +10,7 @@
 #' @param scope The scope of variables considered for adding or dropping. Should be a 
 #' vector of variable names. Can be left missing; the method will then use all variables 
 #' in the object's data slot which are not identified as the response variable.
+#' @param data The data frame used to fit the object.
 #' @param test The type of test statistic. Currently, only the PLR test (penalized likelihood 
 #' ratio test) is allowed for logistf fits.
 #' @param ... Further arguments passed to or from other methods.
@@ -21,10 +22,10 @@
 #' @examples
 #' data(sex2) 
 #' fit<-logistf(data=sex2, case~1, pl=FALSE) 
-#' add1(fit, scope=c("dia", "age"))
+#' add1(fit, scope=c("dia", "age"), data=sex2)
 #'  
 #' fit2<-logistf(data=sex2, case~age+oc+dia+vic+vicl+vis) 
-#' drop1(fit2)
+#' drop1(fit2, data=sex2)
 #' 
 #' @importFrom stats add.scope
 #' @importFrom stats update.formula

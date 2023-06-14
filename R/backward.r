@@ -11,6 +11,7 @@
 #' @param scope The scope of variables to add/drop from the model. Can be missing for backward, backward will use 
 #' the terms of the object fit. Alternatively, an arbitrary vector of variable names can be given, to allow 
 #' that only some of the variables will be competitively selected or dropped. Has to be provided for forward.
+#' @param data The data frame used to fit the object.
 #' @param steps The number of forward selection/backward elimination steps.
 #' @param slstay For \code{backward}, the significance level to stay in the model.
 #' @param slentry For \code{forward}, the significance level to enter the model.
@@ -25,10 +26,10 @@
 #' @examples 
 #' data(sex2) 
 #' fit<-logistf(data=sex2, case~1, pl=FALSE) 
-#' fitf<-forward(fit, scope = c("dia", "age")) 
+#' fitf<-forward(fit, scope=c("dia", "age"), data=sex2) 
 #' 
 #' fit2<-logistf(data=sex2, case~age+oc+vic+vicl+vis+dia) 
-#' fitb<-backward(fit2)
+#' fitb<-backward(fit2, data=sex2)
 #' 
 #' @importFrom utils tail
 #' 
@@ -90,7 +91,7 @@ backward.logistf <- function(object, scope, data, steps=1000, slstay=0.05, trace
       mat <- drop1(object, scope=inscope, data = data, full.penalty.vec=removal,...)
     }
     else {
-      mat<-drop1(working,scope=inscope, data = data...)
+      mat<-drop1(working,scope=inscope, data = data, ...)
     }
     istep<-istep+1
     if(all(mat[,3]<slstay)) {
