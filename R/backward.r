@@ -40,14 +40,14 @@ backward <- function(object,...){
 #' @exportS3Method backward logistf
 #' @method backward logistf
 #' @rdname backward
-backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
+backward.logistf <- function(object, scope, data, steps=1000, slstay=0.05, trace=TRUE, printwork=FALSE,full.penalty=FALSE, ...){
   istep<-0 #index of steps
   
   mf <- match.call(expand.dots =FALSE)
   m <- match("object", names(mf), 0L)
   mf <- mf[c(1, m)]
   object <- eval(mf$object, parent.frame())
-  object <- update(object, formula=object$formula)
+  object <- update(object, formula=object$formula, data = data)
   variables <- attr(terms(object),"term.labels")
   form <- formula(terms(object)) #to take care of dot shortcut
   Terms <- terms(object)
@@ -87,10 +87,10 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     inscope <- factor.scope(inscope, list(drop = fdrop))$drop
     
     if(full.penalty && istep!=0){ #check with istep!=0 if removal is an empty vector - not possible to pass such to drop1
-      mat <- drop1(object, scope=inscope, full.penalty.vec=removal,...)
+      mat <- drop1(object, scope=inscope, data = data, full.penalty.vec=removal,...)
     }
     else {
-      mat<-drop1(working,scope=inscope,...)
+      mat<-drop1(working,scope=inscope, data = data...)
     }
     istep<-istep+1
     if(all(mat[,3]<slstay)) {
@@ -109,12 +109,12 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
     if(!full.penalty){ #update working only if full.penalty==FALSE
       newform <- update.formula(working$formula,paste("~ . -", curr_removal))
       if(working$df==2 | working$df==mat[mat[,3]==max(mat[,3]),2][1]){
-        working<-update(working, formula=newform, pl=FALSE, evaluate = FALSE)
-        working <- eval.parent(working)
+        working<-update(working, formula=newform, data = data, pl=FALSE)
+        #working <- eval.parent(working)
       }
       else {
-        working<-update(working, formula=newform, evaluate = FALSE)
-        working <- eval.parent(working)
+        working<-update(working, formula=newform, data = data)
+        #working <- eval.parent(working)
         
       }
       Terms <- terms(working)
@@ -139,7 +139,7 @@ backward.logistf <- function(object, scope, steps=1000, slstay=0.05, trace=TRUE,
       tofit <- (1:k)[-(tmp+1)]
       modcontrol <- object$modcontrol
       modcontrol$terms.fit <- tofit
-      working<-update(working, modcontrol = modcontrol)
+      working<-update(working, modcontrol = modcontrol, data = data)
     }
   }
   return(working)
@@ -160,7 +160,7 @@ forward <- function(object,...){
 #' @exportS3Method forward logistf
 #' @method forward logistf
 #' @rdname backward
-forward.logistf<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, printwork=FALSE, pl=TRUE, ...){
+forward.logistf<-function(object, scope, data, steps=1000, slentry=0.05, trace=TRUE, printwork=FALSE, pl=TRUE, ...){
   istep<-0
   
   mf <- match.call(expand.dots =FALSE)
@@ -194,13 +194,13 @@ forward.logistf<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, p
   inscope<-scope
   while(istep<steps & length(inscope)>=1){
     istep<-istep+1
-    mat<-add1(working, scope=inscope)
+    mat<-add1(working, scope = inscope, data = data)
     if(all(mat[,3]>slentry)) break
     index<-(1:nrow(mat))[mat[,3]==min(mat[,3])]
     if(length(index)>1) index<-index[mat[index,1]==max(mat[index,1])]
     addvar<-rownames(mat)[index]
     newform=as.formula(paste("~.+",addvar))
-    working<-update(working, formula=newform, pl=FALSE)
+    working<-update(working, formula=newform, pl=FALSE, data = data)
     newindex<-is.na(match(inscope, attr(terms(object),"term.labels")))
     if(all(is.na(newindex)==TRUE)) break
     #inscope<-inscope[-index]
@@ -213,7 +213,7 @@ forward.logistf<-function(object, scope, steps=1000, slentry=0.05, trace=TRUE, p
       }
     }
   }
-   if(pl) working<-update(working, pl=TRUE)
+   if(pl) working<-update(working, pl=TRUE, data = data)
    if(trace) cat("\n")
    return(working)
 }

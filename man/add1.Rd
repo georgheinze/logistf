@@ -5,7 +5,7 @@
 \alias{add1.logistf}
 \title{Add or Drop All Possible Single Terms to/from a \code{logistf} Model}
 \usage{
-\method{add1}{logistf}(object, scope, test = "PLR", ...)
+\method{add1}{logistf}(object, scope, data, test = "PLR", ...)
 }
 \arguments{
 \item{object}{A fitted \code{logistf, flic} or \code{flac} object}

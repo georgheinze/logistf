@@ -13,6 +13,7 @@ backward(object, ...)
 \method{backward}{logistf}(
   object,
   scope,
+  data,
   steps = 1000,
   slstay = 0.05,
   trace = TRUE,
@@ -37,6 +38,7 @@ forward(object, ...)
 \method{forward}{logistf}(
   object,
   scope,
+  data,
   steps = 1000,
   slentry = 0.05,
   trace = TRUE,
