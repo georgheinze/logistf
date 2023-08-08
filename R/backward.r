@@ -58,7 +58,7 @@ backward.logistf <- function(object, scope, data, steps=1000, slstay=0.05, trace
   terms.fit <- object$modcontrol$terms.fit
   if(!is.null(terms.fit)) stop("Please call backward on a logistf-object with all terms fitted.")
   
-  if(any(sapply(data[, variables], is.factor))) stop("Selecting among factor variables is not supported. Convert them to numeric dummy variables first.")
+  if(any(sapply(data[, variables], is.factor))) stop("Selecting among factor variables is not supported.")
 
   working<-object
   if(trace){
@@ -175,7 +175,7 @@ forward.logistf<-function(object, scope, data, steps=1000, slentry=0.05, trace=T
   terms.fit <- object$modcontrol$terms.fit
   if(!is.null(terms.fit)) stop("Please call forward on a logistf-object with all terms fitted.")
   
-  if(any(sapply(data[, scope], is.factor))) stop("Selecting among factor variables is not supported. Convert them to numeric dummy variables first.")
+  if(any(sapply(data[, scope], is.factor))) stop("Selecting among factor variables is not supported.")
   
   working<-object
   if(missing(scope)) {
