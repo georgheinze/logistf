@@ -3,8 +3,13 @@
 #' These functions provide simple backward elimination/forward selection procedures for logistf models.
 #' 
 #' The variable selection is simply performed by repeatedly calling add1 or drop1 methods for logistf, 
-#' and is based on penalized likelihood ratio test. It can also properly handle variables that were 
-#' defined as factors in the original data set.
+#' and is based on penalized likelihood ratio test.
+#' 
+#' Note that selecting among factor variables is not supported.
+#' One way to use forward or backward with factor variables is to first convert them
+#' into numeric variables (0/1 coded dummy variables, choosing a sensible reference category).
+#' Forward and backward will then perform selection on the dummy variables, 
+#' meaning that it will collapse levels of a factor variable with similar outcomes.
 #' 
 #' @param object A fitted logistf model object. To start with an empty model, create a model fit 
 #' with a formula= y~1, pl=FALSE. (Replace y by your response variable.)
@@ -22,6 +27,7 @@
 #' @param ... Further arguments to be passed to methods.
 #'
 #' @return An updated \code{logistf, flic} or \code{flac} fit with the finally selected model.
+#'
 #'
 #' @examples 
 #' data(sex2) 
