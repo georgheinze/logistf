@@ -13,6 +13,7 @@ backward(object, ...)
 \method{backward}{logistf}(
   object,
   scope,
+  data,
   steps = 1000,
   slstay = 0.05,
   trace = TRUE,
@@ -37,6 +38,7 @@ forward(object, ...)
 \method{forward}{logistf}(
   object,
   scope,
+  data,
   steps = 1000,
   slentry = 0.05,
   trace = TRUE,
@@ -54,6 +56,8 @@ with a formula= y~1, pl=FALSE. (Replace y by your response variable.)}
 \item{scope}{The scope of variables to add/drop from the model. Can be missing for backward, backward will use
 the terms of the object fit. Alternatively, an arbitrary vector of variable names can be given, to allow
 that only some of the variables will be competitively selected or dropped. Has to be provided for forward.}
+
+\item{data}{The data frame used to fit the object.}
 
 \item{steps}{The number of forward selection/backward elimination steps.}
 
@@ -77,8 +81,13 @@ These functions provide simple backward elimination/forward selection procedures
 }
 \details{
 The variable selection is simply performed by repeatedly calling add1 or drop1 methods for logistf,
-and is based on penalized likelihood ratio test. It can also properly handle variables that were
-defined as factors in the original data set.
+and is based on penalized likelihood ratio test.
+
+Note that selecting among factor variables is not supported.
+One way to use forward or backward with factor variables is to first convert them
+into numeric variables (0/1 coded dummy variables, choosing a sensible reference category).
+Forward and backward will then perform selection on the dummy variables,
+meaning that it will collapse levels of a factor variable with similar outcomes.
 }
 \section{Functions}{
 \itemize{
@@ -88,9 +97,9 @@ defined as factors in the original data set.
 \examples{
 data(sex2) 
 fit<-logistf(data=sex2, case~1, pl=FALSE) 
-fitf<-forward(fit, scope = c("dia", "age")) 
+fitf<-forward(fit, scope=c("dia", "age"), data=sex2) 
 
 fit2<-logistf(data=sex2, case~age+oc+vic+vicl+vis+dia) 
-fitb<-backward(fit2)
+fitb<-backward(fit2, data=sex2)
 
 }

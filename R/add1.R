@@ -10,6 +10,7 @@
 #' @param scope The scope of variables considered for adding or dropping. Should be a 
 #' vector of variable names. Can be left missing; the method will then use all variables 
 #' in the object's data slot which are not identified as the response variable.
+#' @param data The data frame used to fit the object.
 #' @param test The type of test statistic. Currently, only the PLR test (penalized likelihood 
 #' ratio test) is allowed for logistf fits.
 #' @param ... Further arguments passed to or from other methods.
@@ -21,10 +22,10 @@
 #' @examples
 #' data(sex2) 
 #' fit<-logistf(data=sex2, case~1, pl=FALSE) 
-#' add1(fit, scope=c("dia", "age"))
+#' add1(fit, scope=c("dia", "age"), data=sex2)
 #'  
 #' fit2<-logistf(data=sex2, case~age+oc+dia+vic+vicl+vis) 
-#' drop1(fit2)
+#' drop1(fit2, data=sex2)
 #' 
 #' @importFrom stats add.scope
 #' @importFrom stats update.formula
@@ -33,13 +34,13 @@
 #' @rdname add1
 #' @method add1 logistf
 #' @exportS3Method add1 logistf
-add1.logistf<-function(object, scope, test="PLR", ...){
+add1.logistf<-function(object, scope, data, test="PLR", ...){
   if(missing(scope)) stop("please provide scope: no terms in scope for adding to object")
   else if(is.numeric(scope)) scope<-attr(terms(object),"term.labels")[scope]
   else if(!is.character(scope)) scope <- add.scope(object, update.formula(object, scope))
 
   mf <- match.call(expand.dots =FALSE)
-  m <- match(c("object", "scope", "test"), names(mf), 0L)
+  m <- match(c("object", "scope", "test", "data"), names(mf), 0L)
   mf <- mf[c(1, m)]
   object <- eval(mf$object, parent.frame())
   
@@ -52,7 +53,8 @@ add1.logistf<-function(object, scope, test="PLR", ...){
   mat<-matrix(0,nvar,3)
   for(i in 1:nvar){
     newform<-as.formula(paste(object$formula,variables[i], sep="+"))
-    res<-anova(object, update(object,formula=newform))
+    fit2 <- update(object, formula=newform, data = data)
+    res<-anova(object, fit2)
     mat[i,1]<-res$chisq
     mat[i,2]<-res$df
     mat[i,3]<-res$pval
@@ -62,18 +64,18 @@ add1.logistf<-function(object, scope, test="PLR", ...){
   return(mat)
 }
 #' @exportS3Method add1 flic
-add1.flic<-function(object, scope, test="PLR", ...){
-  add1.logistf(object, scope, ...)
+add1.flic<-function(object, scope, data, test="PLR", ...){
+  add1.logistf(object, scope, data, ...)
 }
 
 #' @exportS3Method add1 flac
-add1.flac<-function(object, scope, test="PLR", ...){
-  add1.logistf(object, scope, ...)
+add1.flac<-function(object, scope, data, test="PLR", ...){
+  add1.logistf(object, scope, data, ...)
 }
 #' @aliases drop1
 #' @method drop1 logistf
 #' @exportS3Method drop1 logistf
-drop1.logistf<-function(object, scope, test="PLR", ...){
+drop1.logistf<-function(object, scope, data, test="PLR", ...){
   mf <- match.call(expand.dots =FALSE)
   m <- match(c("object", "scope", "test"), names(mf), 0L)
   mf <- mf[c(1, m)]
@@ -117,12 +119,12 @@ drop1.logistf<-function(object, scope, test="PLR", ...){
 
 #' @method drop1 flic
 #' @exportS3Method drop1 flic
-drop1.flic<-function(object, scope, test="PLR", ...){
-  drop1.logistf(object, scope,  ...)
+drop1.flic<-function(object, scope, data, test="PLR", ...){
+  drop1.logistf(object, scope, data,  ...)
 }
 
 #' @method drop1 flac
 #' @exportS3Method drop1 flac
-drop1.flac<-function(object, scope, test="PLR", ...){
-  drop1.logistf(object, scope, augmented_data=TRUE,...)
+drop1.flac<-function(object, scope, data, test="PLR", ...){
+  drop1.logistf(object, scope, data, augmented_data=TRUE,...)
 }
