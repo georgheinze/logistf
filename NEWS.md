@@ -1,3 +1,8 @@
+# logistf 1.26.0
+
+* `forward()` and `backward()` now require the dataset as an argument.
+* Using `forward()` and `backward()` to select among factor variables is no longer supported.
+
 # logistf 1.25.0
 
 * Fixed memory bug with large data sets in `flic()` (#45).
