@@ -136,6 +136,78 @@ void trans(double *X, double *res, long k, long m)
 }
 
 
+void lapack_det(double *A_doub, long *size, double *logdet)
+{
+    int i, j, n, N, info;
+    double *A;
+    char uplo = 'U';  // or 'L'
+    
+    n = (int) *size;
+    N = n * n;
+    
+    if ((A = (double *) R_alloc(N, sizeof(double))) == NULL)
+        error("no memory available\n");
+    
+    // Transpose A_doub to column-major order for Fortran
+    for (i = 0; i < n; i++)
+        for (j = 0; j < n; j++)
+            A[j + n * i] = A_doub[j + i * n];
+    
+    // Cholesky decomposition
+    F77_CALL(dpotrf)(&uplo, &n, A, &n, &info);
+    
+    if (info != 0)
+        error("LAPACK dpotrf failed: matrix is not positive definite (info = %d)", info);
+    
+    // Compute log(det(A)) = 2 * sum(log(diag(L))) (or U, depending on 'uplo')
+    double sum_log_diag = 0.0;
+    for (i = 0; i < n; i++) {
+        double diag_val = A[i + i * n];  // A[i, i]
+        if (diag_val <= 0.0)
+            error("Non-positive diagonal element encountered in Cholesky factor");
+        sum_log_diag += log(diag_val);
+    }
+    
+    *logdet = 2.0 * sum_log_diag;
+}
+
+void lapack_inv(double *A_doub, long *size)
+{
+    int i, j, n, N, info;
+    double *A;
+    char uplo = 'U';  // LAPACK stores upper or lower Cholesky
+    
+    n = (int) *size;
+    N = n * n;
+    
+    if ((A = (double *) R_alloc(N, sizeof(double))) == NULL)
+        error("no memory available\n");
+    
+    // Copy to column-major layout
+    for (i = 0; i < n; i++)
+        for (j = 0; j < n; j++)
+            A[j + n * i] = A_doub[j + i * n];
+    
+    // Step 1: Cholesky decomposition
+    F77_CALL(dpotrf)(&uplo, &n, A, &n, &info);
+    if (info != 0)
+        error("LAPACK dpotrf failed: matrix not positive definite (info = %d)", info);
+    
+    // Step 2: Compute inverse using Cholesky factor
+    F77_CALL(dpotri)(&uplo, &n, A, &n, &info);
+    if (info != 0)
+        error("LAPACK dpotri failed: inversion failed (info = %d)", info);
+    
+    // Copy upper triangle to full matrix (symmetric)
+    for (i = 0; i < n; i++) {
+        A_doub[(n + 1) * i] = A[(n + 1) * i];  // Diagonal
+        for (j = 0; j < i; j++) {
+            double val = A[j + i * n];           // Upper triangle value
+            A_doub[i + j * n] = A_doub[j + i * n] = val;  // Symmetric
+        }
+    }
+}
+
 // compute inverse and determinant; A_doub is changed
 void linpack_inv_det(double *A_doub, long *size, double *logdet)
 {
