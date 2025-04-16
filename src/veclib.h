@@ -1,13 +1,19 @@
 #ifndef ___VECLIB_H
 #define ___VECLIB_H
 
+#define USE_FC_LEN_T
+
 #include <math.h>						// powf, ...
 #include <R.h>
 #include <Rdefines.h>				
 #include "memory.h"					// malloc; free 
+//#include <R_ext/RS.h>       // Needed for F77_CALL macro 
 #include <R_ext/Lapack.h>	// inverse; choleski; determinant
 #include "Rmath.h"					// random numbers; distributions
 
+#ifndef FCONE
+# define FCONE
+#endif
 
 // fast copy of array X to array res, type double
 void copy(double *X, double *res, long n)
@@ -138,33 +144,33 @@ void trans(double *X, double *res, long k, long m)
 
 void lapack_det(double *A_doub, long *size, double *logdet)
 {
-    int i, j, n, N, info;
-    double *A;
-    char uplo = 'U';  // or 'L'
+    int i, j;
+    int n = (int) *size;
+    int lda = (int) *size;
+    int N = n * lda;
+    int info;
+    char uplo = 'U';  // Use upper triangle
     
-    n = (int) *size;
-    N = n * n;
+    double *A = (double *) R_alloc(N, sizeof(double));
+    if (A == NULL) error("no memory available\n");
     
-    if ((A = (double *) R_alloc(N, sizeof(double))) == NULL)
-        error("no memory available\n");
-    
-    // Transpose A_doub to column-major order for Fortran
+    // Copy matrix to Fortran column-major format
     for (i = 0; i < n; i++)
-        for (j = 0; j < n; j++)
+        for (j = 0; j < lda; j++)
             A[j + n * i] = A_doub[j + i * n];
     
-    // Cholesky decomposition
-    F77_CALL(dpotrf)(&uplo, &n, A, &n, &info);
     
+    // Cholesky factorization
+    F77_CALL(dpotrf)(&uplo, &n, A, &lda, &info FCONE);
     if (info != 0)
         error("LAPACK dpotrf failed: matrix is not positive definite (info = %d)", info);
     
-    // Compute log(det(A)) = 2 * sum(log(diag(L))) (or U, depending on 'uplo')
+    // Compute log determinant = 2 * sum(log(diagonal elements))
     double sum_log_diag = 0.0;
     for (i = 0; i < n; i++) {
-        double diag_val = A[i + i * n];  // A[i, i]
+        double diag_val = A[i + i * n];
         if (diag_val <= 0.0)
-            error("Non-positive diagonal element encountered in Cholesky factor");
+            error("Non-positive diagonal in Cholesky factor.");
         sum_log_diag += log(diag_val);
     }
     
@@ -189,12 +195,12 @@ void lapack_inv(double *A_doub, long *size)
             A[j + n * i] = A_doub[j + i * n];
     
     // Step 1: Cholesky decomposition
-    F77_CALL(dpotrf)(&uplo, &n, A, &n, &info);
+    F77_CALL(dpotrf)(&uplo, &n, A, &n, &info FCONE);
     if (info != 0)
         error("LAPACK dpotrf failed: matrix not positive definite (info = %d)", info);
     
     // Step 2: Compute inverse using Cholesky factor
-    F77_CALL(dpotri)(&uplo, &n, A, &n, &info);
+    F77_CALL(dpotri)(&uplo, &n, A, &n, &info FCONE);
     if (info != 0)
         error("LAPACK dpotri failed: inversion failed (info = %d)", info);
     
