@@ -106,7 +106,7 @@
 #' Heinze G, Ploner M (2004). Technical Report 2/2004: A SAS-macro, S-PLUS library and 
 #' R package to perform logistic regression without convergence problems. Section of Clinical Biometrics, Department of 
 #' Medical Computer Sciences, Medical University of Vienna, Vienna, Austria. 
-#' \url{http://www.meduniwien.ac.at/user/georg.heinze/techreps/tr2_2004.pdf}
+#' \url{https://github.com/georgheinze/flicflac/blob/master/Ressources/tr2_2004.pdf}
 #' 
 #' Heinze G (2006). A comparative investigation of methods for logistic regression
 #' with separated or nearly separated data. \emph{Statistics in Medicine} 25: 4216-4226.

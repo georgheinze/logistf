@@ -15,7 +15,7 @@
 #' \item{vis}{use of spermicide}
 #' }
 #' 
-#' @source <https://www.cytel.com/>
+#' @source <https://cytel.com/>
 #' 
 #' @references Cytel Inc., (2010) LogXact 9 user manual, Cambridge, MA:Cytel Inc
 "sex2"
@@ -39,7 +39,7 @@
 #' \item{vis}{use of spermicide}
 #' }
 #' 
-#' @source <https://www.cytel.com/>
+#' @source <https://cytel.com/>
 #' 
 #' @references Cytel Inc., (2010) LogXact 9 user manual, Cambridge, MA:Cytel Inc
 "sexagg"
