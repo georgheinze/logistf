@@ -1,6 +1,6 @@
 Package: logistf
-Version: 1.26.0
-Date: 2023-08-18
+Version: 1.26.1
+Date: 2024-04-16
 Title: Firth's Bias-Reduced Logistic Regression
 Authors@R: c(person("Georg", "Heinze", role=c("aut", "cre"), email="georg.heinze@meduniwien.ac.at"),
 			 person("Meinhard", "Ploner", role=c("aut")),
@@ -17,7 +17,7 @@ Description: Fit a logistic regression model using Firth's bias reduction method
 	maximum likelihood logistic regression is obtained. Two new modifications of Firth's method, FLIC and FLAC, lead to unbiased predictions and are now available
 	in the package as well, see Puhr et al (2017) <doi:10.1002/sim.7273>.
 License: GPL
-URL: https://cemsiis.meduniwien.ac.at/en/kb/science-research/software/statistical-software/firth-correction/
+URL: https://github.com/georgheinze/logistf
 LazyLoad: yes
 NeedsCompilation: yes
 RoxygenNote: 7.2.2

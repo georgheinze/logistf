@@ -1,3 +1,8 @@
+# logistf 1.26.1
+
+* LINPACK routines replaced by LAPACK routines
+
+
 # logistf 1.26.0
 
 * `forward()` and `backward()` now require the dataset as an argument.
