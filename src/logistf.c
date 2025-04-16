@@ -85,12 +85,12 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
   //-- Calculation of XWX
   XtXasy(xw2t, fisher_cov, n, k);
   //-- Invert:
-  linpack_det(fisher_cov, &k, &logdet);
+  lapack_det(fisher_cov, &k, &logdet);
   if (logdet < (-200)) {	
     error("In iteration %d: Determinant of Fisher information matrix was numerically 0", *iter);
   }
   else {
-    linpack_inv(fisher_cov, &k); 
+    lapack_inv(fisher_cov, &k); 
   }
   //-- Calculation of X W^(1/2) (X^TWX)^(-1)
   XtY(xw2, fisher_cov, tmp, k, n, k);
@@ -163,7 +163,7 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         //---- W^(1/2)^T X^T
         trans(xw2_reduced_augmented, xw2_reduced_augmented_t, ncolfit, n); 
         XtXasy(xw2_reduced_augmented_t, fisher_cov_reduced_augmented, n, ncolfit);
-        linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
+        lapack_inv(fisher_cov_reduced_augmented, &ncolfit);
         
         //---- Remapping of fisher_cov_(reduced)_augmented
         for(i = 0; i < k*k; i++) { //Initialisation:
@@ -215,8 +215,8 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         //-- Calculation of XWX
         XtXasy(xw2t, fisher_cov, n, k);
         //-- Invert:
-        linpack_det(fisher_cov, &k, &logdet);
-        linpack_inv(fisher_cov, &k); 
+        lapack_det(fisher_cov, &k, &logdet);
+        lapack_inv(fisher_cov, &k); 
         //-- Calculation of X^T W^(1/2) (X^TWX)^(-1)
         XtY(xw2, fisher_cov, tmp, k, n, k);
         XYdiag(tmp, xw2, Hdiag, n, k);
@@ -286,12 +286,12 @@ void logistffit_revised(double *x, int *y, int *n_l, int *k_l,
         //-- Calculation of XWX
         XtXasy(xw2t, fisher_cov, n, k);
         //-- Invert:
-        linpack_det(fisher_cov, &k, &logdet);
+        lapack_det(fisher_cov, &k, &logdet);
         if (logdet < (-200)) {	
           error("In iteration %d: Determinant of Fisher information matrix was numerically 0", *iter);
         }
         else {
-          linpack_inv(fisher_cov, &k); 
+          lapack_inv(fisher_cov, &k); 
         }
         //-- Calculation of X^T W^(1/2) (X^TWX)^(-1)
         XtY(xw2, fisher_cov, tmp, k, n, k);
@@ -452,12 +452,12 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
 	//Calculation of Hat diag:
 	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
 	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
-	linpack_det(fisher_cov, &k, &logdet);
+	lapack_det(fisher_cov, &k, &logdet);
     if (logdet < (-200)) {	
         error("In iteration %d: Determinant of Fisher information matrix was numerically 0", *iter);
     }
     else {
-        linpack_inv(fisher_cov, &k); 
+        lapack_inv(fisher_cov, &k); 
     }
 	XtY(xw2, fisher_cov, tmpNxK, k, n, k);
 	XYdiag(tmpNxK, xw2, Hdiag, n, k);
@@ -517,11 +517,11 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
       //---- W^(1/2)^T X^T
       trans(xw2_reduced_augmented, xw2t_reduced_augmented, ncolfit, n); 
       XtXasy(xw2t_reduced_augmented, fisher_cov_reduced_augmented, n, ncolfit);
-      linpack_det(fisher_cov_reduced_augmented, &ncolfit, &logdet);
+      lapack_det(fisher_cov_reduced_augmented, &ncolfit, &logdet);
       if (logdet < (-200)) {	
         error("In iteration %d: Determinant of Fisher information matrix was numerically 0", *iter);
       }
-      linpack_inv(fisher_cov_reduced_augmented, &ncolfit);
+      lapack_inv(fisher_cov_reduced_augmented, &ncolfit);
   
       	
       //(-X^TWX)^(-1)X^TW
@@ -554,11 +554,11 @@ void logistffit_IRLS(double *x, int *y, int *n_l, int *k_l,
     	//Calculation of Hat diag:
     	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
     	XtXasy(xw2t, fisher_cov, n, k); //X^TWX
-    	linpack_det(fisher_cov, &k, &logdet);
+    	lapack_det(fisher_cov, &k, &logdet);
         if (logdet < (-200)) {	
             error("In iteration %d: Determinant of Fisher information matrix was numerically 0", *iter);
         }
-        linpack_inv(fisher_cov, &k);
+        lapack_inv(fisher_cov, &k);
     	
     	XtY(xw2, fisher_cov, tmpNxK, k, n, k);
     	XYdiag(tmpNxK, xw2, Hdiag, n, k);
@@ -707,11 +707,11 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
 	//Calculation of Hat diag:
 	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
 	XtXasy(xw2t, fisher, n, k); //X^TWX
-	linpack_det(fisher, &k, &logdet);
+	lapack_det(fisher, &k, &logdet);
     if (logdet < (-200)) {	
         error("In iteration %d: Determinant of Fisher information matrix was numerically 0", *iter);
     } else {
-        linpack_inv(fisher, &k); 
+        lapack_inv(fisher, &k); 
     }
 	XtY(xw2, fisher, tmpNxK, k, n, k);
 	XYdiag(tmpNxK, xw2, Hdiag, n, k);
@@ -752,11 +752,11 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
     //---- W^(1/2)^T X^T
     trans(xw2_augmented, xw2t_augmented, k, n);
 	XtXasy(xw2t_augmented, fisher_augmented, n, k);
-    linpack_det(fisher_augmented, &k, &logdet);
+    lapack_det(fisher_augmented, &k, &logdet);
     if (logdet < (-200)) {	
         error("In iteration %d: Determinant of Fisher information matrix was numerically 0", *iter);
     }
-    linpack_inv(fisher_augmented, &k);
+    lapack_inv(fisher_augmented, &k);
 
 	*iter = 0;
 	for(;;) {
@@ -820,12 +820,12 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
         	//Calculation of Hat diag:
         	trans(xw2, xw2t, k, n); //W^(1/2)^TX^T
         	XtXasy(xw2t, fisher, n, k); //X^TWX
-        	linpack_det(fisher, &k, &logdet);
+        	lapack_det(fisher, &k, &logdet);
             if (logdet < (-200)) {
                 error("In iteration %d: Determinant of Fisher information matrix was numerically 0", *iter);
             }
             else {
-                linpack_inv(fisher, &k); 
+                lapack_inv(fisher, &k); 
             }
         	XtY(xw2, fisher, tmpNxK, k, n, k);
         	XYdiag(tmpNxK, xw2, Hdiag, n, k);
@@ -870,11 +870,11 @@ void logistplfit(double *x, int *y, int *n_l, int *k_l,
             //---- W^(1/2)^T X^T
             trans(xw2_augmented, xw2t_augmented, k, n);
         	XtXasy(xw2t_augmented, fisher_augmented, n, k);
-            linpack_det(fisher_augmented, &k, &logdet);
+            lapack_det(fisher_augmented, &k, &logdet);
             if (logdet < (-200)) {	
                 error("In iteration %d: Determinant of Fisher information matrix was numerically 0", *iter);
             }
-            linpack_inv(fisher_augmented, &k);
+            lapack_inv(fisher_augmented, &k);
         	
         	halfs++;
 			
